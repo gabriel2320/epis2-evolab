@@ -24,7 +24,7 @@ Flujo de dependencias **unidireccional**. Evolab es un laboratorio externo que t
 | Proceso | `Evolution Orchestrator` — Node.js separado |
 | Datos | PostgreSQL `epis2_evolab` · schema `evolution` |
 | Código | `apps/evolution-lab/` · `apps/evolution-console/` |
-| Dependencias | Solo contratos neutrales + HTTP + Playwright + Ollama |
+| Dependencias externas | EPIS2 sandbox HTTP + `@evolab/demo-fixtures` + Playwright + Ollama |
 
 ---
 
@@ -42,7 +42,7 @@ Flujo de dependencias **unidireccional**. Evolab es un laboratorio externo que t
 
 | Interfaz | Mecanismo | Restricción |
 |----------|-----------|-------------|
-| Fixtures sintéticos | Referencia IDs de `@epis2/test-fixtures` | Solo datos marcados `DEMO/SINTÉTICO` |
+| Fixtures sintéticos | Referencia IDs de `@evolab/demo-fixtures` | Solo datos marcados `DEMO/SINTÉTICO` |
 | Sandbox DB | Conexión read-only o seed autorizado | `databaseMode: sandbox-read-write` solo en local-sandbox |
 | Auditoría | `target.readAuditEvents` vía API | No SQL arbitrario |
 | Logs | Observación externa de stdout/API | Sanitizar secretos |
@@ -61,13 +61,14 @@ Flujo de dependencias **unidireccional**. Evolab es un laboratorio externo que t
 ❌ Producción · staging con datos reales
 ```
 
-### 4.1 Paquetes compartidos permitidos
+### 4.1 Paquetes en epis2-evolab
 
 ```text
-✓ @epis2/contracts       — tipos públicos
-✓ @epis2/test-fixtures   — IDs demo sintéticos
-✓ @epis2/design-system   — copy E2E (opcional, ya usado en e2e/)
+✓ @evolab/demo-fixtures  — IDs demo sintéticos (alineados con seed EPIS2)
+✓ Contratos Zod locales   — apps/evolution-lab/src/contracts/
 ```
+
+EPIS2 clínico **no** depende de paquetes Evolab.
 
 ### 4.2 Paquetes compartidos prohibidos
 
@@ -130,11 +131,11 @@ Comando: `npm run evolab:boundary:validate`
 
 Verifica:
 
-1. `apps/web` y `apps/api` no importan `@epis2/evolution-lab`
+1. `apps/web` y `apps/api` (en `EPIS2_ROOT`) no importan `@evolab/evolution-lab`
 2. `evolution-lab` no importa rutas bajo `apps/api/src` ni `apps/web/src`
-3. Build clínico (`npm run build -w @epis2/web`) no incluye evolution-lab
-4. Scripts `dev:web`, `stack:dev` no referencian evolab
-5. Ausencia de rutas Evolab en router clínico
+3. Repos **epis2** y **epis2-evolab** son independientes (sin workspace compartido)
+4. Scripts `dev:web`, `stack:dev` en EPIS2 no referencian evolab
+5. Ausencia de rutas Evolab en router clínico EPIS2
 
 ---
 
@@ -168,13 +169,13 @@ Si EPIS2 requiere hooks de fault injection (`EPIS2_EVOLAB_FAULT_INJECTION`):
 
 | Gate | Comando |
 |------|---------|
-| Typecheck Evolab | `npm run typecheck -w @epis2/evolution-lab` |
-| Tests Evolab | `npm run test -w @epis2/evolution-lab` |
-| Boundary | `npm run evolab:boundary:validate` |
+| Typecheck Evolab | `npm run typecheck -w @evolab/evolution-lab` |
+| Tests Evolab | `npm run test -w @evolab/evolution-lab` |
+| Boundary | `npm run evolab:boundary:validate` (opcional `$env:EPIS2_ROOT=…`) |
 | Validate completo | `npm run evolab:validate` |
-| Clínico sin Evolab | `npm run check` (sin evolution-lab en build chain inicial) |
+| Clínico sin Evolab | `npm run check` en repo **epis2** (sin Evolab) |
 
-**Nota:** el build raíz (`npm run build`) **no incluirá** evolution-lab hasta opt-in explícito, preservando independencia.
+**Nota:** EPIS2 y Evolab son repos npm separados — no comparten `npm run build` raíz.
 
 ---
 

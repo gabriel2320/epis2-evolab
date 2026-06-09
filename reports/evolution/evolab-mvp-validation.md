@@ -4,7 +4,7 @@
 
 **Fecha:** 2026-06-08  
 
-**Actualizado:** 2026-06-09 — escenario `discharge-critical-pending-001`
+**Actualizado:** 2026-06-09 — repo standalone · escenario `discharge-critical-pending-001`
 
 
 
@@ -20,9 +20,9 @@
 
 |------|-----------|
 
-| `typecheck -w @epis2/evolution-lab` | ✓ |
+| `typecheck -w @evolab/evolution-lab` | ✓ |
 
-| `test -w @epis2/evolution-lab` | ✓ 367+ tests |
+| `test -w @evolab/evolution-lab` | ✓ 383 tests |
 
 | `evolab:boundary:validate` | ✓ |
 

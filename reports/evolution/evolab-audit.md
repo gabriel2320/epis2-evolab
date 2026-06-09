@@ -1,14 +1,16 @@
 # EPIS2 Evolab — Auditoría inicial (FASE 0)
 
 **Fecha:** 2026-06-08  
-**Commit:** `ae41c81` · rama `master`  
+**Commit EPIS2 al auditar:** `ae41c81` · rama `master`  
 **Auditor:** Cursor (arquitecto Evolab)
+
+> **Estado 2026-06-09:** Evolab se implementó y migró al repo standalone [epis2-evolab](https://github.com/gabriel2320/epis2-evolab). EPIS2 ya no contiene `apps/evolution-lab`. Este documento conserva el contexto histórico de la auditoría FASE 0.
 
 ---
 
 ## 1. Resumen ejecutivo
 
-EPIS2 es un monorepo npm workspaces maduro con frontend React (`apps/web`), backend Fastify (`apps/api`), IA local (`services/local-ai`), paquetes clínicos compartidos y una batería extensa de gates de calidad. **No existe aún `apps/evolution-lab` ni scripts `evolab:*`.** La auditoría confirma que el repositorio es apto para alojar Evolab como aplicación externa sin acoplamiento clínico.
+EPIS2 es un monorepo npm workspaces maduro con frontend React (`apps/web`), backend Fastify (`apps/api`), IA local (`services/local-ai`), paquetes clínicos compartidos y una batería extensa de gates de calidad. En el momento de la auditoría **no existía** Evolab en EPIS2; el informe validó que el monorepo clínico era apto para ser target externo. Evolab se construyó después en **epis2-evolab** sin acoplamiento clínico.
 
 ---
 
@@ -23,7 +25,7 @@ EPIS2 es un monorepo npm workspaces maduro con frontend React (`apps/web`), back
 | Test runner | Vitest 3.x (unit/integration) |
 | E2E | Playwright 1.60 (`e2e/`) |
 
-**Workspaces actuales:**
+**Workspaces EPIS2 (target clínico):**
 
 ```text
 apps/*     → web, api
@@ -31,7 +33,12 @@ packages/* → contracts, clinical-domain, design-system, epis2-ui, …
 services/* → local-ai
 ```
 
-**Ausentes (a crear):** `apps/evolution-lab`, `apps/evolution-console`.
+**Evolab (repo epis2-evolab):**
+
+```text
+apps/evolution-lab · apps/evolution-console
+packages/demo-fixtures
+```
 
 ---
 
@@ -74,7 +81,7 @@ services/* → local-ai
 
 **Decisión Evolab:** base de datos separada `epis2_evolab`, esquema `evolution`, misma instancia Docker Postgres (puerto 5433). No mezclar con tablas clínicas.
 
-**Sandbox clínico:** datos demo sintéticos en migraciones `004_seed_synthetic.sql`, `006_demo_five_cases.sql`. Paquete `@epis2/test-fixtures` expone `DEMO_CLINICAL_CASES`, `SYNTHETIC_LABEL`.
+**Sandbox clínico:** datos demo sintéticos en migraciones EPIS2 (`004_seed_synthetic.sql`, `006_demo_five_cases.sql`). Paquete `@evolab/demo-fixtures` en este repo expone `DEMO_CLINICAL_CASES`, `SYNTHETIC_LABEL`.
 
 ---
 
@@ -191,7 +198,7 @@ apps/
     tests/
     package.json
   evolution-console/
-    README.md           placeholder FASE 10
+  evolution-console/    UI read-only (FASE 10)
 
 database/
   evolution/            migraciones epis2_evolab (FASE 2)
@@ -205,24 +212,12 @@ docs/evolution/         arquitectura operativa
 
 ---
 
-## 13. Bloqueos
+## 13. Bloqueos (histórico)
 
-**Ninguno bloqueante** para iniciar FASE 1. FASE 2 requerirá crear DB `epis2_evolab` en Postgres Docker (script de init).
-
----
-
-## 14. Comandos ejecutados en auditoría
-
-```bash
-ollama list
-ollama ps
-Invoke-RestMethod http://127.0.0.1:11434/api/tags
-git rev-parse --abbrev-ref HEAD
-git rev-parse --short HEAD
-```
+Resueltos: FASE 1–10 implementadas en **epis2-evolab**; DB `epis2_evolab` vía `npm run evolab:db:migrate`.
 
 ---
 
-## 15. Próximo paso
+## 15. Próximo paso (histórico → actual)
 
-**FASE 1:** crear `apps/evolution-lab` con CLI, contratos Zod, máquina de estados, guards de seguridad, comando `evolab:doctor` y tests unitarios.
+~~FASE 1: crear `apps/evolution-lab`…~~ **Completado.** Ver `README.md` y `evolab-mvp-validation.md` en este repo.

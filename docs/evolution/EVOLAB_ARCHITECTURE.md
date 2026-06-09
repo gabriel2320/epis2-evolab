@@ -1,8 +1,10 @@
 # EPIS2 Evolab — Arquitectura
 
-Evolab es una aplicación Node.js independiente en `apps/evolution-lab` que examina EPIS2 como **caja negra** (Playwright + HTTP) con observación controlada de sandbox.
+Repositorio **epis2-evolab**: aplicación Node.js en `apps/evolution-lab` que examina EPIS2 como **caja negra** (Playwright + HTTP) con observación controlada de sandbox.
 
-## Componentes (MVP FASE 1)
+Target EPIS2: checkout separado con `npm run stack:dev` (web `:5173`, API `:3001`).
+
+## Componentes
 
 | Módulo | Responsabilidad |
 |--------|-----------------|
@@ -10,6 +12,10 @@ Evolab es una aplicación Node.js independiente en `apps/evolution-lab` que exam
 | `state-machine/` | Transiciones autorizadas |
 | `security/` | Guards pre-ejecución |
 | `ollama/` | Registry, router, cola, JSON estructurado |
+| `plan-executor/` | Ejecución de planes LLM (FASE 9) |
+| `simulated-user/` | Agente LLM estructurado (FASE 8) |
+| `persistence/` | PostgreSQL `epis2_evolab` |
+| `console/` | Read-model para Evolution Console |
 | `contracts/` | Schemas Zod |
 | `scenarios/` | DSL YAML declarativo |
 | `findings/` | Fingerprints deterministas |
@@ -20,11 +26,9 @@ Evolab es una aplicación Node.js independiente en `apps/evolution-lab` que exam
 PREPARE → SEED → ACT → OBSERVE → EVALUATE → REPRODUCE → … → HUMAN_REVIEW → COMPLETE
 ```
 
-El orquestador controla transiciones; los agentes LLM no deciden el estado.
-
 ## Proceso separado
 
-Evolab **no** corre dentro de `apps/api`. Se invoca vía `npm run evolab:*` o `tsx apps/evolution-lab/src/cli.ts`.
+Evolab **no** corre dentro de `apps/api` de EPIS2. Se invoca vía `npm run evolab:*` en **este repo**.
 
 ## Target Environment
 
