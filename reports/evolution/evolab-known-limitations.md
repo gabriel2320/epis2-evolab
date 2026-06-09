@@ -4,14 +4,19 @@
 
 ## Pendiente (por diseño)
 
-| Capacidad | Estado | Notas |
-|-----------|--------|-------|
-| Fault injection | No implementado | `EPIS2_EVOLAB_FAULT_INJECTION` |
-| Test candidates (Ollama) | No implementado | — |
-| Patch candidates | Desactivado | `EPIS2_EVOLAB_PATCHING_ENABLED=false` |
-| Review desde consola UI | No implementado | CLI `evolab:review` |
-| LLM loop run completo | Parcial | Plan + execute piloto (`llm-command-evolution-001`) |
-| Escenarios 100% plan-driven | Parcial | Solo escenario piloto |
+Ver plan detallado: [docs/evolution/EVOLAB_ROADMAP.md](../../docs/evolution/EVOLAB_ROADMAP.md) (FASE 11–15).
+
+| Capacidad | Estado | Fase roadmap |
+|-----------|--------|--------------|
+| Batch paralelo / evidencia minimal | No implementado | 11 |
+| CI smoke + run queue | No implementado | 12 |
+| Fault injection | No implementado | 13 |
+| Test candidates (Ollama) | No implementado | 15 |
+| Patch candidates | Desactivado | 15 |
+| Review desde consola UI | No implementado | 15 |
+| LLM loop run completo | Parcial | 13 |
+| Escenarios 100% plan-driven | Parcial | 13 |
+| Catálogo tramo C / journeys | No implementado | 14 |
 
 ## Implementado (referencia)
 

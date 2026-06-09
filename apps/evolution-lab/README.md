@@ -60,9 +60,10 @@ Evolution Orchestrator (proceso Node independiente)
 
 ## Documentación
 
-- `docs/evolution/EVOLAB_ARCHITECTURE.md`
-- `docs/evolution/EVOLAB_BOUNDARIES.md`
-- `reports/evolution/evolab-mvp-validation.md`
+- [docs/evolution/EVOLAB_ROADMAP.md](../../docs/evolution/EVOLAB_ROADMAP.md) — plan de mejora FASE 11–15
+- [docs/evolution/EVOLAB_ARCHITECTURE.md](../../docs/evolution/EVOLAB_ARCHITECTURE.md)
+- [docs/evolution/EVOLAB_BOUNDARIES.md](../../docs/evolution/EVOLAB_BOUNDARIES.md)
+- [reports/evolution/evolab-mvp-validation.md](../../reports/evolution/evolab-mvp-validation.md)
 
 ## Fases (estado)
 
@@ -71,4 +72,4 @@ Evolution Orchestrator (proceso Node independiente)
 - [x] FASE 7 — Replay, regenerate, backfill, review
 - [x] FASE 8–9 — Simulated user + PlanExecutor
 - [x] FASE 10 — Evolution Console (read-only)
-- [ ] Fault injection · patch candidates · LLM loop completo
+- [ ] FASE 11–15 — Ver [EVOLAB_ROADMAP.md](../../docs/evolution/EVOLAB_ROADMAP.md)
