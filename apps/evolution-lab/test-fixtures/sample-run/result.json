@@ -1,0 +1,109 @@
+{
+  "runId": "aafd3e1d-687f-4ca0-a67f-98de404b4a7f",
+  "finalStatus": "human_review",
+  "completedAt": "2026-06-09T01:50:01.888Z",
+  "observations": [
+    {
+      "kind": "target_health",
+      "label": "api_health",
+      "payload": {
+        "ok": true,
+        "status": 200,
+        "latencyMs": 11,
+        "body": {
+          "status": "ok",
+          "service": "epis2-api",
+          "version": "0.1.0",
+          "timestamp": "2026-06-09T01:49:49.121Z",
+          "checks": {
+            "database": "skipped"
+          }
+        }
+      }
+    },
+    {
+      "kind": "fixture_prep",
+      "label": "sandbox_fixture",
+      "payload": {
+        "ok": true,
+        "message": "Crítico f0000004-0000-4000-8000-000000000002 sin acuse"
+      }
+    },
+    {
+      "kind": "session",
+      "label": "login_physician",
+      "payload": {
+        "username": "medico.demo",
+        "role": "physician",
+        "synthetic": true
+      }
+    },
+    {
+      "kind": "sandbox_critical",
+      "label": "unacknowledged_criticals",
+      "payload": {
+        "hasUnacknowledgedCritical": true,
+        "count": 1,
+        "criticalIds": [
+          "f0000004-0000-4000-8000-000000000002"
+        ],
+        "labels": [
+          "PCR"
+        ]
+      }
+    },
+    {
+      "kind": "clinical_alerts_api",
+      "label": "discharge_alerts",
+      "payload": {
+        "status": 200,
+        "alertCount": 0,
+        "alerts": []
+      }
+    },
+    {
+      "kind": "api_response",
+      "label": "discharge_draft_create",
+      "payload": {
+        "status": 201,
+        "ok": true,
+        "draftId": "a3ae68b6-b5c5-4b19-984c-c8c3273ae982"
+      }
+    },
+    {
+      "kind": "dom_state",
+      "label": "discharge_form",
+      "payload": {
+        "formVisible": false,
+        "clinicalAlertsPanelVisible": false,
+        "criticalAlertVisible": false,
+        "signDisabled": true,
+        "browserProbe": true,
+        "url": "http://127.0.0.1:5173/espacio/epicrisis?patientId=a0000001-0000-4000-8000-000000000004"
+      }
+    },
+    {
+      "kind": "api_response",
+      "label": "discharge_approve_attempt",
+      "payload": {
+        "status": 200,
+        "ok": true,
+        "draftId": "a3ae68b6-b5c5-4b19-984c-c8c3273ae982"
+      }
+    },
+    {
+      "kind": "sandbox_critical",
+      "label": "after_discharge_attempt",
+      "payload": {
+        "hasUnacknowledgedCritical": true,
+        "count": 1,
+        "criticalIds": [
+          "f0000004-0000-4000-8000-000000000002"
+        ],
+        "labels": [
+          "PCR"
+        ]
+      }
+    }
+  ]
+}

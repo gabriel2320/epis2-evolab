@@ -1,0 +1,41 @@
+id: llm-command-evolution-001
+version: 1
+name: LLM — evolución vía Centro de Comando
+description: Plan LLM fija paciente DEMO-001 y abre evolución por comando natural
+risk: low
+execution: plan
+
+target:
+  capabilities:
+    - command_center
+    - evolution_note
+
+persona:
+  role: physician
+  experience: intermediate
+
+fixture:
+  demoCaseCode: DEMO-001
+
+goal:
+  action: open_evolution_via_command
+
+steps:
+  - pin_demo_patient
+  - resolve_evolution_command
+  - open_evolution_route
+  - verify_evolution_form
+
+expected:
+  commandResolved: true
+  evolutionFormVisible: true
+
+evaluators:
+  - plan_fidelity
+  - command_resolve
+
+timeoutMs: 120000
+maxAttempts: 2
+tags:
+  - llm_driven
+  - command_center

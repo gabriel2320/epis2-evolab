@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EPIS2 Evolution Console</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">EV</span>
+        <div>
+          <strong>Evolution Console</strong>
+          <small>Laboratorio · read-only</small>
+        </div>
+      </div>
+      <nav id="nav">
+        <a href="#/" data-route="/">Dashboard</a>
+        <a href="#/runs" data-route="/runs">Runs</a>
+        <a href="#/findings" data-route="/findings">Hallazgos</a>
+        <a href="#/queue" data-route="/queue">Cola review</a>
+      </nav>
+      <footer class="sidebar-foot">
+        <span id="db-status" class="pill pill-warn">DB …</span>
+      </footer>
+    </aside>
+    <main id="main" class="main"></main>
+  </div>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

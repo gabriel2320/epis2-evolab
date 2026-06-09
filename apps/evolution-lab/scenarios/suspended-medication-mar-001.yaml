@@ -1,0 +1,49 @@
+id: suspended-medication-mar-001
+version: 1
+name: MAR — medicamento suspendido no administrable
+description: Enfermería no debe registrar administración de medicamento suspendido
+risk: high
+
+target:
+  capabilities:
+    - mar
+    - nursing
+    - medication_administration
+
+persona:
+  role: nurse
+  experience: intermediate
+
+fixture:
+  type: synthetic-mar-suspended
+  demoCaseCode: DEMO-005
+  marDoseId: f1000001-0000-4000-8000-000000000001
+  medicationHint: Warfarina
+  medicationStatus: suspended
+  marDoseHeld: true
+
+goal:
+  action: register_mar_administration
+
+steps:
+  - login_nurse
+  - open_patient
+  - open_nursing_mar
+  - attempt_register_suspended_medication
+
+expected:
+  administrationBlocked: true
+  warningVisible: true
+  auditEventCreated: true
+
+evaluators:
+  - functional
+  - mar_safety
+  - audit
+
+timeoutMs: 90000
+maxAttempts: 3
+tags:
+  - mar
+  - medication
+  - nursing

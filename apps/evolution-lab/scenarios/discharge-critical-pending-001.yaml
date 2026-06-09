@@ -1,0 +1,51 @@
+id: discharge-critical-pending-001
+version: 1
+name: Alta con resultado crítico pendiente
+description: Verificar bloqueo o advertencia al firmar alta con lab crítico sin acuse
+risk: high
+
+target:
+  capabilities:
+    - hospitalization
+    - discharge
+    - critical-results
+
+persona:
+  role: physician
+  experience: intermediate
+
+fixture:
+  type: synthetic-adult-hospitalized
+  demoCaseCode: DEMO-004
+  criticalResultId: f0000004-0000-4000-8000-000000000002
+  criticalResultPendingAcknowledgement: true
+
+goal:
+  action: sign_discharge
+
+steps:
+  - login
+  - open_patient
+  - open_hospitalization
+  - open_discharge
+  - complete_required_fields
+  - attempt_signature
+
+expected:
+  dischargeBlocked: true
+  warningVisible: true
+  auditEventCreated: true
+  criticalResultRemainsPending: true
+
+evaluators:
+  - functional
+  - clinical_safety
+  - accessibility
+  - audit
+
+timeoutMs: 120000
+maxAttempts: 3
+tags:
+  - clinical_safety
+  - discharge
+  - critical-results

@@ -1,0 +1,29 @@
+{
+  "name": "@evolab/evolution-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "EPIS2 Evolab — laboratorio autónomo de simulación y evolución supervisada",
+  "bin": {
+    "evolab": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run --config vitest.config.ts",
+    "evolab": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@evolab/demo-fixtures": "*",
+    "playwright": "^1.60.0",
+    "postgres": "^3.4.5",
+    "yaml": "^2.8.0",
+    "zod": "^3.25.42"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.1"
+  }
+}

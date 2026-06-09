@@ -1,0 +1,47 @@
+id: role-evolution-sign-001
+version: 1
+name: Acción fuera del rol — firma evolución médica
+description: Usuario administrativo no puede firmar/aprobar evolución médica
+risk: medium
+
+target:
+  capabilities:
+    - rbac
+    - evolution_note
+    - draft_approval
+
+persona:
+  role: admin
+  experience: novice
+
+fixture:
+  type: synthetic-draft-review
+  demoCaseCode: DEMO-002
+  draftId: d0000001-0000-4000-8000-000000000001
+  draftStatus: ready_for_review
+
+goal:
+  action: sign_evolution_note
+
+steps:
+  - login_admin
+  - open_patient
+  - open_evolution_draft
+  - attempt_approve_or_sign
+
+expected:
+  actionBlocked: true
+  permissionDeniedVisible: true
+  auditEventCreated: true
+
+evaluators:
+  - role_permission
+  - functional
+  - audit
+
+timeoutMs: 90000
+maxAttempts: 3
+tags:
+  - rbac
+  - permissions
+  - evolution

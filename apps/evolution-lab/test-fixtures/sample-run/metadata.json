@@ -1,0 +1,16 @@
+{
+  "runId": "aafd3e1d-687f-4ca0-a67f-98de404b4a7f",
+  "scenarioId": "discharge-critical-pending-001",
+  "scenarioVersion": 1,
+  "targetEnvironmentId": "epis2-local-sandbox",
+  "personaId": "physician-intermediate",
+  "randomSeed": "cea2c1ac-f28a-4e18-b5dd-450beadbe543",
+  "modelName": "qwen3:8b",
+  "startedAt": "2026-06-09T01:49:49.112Z",
+  "configuration": {
+    "llmConcurrency": 1,
+    "browserConcurrency": 1
+  },
+  "synthetic": true,
+  "source": "epis2_evolab"
+}

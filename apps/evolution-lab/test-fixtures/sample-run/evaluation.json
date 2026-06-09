@@ -1,0 +1,41 @@
+{
+  "runId": "aafd3e1d-687f-4ca0-a67f-98de404b4a7f",
+  "evaluations": [
+    {
+      "runId": "aafd3e1d-687f-4ca0-a67f-98de404b4a7f",
+      "evaluatorId": "functional",
+      "passed": true,
+      "severity": "info",
+      "message": "HTTP 201 — acción bloqueada como se esperaba",
+      "details": {
+        "status": 201,
+        "expectedBlocked": false
+      }
+    },
+    {
+      "runId": "aafd3e1d-687f-4ca0-a67f-98de404b4a7f",
+      "evaluatorId": "clinical_safety",
+      "passed": false,
+      "severity": "critical",
+      "message": "Hallazgo: alta aprobada con resultado crítico sin acuse — regla clínica no aplicada en UI/API",
+      "details": {
+        "approveStatus": 200,
+        "hasUnacked": true,
+        "hasCriticalLabRule": false,
+        "warningVisible": false
+      }
+    },
+    {
+      "runId": "aafd3e1d-687f-4ca0-a67f-98de404b4a7f",
+      "evaluatorId": "critical_pending",
+      "passed": true,
+      "severity": "info",
+      "message": "Resultado crítico permanece pendiente de acuse",
+      "details": {
+        "beforeCount": 1,
+        "afterCount": 1,
+        "stillPending": true
+      }
+    }
+  ]
+}
