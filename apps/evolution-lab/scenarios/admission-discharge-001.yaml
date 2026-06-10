@@ -1,0 +1,126 @@
+id: admission-discharge-001
+version: 1
+name: Journey — admisión a alta hospitalaria completa
+description: >-
+  Journey multi-paso con state carry: asegurar paciente sin admisión, buscar cama libre,
+  admitir, epicrisis aprobada y alta — verificando auditoría completa del ciclo.
+risk: high
+target:
+  capabilities:
+    - inpatient
+    - admission
+    - discharge
+    - census
+
+persona:
+  role: physician
+  experience: intermediate
+
+fixture:
+  type: synthetic-journey
+  demoCaseCode: DEMO-001
+  unitCode: CIRUGIA-DEMO
+
+goal:
+  action: complete_admission_discharge_journey
+
+steps:
+  - login
+  - ensure_patient_not_admitted
+  - find_available_bed
+  - admit_patient
+  - census_after_admission
+  - create_discharge_summary
+  - approve_discharge_summary
+  - discharge_admission
+  - census_after_discharge
+
+flow:
+  - login:
+      label: login_physician
+  - custom:
+      name: ensure_patient_not_admitted
+      args: { label: ensure_not_admitted, unit: CIRUGIA-DEMO }
+  - custom:
+      name: find_available_bed
+      args: { label: available_bed, unit: CIRUGIA-DEMO }
+  - api:
+      label: admission_create
+      evidenceLabel: admission-create
+      method: POST
+      path: /api/inpatient/admissions
+      body:
+        patientId: '{patientId}'
+        bedId: '{bedId}'
+        unitCode: CIRUGIA-DEMO
+      capture:
+        admissionId: admission.id
+      failOnMissingCapture: 'No se pudo admitir al paciente (HTTP {status})'
+      observe:
+        payload: [status, ok, admissionId]
+  - custom:
+      name: census_snapshot
+      args: { label: census_after_admission, unit: CIRUGIA-DEMO }
+  - api:
+      label: journey_draft_create
+      evidenceLabel: journey-draft-create
+      method: POST
+      path: /api/drafts
+      body:
+        patientId: '{patientId}'
+        encounterId: '{encounterId}'
+        draftType: discharge_summary
+        title: 'Epicrisis journey — Evolab sintético'
+        body:
+          diagnoses: 'Journey demo Evolab — observación (sintético)'
+          dischargeDate: '{today}'
+          hospitalizationSummary: 'Evolución favorable — journey sintético'
+          dischargeMedications: 'Losartán 50 mg/día (demo)'
+          instructions: 'Control ambulatorio en 7 días (demo)'
+          followUpPlan: 'Control medicina interna en 7 días'
+      capture:
+        draftId: draft.id
+      failOnMissingCapture: 'No se pudo crear epicrisis del journey (HTTP {status})'
+      observe:
+        payload: [status, ok, draftId]
+  - api:
+      label: journey_draft_approve
+      evidenceLabel: journey-draft-approve
+      method: POST
+      path: '/api/drafts/{draftId}/approve'
+      observe:
+        payload: [status, ok, draftId]
+  - api:
+      label: admission_discharge
+      evidenceLabel: admission-discharge
+      method: POST
+      path: '/api/inpatient/admissions/{admissionId}/discharge'
+      observe:
+        payload: [status, ok, admissionId]
+  - custom:
+      name: census_snapshot
+      args: { label: census_after_discharge, unit: CIRUGIA-DEMO }
+
+expected:
+  actionBlocked: false
+  auditEventCreated: true
+  auditMustInclude:
+    - auth.login.success
+    - inpatient.admitted
+    - clinical.draft.created
+    - clinical.draft.approved
+    - inpatient.discharged
+
+evaluators:
+  - functional
+  - audit
+  - audit_completeness
+
+actionObservation: admission_discharge
+
+timeoutMs: 120000
+maxAttempts: 2
+tags:
+  - journey
+  - admission
+  - discharge

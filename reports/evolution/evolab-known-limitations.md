@@ -14,8 +14,8 @@ Ver plan detallado: [docs/evolution/EVOLAB_ROADMAP.md](../../docs/evolution/EVOL
 | Doctor preflight + reset fixtures | ✅ Implementado (`--strict`, `--reset-fixtures`, preflight en `run`) | Sprint 3 |
 | CI smoke + evidencia minimal | ✅ Implementado (`evolab:smoke`, `--evidence minimal`, job GHA con sibling checkout — requiere secret `EPIS2_CHECKOUT_TOKEN`; `continue-on-error` hasta observarlo verde) | Sprint 4 |
 | Evaluador CDR / audit completeness | ✅ Implementado (`cdr_consistency`, `audit_completeness` en discharge + MAR) | Sprint 5 |
-| Journeys multi-paso | No implementado | Sprint 6 |
-| LLM loop run completo / replan | Parcial | Sprint 6 (condicionado) |
+| Journeys multi-paso | ✅ Implementado (`admission-discharge-001`: YAML encadenado con state carry, pasos idempotentes) | Sprint 6 |
+| LLM loop run completo / replan | Diferido con disparador: activar solo cuando existan runs hybrid (`llmSimMode≠off`) con métricas `plan_fidelity` que justifiquen el replan; la métrica ya se persiste vía evaluaciones | Sprint 6 (condicionado) |
 | Batch paralelo / run queue | Diferido | §4 roadmap (con disparador) |
 | Fault injection | Diferido | §4 roadmap |
 | Test/patch candidates (Ollama) | Diferido / desactivado | §4 roadmap |
@@ -53,6 +53,7 @@ Ver plan detallado: [docs/evolution/EVOLAB_ROADMAP.md](../../docs/evolution/EVOL
 | `role-nurse-approve-001` | Verificar contra sandbox vivo: 403 `draft.approve` para nurse |
 | `draft-lifecycle-cancelled-001` | Verificar contra sandbox vivo: 409 al aprobar borrador cancelado |
 | `census-service-integrity-001` | Verificar contra sandbox vivo: censo CIRUGIA-DEMO coherente |
+| `admission-discharge-001` | Verificar journey completo contra sandbox vivo (admisión → epicrisis → alta) y validar en human_review |
 
 ## Dependencias externas
 

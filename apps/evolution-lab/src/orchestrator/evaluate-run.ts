@@ -43,3 +43,20 @@ export function evaluateRun(input: {
 
   return { evaluations, findings, passed: allPassed(evaluations) };
 }
+
+/**
+ * Estado final del run:
+ * - falla → human_review (con aprobación humana requerida) o failed
+ * - pasa pero el escenario es un journey que muta SoT → human_review por diseño
+ * - pasa → completed
+ */
+export function resolveFinalStatus(input: {
+  passed: boolean;
+  requireHumanApproval: boolean;
+  scenarioRequiresHumanReview: boolean;
+}): 'completed' | 'human_review' | 'failed' {
+  if (!input.passed) {
+    return input.requireHumanApproval ? 'human_review' : 'failed';
+  }
+  return input.scenarioRequiresHumanReview ? 'human_review' : 'completed';
+}

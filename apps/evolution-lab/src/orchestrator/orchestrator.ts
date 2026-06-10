@@ -14,7 +14,7 @@ import { isPlanDrivenScenario } from '../plan-executor/path-resolver.js';
 import { resolveDemoPersona } from '../resources/demo-users.js';
 import { captureAuditTrail } from './audit-capture.js';
 import { buildRun } from './build-run.js';
-import { evaluateRun } from './evaluate-run.js';
+import { evaluateRun, resolveFinalStatus } from './evaluate-run.js';
 import { orchestratorFailureEvaluation, persistRun } from './persist-run.js';
 import { createRunBrowser, runFixturePhase, runPlanPhase } from './run-phases.js';
 
@@ -208,13 +208,16 @@ export class EvolutionOrchestrator {
         observations: bundle.observations as ScenarioObservation[],
       });
 
-      if (passed) {
+      const finalStatus = resolveFinalStatus({
+        passed,
+        requireHumanApproval: this.config.requireHumanApproval,
+        scenarioRequiresHumanReview: scenario.requiresHumanReview === true,
+      });
+      if (finalStatus === 'completed') {
         status = transition(status, 'passed');
         status = transition(status, 'completed');
-      } else if (this.config.requireHumanApproval) {
-        status = transition(status, 'human_review');
       } else {
-        status = transition(status, 'failed');
+        status = transition(status, finalStatus);
       }
       run.status = status;
       run.completedAt = new Date().toISOString();

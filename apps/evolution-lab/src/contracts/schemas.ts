@@ -84,6 +84,8 @@ export const ScenarioDefinitionSchema = z.object({
   evaluators: z.array(z.string()),
   /** Label de la observación api_response que representa la acción evaluada (desacopla evaluadores). */
   actionObservation: z.string().min(1).optional(),
+  /** Journeys que mutan SoT sandbox: aun pasando evaluadores, el run queda en human_review. */
+  requiresHumanReview: z.boolean().optional(),
   timeoutMs: z.number().int().positive().optional(),
   maxAttempts: z.number().int().positive().optional(),
   tags: z.array(z.string()).optional(),

@@ -149,6 +149,8 @@ describe('step-engine', () => {
       'census_snapshot',
       'discharge_alerts',
       'discharge_ui_probe',
+      'ensure_patient_not_admitted',
+      'find_available_bed',
       'mar_alerts',
       'mar_create_and_approve',
       'mar_dashboard',

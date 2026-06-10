@@ -50,7 +50,107 @@ type CensusBedRow = {
   admissionId?: string;
 };
 
+async function fetchCensus(
+  api: Epis2ApiTargetAdapter,
+  session: TargetSession,
+  unit: string,
+): Promise<{ status: number; census: CensusBedRow[]; body: unknown }> {
+  const res = await api.apiRequest(
+    session,
+    'GET',
+    `/api/dashboard/service?unit=${encodeURIComponent(unit)}`,
+  );
+  const body = res.body as { census?: CensusBedRow[] } | null;
+  return { status: res.status, census: Array.isArray(body?.census) ? body.census : [], body };
+}
+
 const registry: Record<string, CustomStepFn> = {
+  /**
+   * Journey precondición: si el paciente del contexto ya está admitido, lo da de alta
+   * para que la admisión del journey parta de estado limpio (idempotente). args: { label, unit }
+   */
+  ensure_patient_not_admitted: async ({ api, session, writeApi, ctx, args }) => {
+    const label = typeof args.label === 'string' ? args.label : 'ensure_not_admitted';
+    const unit = typeof args.unit === 'string' ? args.unit : 'CIRUGIA-DEMO';
+    const patientId = requirePatientId(ctx);
+
+    const { status, census, body } = await fetchCensus(api, session, unit);
+    writeApi(`census-${label}`, { status, body });
+    if (status !== 200) {
+      return { observations: [], error: `Censo no disponible (HTTP ${status})` };
+    }
+
+    const existing = census.find((b) => b.status === 'occupied' && b.patientId === patientId);
+    if (!existing?.admissionId) {
+      return {
+        observations: [
+          {
+            kind: 'fixture_prep',
+            label,
+            payload: { alreadyAdmitted: false, dischargedPrevious: false },
+          },
+        ],
+      };
+    }
+
+    const discharge = await api.apiRequest(
+      session,
+      'POST',
+      `/api/inpatient/admissions/${existing.admissionId}/discharge`,
+    );
+    writeApi(`discharge-previous-${label}`, {
+      status: discharge.status,
+      ok: discharge.ok,
+      body: discharge.body,
+    });
+    if (!discharge.ok) {
+      return {
+        observations: [],
+        error: `No se pudo dar de alta admisión previa ${existing.admissionId} (HTTP ${discharge.status})`,
+      };
+    }
+    return {
+      observations: [
+        {
+          kind: 'fixture_prep',
+          label,
+          payload: {
+            alreadyAdmitted: true,
+            dischargedPrevious: true,
+            previousAdmissionId: existing.admissionId,
+          },
+        },
+      ],
+    };
+  },
+
+  /** Busca una cama disponible en el censo y la captura como {bedId}. args: { label, unit } */
+  find_available_bed: async ({ api, session, writeApi, args }) => {
+    const label = typeof args.label === 'string' ? args.label : 'available_bed';
+    const unit = typeof args.unit === 'string' ? args.unit : 'CIRUGIA-DEMO';
+
+    const { status, census, body } = await fetchCensus(api, session, unit);
+    writeApi(`census-${label}`, { status, body });
+    if (status !== 200) {
+      return { observations: [], error: `Censo no disponible (HTTP ${status})` };
+    }
+
+    const available = census.find((b) => b.status === 'available' && b.bedId);
+    if (!available?.bedId) {
+      return { observations: [], error: `Sin camas disponibles en ${unit} para el journey` };
+    }
+    return {
+      observations: [
+        {
+          kind: 'census_lookup',
+          label,
+          payload: { status, bedId: available.bedId, bedCount: census.length },
+        },
+      ],
+      capture: { bedId: available.bedId },
+    };
+  },
+
   /** Snapshot del censo del tablero de servicio con métricas de coherencia. args: { label, unit } */
   census_snapshot: async ({ api, session, writeApi, ctx, args }) => {
     const label = typeof args.label === 'string' ? args.label : 'census_snapshot';

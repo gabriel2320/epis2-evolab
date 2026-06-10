@@ -47,6 +47,12 @@ El catálogo tramo C (Sprint 3) se autoriza solo en YAML: `admission-double-book
 
 Ambos se auto-agregan desde `expected` en `buildEvaluatorsForScenario`.
 
+## Journey multi-paso (Sprint 6)
+
+`admission-discharge-001` encadena el ciclo completo en YAML puro con **state carry**: `find_available_bed` captura `{bedId}` del censo, la admisión captura `{admissionId}`, la epicrisis captura `{draftId}` y el alta reutiliza `{admissionId}`. El paso `ensure_patient_not_admitted` lo hace idempotente (da de alta una admisión previa de DEMO-001 si existe). La auditoría del ciclo se verifica con `audit_completeness` (`inpatient.admitted`, `clinical.draft.created`, `clinical.draft.approved`, `inpatient.discharged`).
+
+El replan LLM acotado (S6.2) queda **diferido con disparador**: se activa solo cuando runs hybrid (`llmSimMode≠off`) acumulen métricas `plan_fidelity` que lo justifiquen — la métrica ya se persiste con cada evaluación.
+
 ## Preflight operativo
 
 `evolab doctor [--strict]` y `evolab run` ejecutan `preflightTarget`: ping `health`/`ready` del API (timeout 3 s, detecta proceso zombie en `:3001`) y web solo si `BROWSER=true`. `run --skip-preflight` lo omite; `run --reset-fixtures` convierte el reset de `sandbox-prep` (acuses críticos, dosis MAR held) en obligatorio en PREPARE en vez de best-effort.
