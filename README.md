@@ -75,6 +75,7 @@ npm run evolab:validate
 ## Documentación
 
 - [docs/evolution/EVOLAB_ROADMAP.md](docs/evolution/EVOLAB_ROADMAP.md) — **plan de mejora** (eficiencia, rapidez, potencia, profundidad)
+- [docs/evolution/EVOLAB_NORMA_COMPLIANCE.md](docs/evolution/EVOLAB_NORMA_COMPLIANCE.md) — cumplimiento norma full stack
 - [docs/evolution/EVOLAB_ARCHITECTURE.md](docs/evolution/EVOLAB_ARCHITECTURE.md)
 - [docs/evolution/EVOLAB_BOUNDARIES.md](docs/evolution/EVOLAB_BOUNDARIES.md)
 - [reports/evolution/evolab-mvp-validation.md](reports/evolution/evolab-mvp-validation.md)

@@ -1,22 +1,25 @@
 # EPIS2 Evolab — Limitaciones conocidas
 
-**Actualizado:** 2026-06-09 · repo **epis2-evolab**
+**Actualizado:** 2026-06-10 · repo **epis2-evolab**
 
 ## Pendiente (por diseño)
 
-Ver plan detallado: [docs/evolution/EVOLAB_ROADMAP.md](../../docs/evolution/EVOLAB_ROADMAP.md) (FASE 11–15).
+Ver plan detallado: [docs/evolution/EVOLAB_ROADMAP.md](../../docs/evolution/EVOLAB_ROADMAP.md) (v2.0 — sprints S0–S6).
 
-| Capacidad | Estado | Fase roadmap |
-|-----------|--------|--------------|
-| Batch paralelo / evidencia minimal | No implementado | 11 |
-| CI smoke + run queue | No implementado | 12 |
-| Fault injection | No implementado | 13 |
-| Test candidates (Ollama) | No implementado | 15 |
-| Patch candidates | Desactivado | 15 |
-| Review desde consola UI | No implementado | 15 |
-| LLM loop run completo | Parcial | 13 |
-| Escenarios 100% plan-driven | Parcial | 13 |
-| Catálogo tramo C / journeys | No implementado | 14 |
+| Capacidad | Estado | Plan roadmap v2 |
+|-----------|--------|-----------------|
+| Lint / CI GitHub Actions | No implementado | Sprint 0 |
+| Motor de pasos declarativo (escenario = YAML) | No implementado | Sprint 1–2 |
+| Catálogo tramo C | No implementado | Sprint 3 |
+| Doctor preflight + reset fixtures | Parcial | Sprint 3 |
+| CI smoke + evidencia minimal | No implementado | Sprint 4 |
+| Evaluador CDR / audit completeness | No implementado | Sprint 5 |
+| Journeys multi-paso | No implementado | Sprint 6 |
+| LLM loop run completo / replan | Parcial | Sprint 6 (condicionado) |
+| Batch paralelo / run queue | Diferido | §4 roadmap (con disparador) |
+| Fault injection | Diferido | §4 roadmap |
+| Test/patch candidates (Ollama) | Diferido / desactivado | §4 roadmap |
+| Review desde consola UI | Diferido | §4 roadmap |
 
 ## Implementado (referencia)
 

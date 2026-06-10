@@ -1,221 +1,163 @@
-# EPIS2 Evolab — Plan de mejora (eficiencia · rapidez · potencia · profundidad)
+# EPIS2 Evolab — Plan de mejora optimizado
 
-**Versión:** 1.0  
-**Fecha:** 2026-06-09  
+**Versión:** 2.0 (optimizada)  
+**Fecha:** 2026-06-10  
 **Repo:** [epis2-evolab](https://github.com/gabriel2320/epis2-evolab)  
-**Target clínico:** [epis2](https://github.com/gabriel2320/epis2) (sandbox HTTP, sin acoplamiento de código)
+**Target clínico:** [epis2](https://github.com/gabriel2320/epis2) (sandbox HTTP, sin acoplamiento de código)  
+**Reemplaza:** v1.0 (2026-06-09) — ver §10 para diferencias
 
 ---
 
 ## 1. Resumen ejecutivo
 
-Evolab completó el MVP (FASE 0–10): orquestador, PostgreSQL, evaluadores, replay, LLM plan/execute piloto y consola read-only. El siguiente ciclo convierte el laboratorio en un **motor de evolución continua** sobre EPIS2: más escenarios por hora, más señal clínica por run, y un camino supervisado hacia tests y parches candidatos.
+Evolab completó el MVP (FASE 0–10): orquestador, PostgreSQL, evaluadores, replay, LLM plan/execute piloto y consola read-only. La idea está **validada**: con solo 4 escenarios encontró un gap clínico real (`discharge-critical-pending-001` — epicrisis aprobada con crítico sin acuse).
 
-### Cuatro ejes
+### Tesis del plan v2
 
-| Eje | Objetivo | Indicador north-star |
-|-----|----------|----------------------|
-| **Eficiencia** | Menos costo por run (tiempo, I/O, LLM, browser) | Costo medio por escenario ↓ 50% |
-| **Rapidez** | Más throughput batch/CI | `--all` 4 escenarios &lt; 3 min (API-first) |
-| **Potencia** | Más capacidades del loop Evolab | ≥80% escenarios con evaluadores compuestos |
-| **Profundidad** | Más cobertura clínica realista | Catálogo ≥15 escenarios · 3 journeys multi-paso |
+La revisión de código identificó el cuello de botella real:
 
-### Baseline actual (MVP)
+> **El recurso escaso no es la velocidad de los runs: es el costo de autoría de cada escenario.**
 
-| Métrica | Valor referencia |
-|---------|------------------|
-| Escenarios YAML | 4 |
-| Tests unitarios | 383 |
+Hoy cada escenario nuevo exige un **ejecutor TypeScript artesanal** (~150–210 líneas) registrado en un `switch` en `scenarios/executor.ts`. El YAML es casi solo metadata. Por eso el plan v2 prioriza un **motor de pasos declarativo** antes que paralelismo, colas o CI avanzado: convierte "escenario nuevo = 200 líneas TS + PR" en "escenario nuevo = 1 archivo YAML".
+
+### Baseline (2026-06-10, verificado)
+
+| Métrica | Valor |
+|---------|-------|
+| Escenarios YAML | 4 (3 con ejecutor determinista + 1 plan-driven) |
+| Tests unitarios | 385 verdes (806 ms) |
 | Modo default | API-first (`BROWSER=false`) |
-| LLM | Piloto `llm-command-evolution-001` |
-| Persistencia | PostgreSQL `epis2_evolab` + filesystem |
-| Consola | Read-only MVP (puerto 5190) |
+| Consola | Read-only `:5190` |
+| Lint / CI | Ausentes |
+| Costo escenario nuevo | ~200 líneas TS + switch + evaluador acoplado |
+| Hallazgo clínico confirmado | discharge sin bloqueo con PCR crítico pendiente |
 
 ---
 
-## 2. Principios de diseño (no negociables)
+## 2. Principios de diseño (no negociables, sin cambios)
 
-1. **EPIS2 no conoce Evolab** — solo HTTP/Playwright sobre sandbox; cualquier hook de fault injection en EPIS2 debe estar **off por defecto** y documentado aparte.
-2. **API-first, browser on demand** — Playwright solo cuando el evaluador lo exige (`dom_state`, journey UI).
-3. **Determinismo antes que LLM** — el orquestador y la state machine mandan; el LLM propone planes, no estados.
-4. **Evidencia barata, señal cara** — capturar todo en disco solo cuando falla o en modo debug.
-5. **Human-in-the-loop** para hallazgos clínicos, test candidates y patch candidates.
+1. **EPIS2 no conoce Evolab** — solo HTTP/Playwright sobre sandbox.
+2. **API-first, browser on demand** — Playwright solo cuando el evaluador lo exige.
+3. **Determinismo antes que LLM** — el LLM propone planes, no estados.
+4. **Evidencia barata, señal cara** — capturar todo solo on-fail o en debug.
+5. **Human-in-the-loop** para hallazgos, test candidates y patch candidates.
 6. **Reproducibilidad** — seed + replay + fingerprint en cada finding.
 
 ---
 
-## 3. Arquitectura objetivo
+## 3. Plan por sprints (~8 semanas a valor pleno)
 
-```mermaid
-flowchart TB
-  subgraph evolab [epis2-evolab]
-    CLI[CLI / CI]
-    ORCH[Orchestrator]
-    SM[State machine]
-    BATCH[Batch scheduler]
-    PLAN[Simulated user + PlanExecutor]
-    EVAL[Evaluators pipeline]
-    FIND[Findings + fingerprints]
-    DB[(epis2_evolab PG)]
-    CON[Evolution Console]
-    CLI --> BATCH --> ORCH
-    ORCH --> SM
-    ORCH --> PLAN
-    ORCH --> EVAL --> FIND --> DB
-    DB --> CON
-  end
+### Sprint 0 — Gobernanza mínima (3 días)
 
-  subgraph target [EPIS2 sandbox]
-    WEB[web :5173]
-    API[api :3001]
-    PG[(epis2 clinical DB)]
-  end
+Barato y desbloquea todo lo demás. Corresponde a G-01–G-03 de [EVOLAB_NORMA_COMPLIANCE.md](./EVOLAB_NORMA_COMPLIANCE.md).
 
-  ORCH -->|HTTP white-box| API
-  ORCH -->|Playwright opcional| WEB
-  ORCH -->|fixture prep read/write| PG
-```
+| ID | Entregable | Criterio de aceptación |
+|----|------------|------------------------|
+| S0.1 | ESLint + Prettier + `npm run lint` / `format:check` | Lint verde en todo el repo |
+| S0.2 | `.nvmrc` + `"engines": { "node": ">=20" }` | `npm install` advierte en Node <20 |
+| S0.3 | GitHub Actions: install → typecheck → test → boundary | PR verde sin intervención manual |
+| S0.4 | Script `npm run quality` unificado | typecheck + lint + test en un comando |
 
-### Capas de mejora
-
-| Capa | Mejora principal |
-|------|------------------|
-| **Scheduler** | Paralelismo, cola, prioridades, CI matrix |
-| **Target adapter** | Health gate, session reuse, retry policy |
-| **Execution** | API path · browser pool · plan híbrido |
-| **Observation** | Captura selectiva, correlación API↔DOM |
-| **Evaluation** | Evaluadores modulares, composición por tags |
-| **Evolution** | Test candidates · patch proposals · trends |
+**Nota:** la exención MD3 de la consola ya está documentada en NORMA_COMPLIANCE §6; no requiere ADR adicional.
 
 ---
 
-## 4. Roadmap por fases
+### Sprint 1–2 — Motor de pasos declarativo (2 semanas) · **inversión central**
 
-### FASE 11 — Eficiencia operativa (2–3 semanas)
+Reemplazar el `switch` por un intérprete genérico de pasos definidos en YAML.
 
-**Meta:** reducir fricción y tiempo muerto en runs diarios.
-
-| ID | Entregable | Detalle técnico | Criterio de aceptación |
-|----|------------|-----------------|------------------------|
-| 11.1 | **Batch paralelo** | `evolab:run --all --parallel 2` con límite por target health | 4 escenarios API-first en &lt; 5 min local |
-| 11.2 | **Preflight target** | `doctor` + run: ping API/web, versión, DB demo, Ollama opcional | Falla rápido con mensaje accionable |
-| 11.3 | **Fixture reset automático** | Integrar `sandbox-prep` en PREPARE; opción `--reset-fixtures` | `discharge-critical-pending` reproducible N veces |
-| 11.4 | **Evidencia selectiva** | `EPIS2_EVOLAB_EVIDENCE=minimal\|full`; screenshots solo on-fail | Disco/run ↓ 70% en modo minimal |
-| 11.5 | **Perfil por escenario** | YAML: `channels: [api]` \| `[api,browser]` | Browser solo donde `dom_state` está activo |
-
-**Riesgos:** paralelismo puede colisionar en sandbox DB → serializar PREPARE o usar locks por `demoCaseCode`.
-
----
-
-### FASE 12 — Rapidez y CI (2–3 semanas)
-
-**Meta:** feedback loop corto en dev y pipeline.
-
-| ID | Entregable | Detalle técnico | Criterio de aceptación |
-|----|------------|-----------------|------------------------|
-| 12.1 | **Run queue** | Tabla `evolution.run_queue` o worker CLI `evolab:worker` | Encolar runs desde consola/CI |
-| 12.2 | **CI workflow** | GitHub Action en epis2-evolab: doctor + `--tag smoke` | PR Evolab verde &lt; 8 min |
-| 12.3 | **Smoke tag** | Escenarios `tags: [smoke]` — subset 60s | 2 escenarios API en CI |
-| 12.4 | **Connection reuse** | HTTP keep-alive en `Epis2ApiTargetAdapter` | Latencia API observaciones ↓ |
-| 12.5 | **Fast model routing** | Plan steps → `FAST_MODEL`; síntesis → `MODEL` | Plan LLM &lt; 15s p95 |
-
-**Dependencia EPIS2:** ninguna en código; CI necesita EPIS2 sandbox como service container o `EPIS2_ROOT` pre-levantado.
-
----
-
-### FASE 13 — Potencia del loop LLM (3–4 semanas)
-
-**Meta:** pasar de piloto a capacidad general con salvaguardas.
-
-| ID | Entregable | Detalle técnico | Criterio de aceptación |
-|----|------------|-----------------|------------------------|
-| 13.1 | **Plan híbrido generalizado** | Todos los YAML soportan `execution: plan\|deterministic\|hybrid` | ≥2 escenarios no-piloto en hybrid |
-| 13.2 | **Loop observe→replan** | Tras fallo de step: 1 replan acotado antes de fallback | Métrica `plan_fidelity` en DB |
-| 13.3 | **Command catalog enrich** | Prompt con sinónimos ES-CL alineados a command registry EPIS2 | `needs_clarification` ↓ 50% |
-| 13.4 | **Evaluadores compuestos** | Pipeline: `functional` → `clinical_safety` → `audit` → `plan_fidelity` | YAML declara `evaluators:` |
-| 13.5 | **Fault injection (Evolab-side)** | Simular latencia/5xx en adapter (no EPIS2) | Escenario `resilience-api-001` |
-
-**Opcional EPIS2 (FASE 13+):** endpoint sandbox `POST /api/sandbox/fault` detrás de flag — solo si se necesita inyección real; **no bloqueante**.
-
----
-
-### FASE 14 — Profundidad clínica (4–6 semanas)
-
-**Meta:** escenarios que reflejen tramos EPIS2 y reglas de negocio reales.
-
-| ID | Entregable | Detalle técnico | Criterio de aceptación |
-|----|------------|-----------------|------------------------|
-| 14.1 | **Catálogo tramo C** | Escenarios: admisión, MAR, epicrisis, censo, tendencias | +6 YAML alineados a tramos EPIS2 |
-| 14.2 | **Journey multi-paso** | `journey-admission-discharge-001` — state carry entre steps | 1 journey human_review validado |
-| 14.3 | **Evaluador CDR vs críticos** | Cruza API alerts + DB `clinical_critical_results` | Finding accionable en discharge |
-| 14.4 | **Matriz persona×rol** | `--persona matrix` ejecuta demo-users × escenario RBAC | Tabla en reporte |
-| 14.5 | **Evaluador audit completeness** | Verifica eventos en `/api/audit` post-acción | MAR y discharge cubiertos |
-
-**Nota:** los hallazgos clínicos (ej. discharge sin bloqueo) son **findings válidos** — Evolab documenta gaps; EPIS2 los corrige en su ciclo.
-
----
-
-### FASE 15 — Consola y evolución supervisada (3–4 semanas)
-
-**Meta:** operación humana eficiente y camino hacia tests/parches.
-
-| ID | Entregable | Detalle técnico | Criterio de aceptación |
-|----|------------|-----------------|------------------------|
-| 15.1 | **Review en UI** | POST `/api/review` → `human_decisions` | Aprobar finding desde consola |
-| 15.2 | **Trend dashboard** | Findings por fingerprint/semana, MTTR review | Gráfico en consola |
-| 15.3 | **Test candidate** | LLM genera `.spec.ts` draft desde finding + evidencia | Artefacto en `reports/evolution/candidates/` |
-| 15.4 | **Patch candidate** | Propuesta diff EPIS2 (read-only) — **sin apply auto** | Requiere `EPIS2_EVOLAB_PATCHING_ENABLED` + human |
-| 15.5 | **Dedup inteligente** | Cluster por fingerprint + similitud título | Cola review sin duplicados |
-
----
-
-## 5. Matriz eficiencia vs profundidad
-
-Priorizar según objetivo del sprint:
-
-| Prioridad | Si necesitas… | Fases |
-|-----------|---------------|-------|
-| P0 | Runs más baratos ya | 11.1, 11.3, 11.4, 11.5 |
-| P0 | CI estable | 12.2, 12.3, 11.2 |
-| P1 | Más escenarios clínicos | 14.1, 14.3, 14.5 |
-| P1 | LLM útil en producción interna | 13.1, 13.2, 13.3 |
-| P2 | Operación equipo QA/clínico | 15.1, 15.2 |
-| P3 | Auto-test / auto-patch | 15.3, 15.4 |
-
----
-
-## 6. Modelo de escenario objetivo (YAML v2)
+**Modelo objetivo:**
 
 ```yaml
-id: discharge-critical-pending-001
-version: 2
-name: Alta con crítico pendiente
-risk: high
-execution: hybrid          # deterministic | plan | hybrid
-channels: [api]            # api | browser | command
-tags: [clinical_safety, discharge, smoke]
-persona: physician-intermediate
-demoCase: DEMO-004
-evaluators:
-  - functional
-  - clinical_safety
-  - critical_pending
-  - audit
-evidence:
-  mode: minimal            # minimal | full
-  screenshots: on-fail
-retry:
-  transient: 2
-  reproduction: 1
+steps:
+  - login: { persona: physician-intermediate }
+  - api:
+      label: discharge_approve_attempt
+      method: POST
+      path: /api/hospitalizations/{hospId}/discharge/approve
+  - assert_db:
+      label: critical_still_pending
+      query: critical_results_pending
+      demoCase: DEMO-004
+  - browser:
+      when: dom_state
+      open: /espacio/ficha
+      waitTestId: epis2-draft-review
 ```
 
-**Implementación:** extender `ScenarioDefinitionSchema` sin romper YAML v1 existente.
+| ID | Entregable | Criterio de aceptación |
+|----|------------|------------------------|
+| S1.1 | Intérprete de pasos (`login`, `api`, `browser`, `assert_db`, `screenshot`, `wait`) que emite `ScenarioObservation` con labels declarados | Tipos de paso cubiertos por tests unitarios |
+| S1.2 | `ScenarioDefinitionSchema` v2 retrocompatible (YAML v1 sigue funcionando) | 4 YAML existentes cargan sin cambios |
+| S1.3 | Migrar `role-evolution-sign-001` al motor (validación) | Mismo resultado que ejecutor TS, run E2E verde |
+| S2.1 | Migrar `discharge-critical-pending-001` y `suspended-medication-mar-001` | Ejecutores TS quedan como golden reference |
+| S2.2 | Evaluadores desacoplados: YAML declara `actionObservation:` en vez de labels adivinados (`discharge_approve_attempt`, `mar_approve_attempt`…) | `buildEvaluatorsForScenario` sin heurísticas por escenario |
+
+**Por qué primero:** es el multiplicador de todo lo demás. La profundidad clínica (antes FASE 14, semanas de trabajo) pasa a costar días.
 
 ---
 
-## 7. Métricas y observabilidad
+### Sprint 3 — Catálogo + fricción operativa (1 semana)
 
-### Por run (persistir en `evolution.runs.configuration` + JSON)
+Con el motor listo, ampliar catálogo se vuelve barato.
+
+| ID | Entregable | Criterio de aceptación |
+|----|------------|------------------------|
+| S3.1 | +4 escenarios tramo C en YAML (admisión, MAR variante, epicrisis, censo) | 8 escenarios activos sin TS nuevo |
+| S3.2 | `doctor` preflight endurecido: ping API/web, seed demo, DB, Ollama opcional | Falla rápido y accionable ante API zombie `:3001` |
+| S3.3 | `--reset-fixtures` integrado en PREPARE (`sandbox-prep`) | `discharge-critical-pending` reproducible N veces |
+
+**Riesgo conocido atacado:** acuses demo persistentes y API colgada son las dos causas reales de flakiness documentadas en `evolab-known-limitations.md`.
+
+---
+
+### Sprint 4 — CI smoke + evidencia (1 semana)
+
+| ID | Entregable | Criterio de aceptación |
+|----|------------|------------------------|
+| S4.1 | Tag `smoke` (2 escenarios API, ~60s) | Subset corre aislado |
+| S4.2 | Job GHA smoke con EPIS2 como sibling checkout (`EPIS2_ROOT`) | PR Evolab verde < 8 min |
+| S4.3 | `EPIS2_EVOLAB_EVIDENCE=minimal\|full`; screenshots solo on-fail | Disco/run ↓ ≥70% en minimal |
+| S4.4 | Split ligero del orquestador: extraer `EvaluateRun` y `PersistRun` | `orchestrator.ts` < 300 líneas; sin refactor grande |
+
+---
+
+### Sprint 5–6 — Profundidad clínica con el motor (2 semanas)
+
+| ID | Entregable | Criterio de aceptación |
+|----|------------|------------------------|
+| S5.1 | Evaluador CDR vs `clinical_critical_results` (cruza API alerts + DB) | Finding accionable en discharge |
+| S5.2 | Evaluador audit completeness (eventos en `/api/audit` post-acción) | MAR y discharge cubiertos |
+| S6.1 | Journey multi-paso `admission-discharge-001` (YAML encadenado, state carry) | 1 journey en human_review validado |
+| S6.2 | Replan LLM acotado (1 retry) **solo si** los escenarios hybrid lo justifican con datos | Métrica `plan_fidelity` persistida |
+
+---
+
+## 4. Diferido explícitamente (no cancelado)
+
+| Ítem | Razón | Disparador para retomarlo |
+|------|-------|---------------------------|
+| `--parallel` / run queue / `evolab:worker` | Con <10 escenarios API-first no es cuello de botella | Catálogo >10 y `--all` >10 min |
+| Migrar consola a Fastify/React+MUI | Read-only localhost funciona; exención MD3 vigente | Consola pasa a usuarios no técnicos o necesita POST review |
+| Pino + OpenTelemetry + correlationId completo | Valioso pero no genera findings | CI batch diario operando |
+| Test/patch candidates LLM | Riesgo alto, valor especulativo | ≥20 findings revisados con patrones repetidos |
+| Matriz persona×rol | Casi gratis con el motor declarativo | Motor estable (post Sprint 2) |
+| Fault injection adapter | Útil, no urgente | Catálogo resiliente priorizado |
+| Endpoint sandbox `POST /api/sandbox/fault` en EPIS2 | Opt-in, ciclo EPIS2 separado | Acuerdo explícito entre repos |
+
+---
+
+## 5. Métricas north-star
+
+| Métrica | Hoy | Post Sprint 3 | Post Sprint 6 |
+|---------|-----|---------------|---------------|
+| Costo escenario nuevo | ~200 líneas TS | 1 archivo YAML | 1 archivo YAML |
+| Escenarios activos | 4 | 8 | 10+ y 1 journey |
+| CI feedback PR | manual | typecheck+test+lint | + smoke < 8 min |
+| Evaluadores desacoplados | no | sí | + CDR + audit |
+| Flakiness (fixture/API zombie) | manual | preflight + reset | estable en CI |
+
+### Por run (persistir en `evolution.runs.configuration`)
 
 | Métrica | Uso |
 |---------|-----|
@@ -226,114 +168,128 @@ retry:
 | `evidenceBytes` | Modo minimal vs full |
 | `planSteps` / `planFallback` | Calidad LLM |
 
-### Dashboard consola (FASE 15)
+---
 
-- Runs/día, tasa `completed` vs `human_review`
-- Top fingerprints (regresiones recurrentes)
-- p50/p95 duración por escenario
-- Cobertura de tags (`mar`, `rbac`, `discharge`)
+## 6. Arquitectura objetivo
+
+```mermaid
+flowchart TB
+  subgraph evolab [epis2-evolab]
+    CLI[CLI / CI]
+    ORCH[Orchestrator ligero]
+    SM[State machine]
+    ENGINE[Motor de pasos declarativo]
+    EVAL[Evaluators desacoplados]
+    FIND[Findings + fingerprints]
+    DB[(epis2_evolab PG)]
+    CON[Evolution Console]
+    CLI --> ORCH
+    ORCH --> SM
+    ORCH --> ENGINE
+    ORCH --> EVAL --> FIND --> DB
+    DB --> CON
+  end
+
+  subgraph target [EPIS2 sandbox]
+    WEB[web :5173]
+    API[api :3001]
+    PG[(epis2 clinical DB)]
+  end
+
+  ENGINE -->|HTTP white-box| API
+  ENGINE -->|Playwright opcional| WEB
+  ENGINE -->|fixture prep read/write| PG
+```
+
+**Refactor mínimo del orquestador (S4.4):** extraer solo `EvaluateRun` y `PersistRun`; el loop maestro (PREPARE → SEED → ACT → OBSERVE → EVALUATE → REPRODUCE → HUMAN_REVIEW → COMPLETE) no cambia.
 
 ---
 
-## 8. Stack técnico recomendado
+## 7. Riesgos y mitigaciones
 
-| Componente | Elección | Motivo |
-|------------|----------|--------|
-| Scheduler | Postgres queue + worker Node | Ya existe DB; sin Redis extra |
-| Paralelismo | `p-limit` en batch | Simple, acotado por env |
-| Browser pool | 1 contexto Playwright reutilizado | Suficiente para dev; pool N en CI |
-| LLM | Ollama local + cola existente | Circuit breaker ya implementado |
-| CI | GHA + EPIS2 como sibling checkout | `EPIS2_ROOT` pattern |
-| Consola | Static + API Node (actual) | Sin framework pesado |
+| Riesgo | Impacto | Mitigación |
+|--------|---------|------------|
+| Motor declarativo no cubre un caso límite | Escenario bloqueado | Ejecutores TS quedan como fallback golden; tipo de paso `custom` escapable |
+| Migración rompe escenarios validados | Pérdida de señal | S1.3/S2.1 exigen paridad de resultado con ejecutor TS antes de borrar nada |
+| Sandbox DB sucia | Runs flaky | S3.3 reset automático + lock por `demoCaseCode` |
+| API zombie `:3001` | Timeouts largos | S3.2 preflight + timeout agresivo |
+| LLM no determinista | Flaky plan | Hybrid + fallback determinista + replan 1x (S6.2) |
+| Scope creep hacia EPIS2 | Acoplamiento | `boundary-validate` en CI (S0.3) |
 
 ---
 
-## 9. Dependencias con EPIS2
+## 8. Dependencias con EPIS2
 
 | Necesidad | Repo | Tipo |
 |-----------|------|------|
-| Sandbox estable | epis2 | Operacional |
+| Sandbox estable (`stack:dev`) | epis2 | Operacional (bloqueante para smoke CI) |
 | Demo cases seed | epis2 DB migrations | Contrato `@evolab/demo-fixtures` |
 | Command registry sinónimos | epis2 packages | Copia/read para prompts (sin import código) |
 | Fix clínico post-finding | epis2 | Ciclo separado |
-| Fault endpoint real | epis2 | **Opcional**, flag sandbox |
 
 **Regla:** ningún PR de Evolab en EPIS2 salvo endpoint sandbox opt-in acordado.
 
 ---
 
-## 10. Riesgos y mitigaciones
+## 9. Definition of Done (por feature)
 
-| Riesgo | Impacto | Mitigación |
-|--------|---------|------------|
-| Sandbox DB sucia | Runs flaky | 11.3 reset automático |
-| API zombie :3001 | Timeouts largos | 11.2 preflight + timeout agresivo |
-| LLM no determinista | Flaky plan | Hybrid + fallback determinista |
-| Paralelismo rompe fixtures | Falsos positivos | Lock por demo case |
-| Patch candidate peligroso | Regresión clínica | Human approval + `PATCHING_ENABLED=false` default |
-| Scope creep EPIS2 | Acoplamiento | boundary-validate en CI |
-
----
-
-## 11. Plan de implementación (primer trimestre)
-
-```text
-Mes 1 ─ FASE 11 + 12 (eficiencia + CI)
-  Sem 1–2: 11.1 batch, 11.2 preflight, 11.5 channels YAML
-  Sem 3–4: 11.3 reset, 11.4 evidencia, 12.2 CI smoke
-
-Mes 2 ─ FASE 13 + inicio 14 (LLM + catálogo)
-  Sem 5–6: 13.1 hybrid, 13.3 command catalog
-  Sem 7–8: 14.1 tramo C (+3 escenarios), 14.3 evaluador CDR
-
-Mes 3 ─ FASE 14 + 15 (profundidad + consola)
-  Sem 9–10: 14.2 journey, 14.5 audit evaluator
-  Sem 11–12: 15.1 review UI, 15.2 trends, 13.2 replan loop
-```
-
-### Definition of Done (global)
-
-- [ ] Tests unitarios + escenario smoke en CI
-- [ ] `evolab:boundary:validate` con `EPIS2_ROOT`
-- [ ] Documentación YAML / evaluador actualizada
-- [ ] Métricas en run metadata
+- [ ] Contrato Zod actualizado
+- [ ] Migración PG inmutable (si aplica)
+- [ ] Tests unitarios (+ integración PG si toca persistencia)
+- [ ] `evolab:boundary:validate` verde
+- [ ] Logs con `runId`
+- [ ] Typecheck + lint en CI
+- [ ] Documentación en `docs/evolution/`
 - [ ] Sin imports clínicos EPIS2
 
 ---
 
-## 12. Comandos objetivo (post-roadmap)
+## 10. Diferencias respecto a v1.0
+
+| | v1.0 (2026-06-09) | v2.0 (este documento) |
+|---|---|---|
+| Tesis | Velocidad de runs primero (paralelismo FASE 11) | Costo de autoría de escenarios primero (motor declarativo) |
+| Duración a valor pleno | ~16 semanas (13 sprints) | ~8 semanas (7 sprints) |
+| Primer entregable clínico | FASE 14 (+6 escenarios como TS artesanal) | Sprint 3 (+4 escenarios como YAML) |
+| Infraestructura especulativa | Cola, worker, Fastify, paralelo | Diferida con disparadores explícitos (§4) |
+| Costo escenario nuevo al final | ~200 líneas TS | 1 archivo YAML |
+
+Las FASES 11–15 de v1.0 no se descartan: sus ítems quedan absorbidos en sprints (doctor, evidencia, CI smoke, CDR, journey) o diferidos con disparador (§4).
+
+---
+
+## 11. Comandos objetivo (post Sprint 6)
 
 ```powershell
-# Eficiencia
-npm run evolab:run -- --all --parallel 2 --evidence minimal
+# Calidad
+npm run quality                                    # typecheck + lint + test
 
-# CI smoke
-npm run evolab:run -- --tag smoke
+# Operación diaria
+npm run evolab:run -- --all --evidence minimal
+npm run evolab:run -- --tag smoke                  # subset CI ~60s
+npm run evolab:run -- --scenario tramo-c-admision-001 --reset-fixtures
 
-# Profundidad
+# Journey
 npm run evolab:run -- --journey admission-discharge-001
-npm run evolab:run -- --persona matrix --scenario role-evolution-sign-001
 
-# Cola
-npm run evolab:worker
-npm run evolab:enqueue -- --scenario mar-suspended-001
-
-# Evolución
-npm run evolab:candidate -- --finding <uuid> --type test
-npm run evolab:console   # review + trends
+# Consola
+npm run evolab:console                             # :5190
 ```
 
 ---
 
-## 13. Referencias
+## 12. Referencias
 
+- [EVOLAB_NORMA_COMPLIANCE.md](./EVOLAB_NORMA_COMPLIANCE.md) — brechas G-01…G-13
 - [EVOLAB_ARCHITECTURE.md](./EVOLAB_ARCHITECTURE.md)
 - [EVOLAB_BOUNDARIES.md](./EVOLAB_BOUNDARIES.md)
-- [evolab-known-limitations.md](../reports/evolution/evolab-known-limitations.md)
-- [evolab-mvp-validation.md](../reports/evolution/evolab-mvp-validation.md)
+- [evolab-known-limitations.md](../../reports/evolution/evolab-known-limitations.md)
+- [evolab-mvp-validation.md](../../reports/evolution/evolab-mvp-validation.md)
 
 ---
 
-## 14. Próximo paso inmediato
+## 13. Próximo paso inmediato
 
-**Sprint 1 (FASE 11.1 + 11.2):** implementar `--parallel` en batch runner y endurecer `evolab:doctor` con preflight de target EPIS2. Es el mayor retorno en rapidez/eficiencia con el menor riesgo arquitectónico.
+**Sprint 0 (3 días):** ESLint + Prettier + `engines`/`.nvmrc` + workflow GHA + `npm run quality`.
+
+Inmediatamente después, **Sprint 1:** motor de pasos declarativo, validándolo con la migración de `role-evolution-sign-001` (el más simple) con paridad de resultado y los 385 tests verdes.
