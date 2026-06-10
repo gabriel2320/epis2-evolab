@@ -38,7 +38,11 @@ export class ClinicalSafetyEvaluator implements DeterministicEvaluator {
     const approveStatus = typeof approve?.payload.status === 'number' ? approve.payload.status : 0;
     const approveSucceeded = approve?.payload.ok === true;
     const dischargeBlocked =
-      signDisabled || approveStatus === 403 || approveStatus === 400 || approveStatus === 422;
+      signDisabled ||
+      approveStatus === 403 ||
+      approveStatus === 400 ||
+      approveStatus === 409 ||
+      approveStatus === 422;
 
     const warningVisible =
       hasCriticalLabRule ||
