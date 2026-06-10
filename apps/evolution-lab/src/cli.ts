@@ -14,6 +14,7 @@ import {
   runScenarioBatch,
   preflightTarget,
 } from './cli/commands.js';
+import { runFitnessReport } from './cli/fitness-command.js';
 import { EvolutionOrchestrator } from './orchestrator/orchestrator.js';
 import { replayRun } from './replay/replay.js';
 import { regenerateRun, type RegenerateStrategy } from './replay/regenerate.js';
@@ -22,15 +23,21 @@ function parseArgs(argv: string[]): {
   command: string;
   flags: Record<string, string>;
   booleans: Record<string, boolean>;
+  positionals: string[];
 } {
   const args = argv.slice(2);
   const command = args[0] ?? 'help';
   const flags: Record<string, string> = {};
   const booleans: Record<string, boolean> = {};
+  const positionals: string[] = [];
   for (let i = 1; i < args.length; i += 1) {
     const arg = args[i];
     if (arg === '--all') {
       booleans.all = true;
+      continue;
+    }
+    if (arg === '--json') {
+      booleans.json = true;
       continue;
     }
     if (arg === '--dry-run') {
@@ -56,9 +63,13 @@ function parseArgs(argv: string[]): {
     if (arg?.startsWith('--') && args[i + 1] && !args[i + 1]!.startsWith('--')) {
       flags[arg.slice(2)] = args[i + 1]!;
       i += 1;
+      continue;
+    }
+    if (arg && !arg.startsWith('--')) {
+      positionals.push(arg);
     }
   }
-  return { command, flags, booleans };
+  return { command, flags, booleans, positionals };
 }
 
 function printRunSummary(result: Awaited<ReturnType<EvolutionOrchestrator['executeRun']>>): void {
@@ -81,7 +92,7 @@ function printRunSummary(result: Awaited<ReturnType<EvolutionOrchestrator['execu
 }
 
 async function main(): Promise<number> {
-  const { command, flags, booleans } = parseArgs(process.argv);
+  const { command, flags, booleans, positionals } = parseArgs(process.argv);
 
   switch (command) {
     case 'doctor':
@@ -94,6 +105,14 @@ async function main(): Promise<number> {
       return listRecentRuns(Number.parseInt(flags.limit ?? '10', 10) || 10);
     case 'findings':
       return listFindings(Number.parseInt(flags.limit ?? '20', 10) || 20, flags.status);
+    case 'fitness': {
+      const subcommand = positionals[0] ?? 'report';
+      if (subcommand !== 'report') {
+        console.error('Uso: evolab fitness report [--json]');
+        return 1;
+      }
+      return runFitnessReport({ ...(booleans.json ? { json: true } : {}) });
+    }
     case 'run': {
       let config = loadEvolabConfig();
 
@@ -238,6 +257,7 @@ Comandos:
   scenarios    Listar escenarios declarativos
   runs         Listar runs recientes (--limit N) [PostgreSQL o filesystem]
   findings     Listar hallazgos (--limit N, --status open) — incluye UUID
+  fitness      Mapa de cobertura y novedad del corpus (fitness report [--json])
   queue        Cola human_review (--limit N)
   import       Backfill reports/evolution/runs → PostgreSQL (--dry-run, --force)
   review       Decidir hallazgo (--finding <uuid> --decision approved|rejected|duplicate)

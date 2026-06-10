@@ -20,6 +20,7 @@ Target EPIS2: checkout separado con `npm run stack:dev` (web `:5173`, API `:3001
 | `scenarios/` | DSL YAML declarativo |
 | `step-engine/` | Intérprete de pasos YAML v2 (`flow:`) — login, api, browser, wait, custom |
 | `findings/` | Fingerprints deterministas |
+| `fitness/` | Cobertura, novedad y fitness por escenario (Sprint 7) |
 
 ## Ejecución de escenarios (YAML v2)
 
@@ -52,6 +53,16 @@ Ambos se auto-agregan desde `expected` en `buildEvaluatorsForScenario`.
 `admission-discharge-001` encadena el ciclo completo en YAML puro con **state carry**: `find_available_bed` captura `{bedId}` del censo, la admisión captura `{admissionId}`, la epicrisis captura `{draftId}` y el alta reutiliza `{admissionId}`. El paso `ensure_patient_not_admitted` lo hace idempotente (da de alta una admisión previa de DEMO-001 si existe). La auditoría del ciclo se verifica con `audit_completeness` (`inpatient.admitted`, `clinical.draft.created`, `clinical.draft.approved`, `inpatient.discharged`).
 
 El replan LLM acotado (S6.2) queda **diferido con disparador**: se activa solo cuando runs hybrid (`llmSimMode≠off`) acumulen métricas `plan_fidelity` que lo justifiquen — la métrica ya se persiste con cada evaluación.
+
+## Fitness y mapa de cobertura (Sprint 7)
+
+El módulo `fitness/` mide el corpus para el programa de evolución de escenarios (roadmap v3):
+
+- **`coverage-catalog.ts`** — catálogo data-driven de endpoints EPIS2 y eventos de auditoría relevantes, más el mapa de endpoints que toca cada custom step. Única fuente de rutas: extender = añadir entradas.
+- **`coverage-extract.ts`** — deriva cobertura efectiva de un run (observaciones del step-engine + audit trail → claves `METHOD /path/:id`) y cobertura declarada estática desde el YAML.
+- **`novelty.ts`** — texto canónico del escenario → embedding `bge-m3` vía Ollama (`/api/embed`) → distancia coseno mínima vs corpus. Cache en disco (`reports/evolution/fitness/embedding-cache.json`); degrada a `null` si Ollama no responde, nunca rompe un run.
+- **`persist-fitness.ts`** — escribe `evolution.scenario_fitness` (migración 003: cobertura jsonb, hallazgos, duración, novedad) en la fase PERSIST. Best-effort, invocado desde `persist-run` sin engordar el orquestador.
+- **`report.ts` + `evolab fitness report [--json]`** — mapa de cobertura del corpus (cubierto/huecos por módulo), novedad por escenario y métricas persistidas si la DB responde. No requiere sandbox vivo.
 
 ## Preflight operativo
 

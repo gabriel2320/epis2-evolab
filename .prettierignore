@@ -2,5 +2,7 @@ dist/
 node_modules/
 coverage/
 reports/evolution/runs/
+reports/evolution/fitness/
+reports/evolution/*-raw.json
 package-lock.json
 *.md

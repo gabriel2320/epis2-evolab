@@ -229,6 +229,12 @@ export class EvolutionOrchestrator {
         findings,
         evidenceDir: bundle.runDir,
         finalStatus: status,
+        fitness: {
+          scenario,
+          observations: bundle.observations as ScenarioObservation[],
+          ollamaUrl: this.config.ollamaUrl,
+          ...(this.config.embeddingModel ? { embeddingModel: this.config.embeddingModel } : {}),
+        },
       });
 
       log.info('Run completado', {

@@ -7,3 +7,4 @@ coverage/
 .DS_Store
 Thumbs.db
 reports/evolution/runs/
+reports/evolution/fitness/

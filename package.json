@@ -26,6 +26,7 @@
     "evolab:smoke": "tsx apps/evolution-lab/src/cli.ts run --tag smoke --evidence minimal",
     "evolab:runs": "tsx apps/evolution-lab/src/cli.ts runs",
     "evolab:findings": "tsx apps/evolution-lab/src/cli.ts findings",
+    "evolab:fitness": "tsx apps/evolution-lab/src/cli.ts fitness report",
     "evolab:replay": "tsx apps/evolution-lab/src/cli.ts replay",
     "evolab:plan": "tsx apps/evolution-lab/src/cli.ts plan",
     "evolab:import": "tsx apps/evolution-lab/src/cli.ts import",

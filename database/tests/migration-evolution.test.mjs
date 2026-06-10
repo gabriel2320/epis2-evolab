@@ -17,6 +17,15 @@ describe('migration-evolution', () => {
     expect(sql).toContain('epis2_evolab');
   });
 
+  it('define scenario_fitness con cobertura, novedad y FK a runs', async () => {
+    const sql = await readFile(join(migrationsDir, '003_scenario_fitness.sql'), 'utf8');
+    expect(sql).toContain('evolution.scenario_fitness');
+    expect(sql).toContain('endpoints_covered');
+    expect(sql).toContain('audit_events_covered');
+    expect(sql).toContain('novelty');
+    expect(sql).toContain('REFERENCES evolution.runs');
+  });
+
   it('bootstrap crea rol epis2_evolab', async () => {
     const sql = await readFile(join(migrationsDir, '001_bootstrap_role.sql'), 'utf8');
     expect(sql).toContain('epis2_evolab');
