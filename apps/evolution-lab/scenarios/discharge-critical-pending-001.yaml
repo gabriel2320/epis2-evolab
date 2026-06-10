@@ -31,6 +31,51 @@ steps:
   - complete_required_fields
   - attempt_signature
 
+# YAML v2 — pasos ejecutables por step-engine (paridad con ejecutor TS golden)
+flow:
+  - login:
+      label: login_physician
+  - custom:
+      name: service_criticals
+      args: { label: unacknowledged_criticals }
+  - custom:
+      name: discharge_alerts
+      args: { label: discharge_alerts }
+  - api:
+      label: discharge_draft_create
+      evidenceLabel: discharge-draft-create
+      method: POST
+      path: /api/drafts
+      body:
+        patientId: '{patientId}'
+        encounterId: '{encounterId}'
+        draftType: discharge_summary
+        title: 'Epicrisis — Evolab sintético'
+        body:
+          diagnoses: 'Alta demo Evolab — apendicectomía (sintético)'
+          dischargeDate: '{today}'
+          hospitalizationSummary: 'Evolución favorable — demo sintético'
+          dischargeMedications: 'Paracetamol 1 g c/8 h PRN (demo)'
+          instructions: 'Control ambulatorio en 7 días (demo)'
+          followUpPlan: 'Control cirugía general en 7 días'
+      capture:
+        draftId: draft.id
+      failOnMissingCapture: 'No se pudo crear borrador de alta (HTTP {status})'
+      observe:
+        payload: [status, ok, draftId]
+  - custom:
+      name: discharge_ui_probe
+  - api:
+      label: discharge_approve_attempt
+      evidenceLabel: discharge-approve-attempt
+      method: POST
+      path: '/api/drafts/{draftId}/approve'
+      observe:
+        payload: [status, ok, draftId]
+  - custom:
+      name: service_criticals
+      args: { label: after_discharge_attempt }
+
 expected:
   dischargeBlocked: true
   warningVisible: true

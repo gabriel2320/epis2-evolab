@@ -31,6 +31,19 @@ steps:
   - open_nursing_mar
   - attempt_register_suspended_medication
 
+# YAML v2 — pasos ejecutables por step-engine (paridad con ejecutor TS golden)
+flow:
+  - login:
+      label: login_nurse
+  - custom:
+      name: mar_dashboard
+      args: { label: scheduled_mar }
+  - custom:
+      name: mar_alerts
+      args: { label: mar_alerts }
+  - custom:
+      name: mar_create_and_approve
+
 expected:
   administrationBlocked: true
   warningVisible: true

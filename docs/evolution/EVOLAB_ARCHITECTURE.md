@@ -18,7 +18,7 @@ Target EPIS2: checkout separado con `npm run stack:dev` (web `:5173`, API `:3001
 | `console/` | Read-model para Evolution Console |
 | `contracts/` | Schemas Zod |
 | `scenarios/` | DSL YAML declarativo |
-| `step-engine/` | Intérprete de pasos YAML v2 (`flow:`) — login, api, browser, wait |
+| `step-engine/` | Intérprete de pasos YAML v2 (`flow:`) — login, api, browser, wait, custom |
 | `findings/` | Fingerprints deterministas |
 
 ## Ejecución de escenarios (YAML v2)
@@ -32,7 +32,11 @@ flow:
   - api: { label: approve_attempt, method: POST, path: '/api/drafts/{draftId}/approve' }
 ```
 
-Paridad validada por test: el flow de `role-evolution-sign-001` produce las mismas observaciones y llamadas que su ejecutor TS.
+Capacidades del paso `api`: placeholders en path/body (incluye `{today}`, `{encounterId}`), `capture` (ruta punteada del response al contexto, ej. `draftId: draft.id`), `failOnMissingCapture` y proyección `observe.payload`.
+
+La lógica de dominio reutilizable vive en **custom steps** nombrados (`step-engine/custom-steps.ts`): `service_criticals`, `discharge_alerts`, `discharge_ui_probe`, `mar_dashboard`, `mar_alerts`, `mar_create_and_approve`. Un escenario nuevo los compone desde YAML sin escribir ejecutor.
+
+Paridad validada por test: los flows de `role-evolution-sign-001`, `discharge-critical-pending-001` y `suspended-medication-mar-001` producen las mismas observaciones y llamadas que sus ejecutores TS (golden reference).
 
 ## Loop maestro
 

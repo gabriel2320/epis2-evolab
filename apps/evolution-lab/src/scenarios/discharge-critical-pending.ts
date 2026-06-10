@@ -23,7 +23,7 @@ function extractUnacknowledgedCriticals(
   return { count: items.length, items };
 }
 
-function dischargeDraftBody() {
+export function dischargeDraftBody() {
   const today = new Date().toISOString().slice(0, 10);
   return {
     diagnoses: 'Alta demo Evolab — apendicectomía (sintético)',
@@ -35,7 +35,7 @@ function dischargeDraftBody() {
   };
 }
 
-async function fetchServiceCriticals(
+export async function fetchServiceCriticals(
   api: Epis2ApiTargetAdapter,
   session: TargetSession,
   patientId: string,
@@ -61,7 +61,7 @@ async function fetchServiceCriticals(
   };
 }
 
-async function fetchDischargeAlerts(
+export async function fetchDischargeAlerts(
   api: Epis2ApiTargetAdapter,
   session: TargetSession,
   patientId: string,
@@ -95,7 +95,7 @@ async function fetchDischargeAlerts(
   };
 }
 
-async function probeBrowserDischargeUi(
+export async function probeBrowserDischargeUi(
   browser: Epis2BrowserTargetAdapter,
   patientId: string,
 ): Promise<ScenarioObservation> {

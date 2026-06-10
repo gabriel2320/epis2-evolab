@@ -16,6 +16,14 @@ type MarDose = {
   requiresDoubleCheck?: boolean;
 };
 
+export type MarBody = {
+  medication: string;
+  dose: string;
+  route: string;
+  doubleCheckConfirmed: boolean;
+  medication_order_id: string | undefined;
+};
+
 function findTargetDose(
   body: unknown,
   patientId: string,
@@ -32,29 +40,15 @@ function findTargetDose(
   return forPatient[0];
 }
 
-export async function executeSuspendedMedicationMar001(
-  scenario: ScenarioDefinition,
+export async function marDashboardObservation(
   api: Epis2ApiTargetAdapter,
-  _browser: Epis2BrowserTargetAdapter,
   session: TargetSession,
-  _evidence: RunEvidenceBundle,
+  fixture: Record<string, unknown>,
+  patientId: string,
   writeApi: (label: string, payload: Record<string, unknown>) => string,
-): Promise<{ observations: ScenarioObservation[]; error?: string }> {
-  const observations: ScenarioObservation[] = [];
-  const fixture = scenario.fixture as Record<string, unknown> | undefined;
-  const demoCode = String(fixture?.demoCaseCode ?? 'DEMO-005');
-  const medicationHint = String(fixture?.medicationHint ?? 'Warfarina');
-  const demo = getDemoCaseByCode(demoCode);
-  if (!demo) {
-    return { observations, error: `demoCaseCode desconocido: ${demoCode}` };
-  }
-
-  observations.push({
-    kind: 'session',
-    label: 'login_nurse',
-    payload: { username: session.username, role: session.role, synthetic: true },
-  });
-
+  label = 'scheduled_mar',
+): Promise<{ observation: ScenarioObservation; marBody: MarBody }> {
+  const medicationHint = String(fixture.medicationHint ?? 'Warfarina');
   const nursingRes = await api.apiRequest(session, 'GET', '/api/dashboard/nursing');
   writeApi('nursing-dashboard', {
     status: nursingRes.status,
@@ -62,23 +56,23 @@ export async function executeSuspendedMedicationMar001(
     body: nursingRes.body,
   });
 
-  const targetDose = findTargetDose(nursingRes.body, demo.patientId, medicationHint);
-  const fixtureHeld = fixture?.medicationStatus === 'suspended' || fixture?.marDoseHeld === true;
-  observations.push({
+  const targetDose = findTargetDose(nursingRes.body, patientId, medicationHint);
+  const fixtureHeld = fixture.medicationStatus === 'suspended' || fixture.marDoseHeld === true;
+  const observation: ScenarioObservation = {
     kind: 'nursing_dashboard',
-    label: 'scheduled_mar',
+    label,
     payload: {
       status: nursingRes.status,
-      targetDoseId: targetDose?.id ?? fixture?.marDoseId,
+      targetDoseId: targetDose?.id ?? fixture.marDoseId,
       targetMedication: targetDose?.medication ?? medicationHint,
       targetDoseStatus: targetDose?.status ?? (fixtureHeld ? 'held' : 'unknown'),
       targetDoseHeld: targetDose?.status === 'held' || fixtureHeld,
       requiresDoubleCheck: targetDose?.requiresDoubleCheck ?? false,
       dashboardListed: Boolean(targetDose),
     },
-  });
+  };
 
-  const marBody = {
+  const marBody: MarBody = {
     medication: targetDose?.medication ?? medicationHint,
     dose: targetDose ? '5 mg' : '1 g',
     route: 'VO',
@@ -86,10 +80,21 @@ export async function executeSuspendedMedicationMar001(
     medication_order_id: targetDose?.id,
   };
 
+  return { observation, marBody };
+}
+
+export async function marAlertsObservation(
+  api: Epis2ApiTargetAdapter,
+  session: TargetSession,
+  patientId: string,
+  marBody: MarBody,
+  writeApi: (label: string, payload: Record<string, unknown>) => string,
+  label = 'mar_alerts',
+): Promise<ScenarioObservation> {
   const alertsRes = await api.apiRequest(
     session,
     'GET',
-    `/api/patients/${demo.patientId}/clinical-alerts?blueprintId=medication_administration&fields=${encodeURIComponent(JSON.stringify(marBody))}`,
+    `/api/patients/${patientId}/clinical-alerts?blueprintId=medication_administration&fields=${encodeURIComponent(JSON.stringify(marBody))}`,
   );
   writeApi('clinical-alerts-mar', {
     status: alertsRes.status,
@@ -97,15 +102,25 @@ export async function executeSuspendedMedicationMar001(
     body: alertsRes.body,
   });
   const alertsBody = alertsRes.body as { alerts?: unknown[] } | null;
-  observations.push({
+  return {
     kind: 'clinical_alerts_api',
-    label: 'mar_alerts',
+    label,
     payload: {
       status: alertsRes.status,
       alertCount: alertsBody?.alerts?.length ?? 0,
       alerts: alertsBody?.alerts ?? [],
     },
-  });
+  };
+}
+
+export async function marCreateAndApprove(
+  api: Epis2ApiTargetAdapter,
+  session: TargetSession,
+  demo: { patientId: string; encounterId: string },
+  marBody: MarBody,
+  writeApi: (label: string, payload: Record<string, unknown>) => string,
+): Promise<ScenarioObservation[]> {
+  const observations: ScenarioObservation[] = [];
 
   const createRes = await api.apiRequest(session, 'POST', '/api/drafts', {
     patientId: demo.patientId,
@@ -128,7 +143,7 @@ export async function executeSuspendedMedicationMar001(
       label: 'mar_approve_attempt',
       payload: { status: createRes.status, ok: false, error: 'draft_no_creado' },
     });
-    return { observations };
+    return observations;
   }
 
   observations.push({
@@ -152,6 +167,44 @@ export async function executeSuspendedMedicationMar001(
       draftId,
     },
   });
+
+  return observations;
+}
+
+export async function executeSuspendedMedicationMar001(
+  scenario: ScenarioDefinition,
+  api: Epis2ApiTargetAdapter,
+  _browser: Epis2BrowserTargetAdapter,
+  session: TargetSession,
+  _evidence: RunEvidenceBundle,
+  writeApi: (label: string, payload: Record<string, unknown>) => string,
+): Promise<{ observations: ScenarioObservation[]; error?: string }> {
+  const observations: ScenarioObservation[] = [];
+  const fixture = (scenario.fixture ?? {}) as Record<string, unknown>;
+  const demoCode = String(fixture.demoCaseCode ?? 'DEMO-005');
+  const demo = getDemoCaseByCode(demoCode);
+  if (!demo) {
+    return { observations, error: `demoCaseCode desconocido: ${demoCode}` };
+  }
+
+  observations.push({
+    kind: 'session',
+    label: 'login_nurse',
+    payload: { username: session.username, role: session.role, synthetic: true },
+  });
+
+  const { observation: dashboardObs, marBody } = await marDashboardObservation(
+    api,
+    session,
+    fixture,
+    demo.patientId,
+    writeApi,
+  );
+  observations.push(dashboardObs);
+
+  observations.push(await marAlertsObservation(api, session, demo.patientId, marBody, writeApi));
+
+  observations.push(...(await marCreateAndApprove(api, session, demo, marBody, writeApi)));
 
   return { observations };
 }

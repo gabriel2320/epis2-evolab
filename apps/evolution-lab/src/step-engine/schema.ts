@@ -22,6 +22,19 @@ export const ApiStepSchema = z.object({
     body: z.record(z.unknown()).optional(),
     /** Label del archivo de evidencia; default: label con `_` → `-`. */
     evidenceLabel: z.string().min(1).optional(),
+    /** claveCtx -> ruta punteada en el body de respuesta (ej. draftId: draft.id). */
+    capture: z.record(z.string()).optional(),
+    /** Si un capture queda undefined, abortar con este error; admite {status}. */
+    failOnMissingCapture: z.string().min(1).optional(),
+    /** Proyección de la observación; default kind=api_response, payload {status, ok, path}. */
+    observe: z
+      .object({
+        kind: z.string().min(1).optional(),
+        label: z.string().min(1).optional(),
+        /** Claves del payload: status | ok | path | cualquier clave del contexto. */
+        payload: z.array(z.string().min(1)),
+      })
+      .optional(),
   }),
 });
 
@@ -58,17 +71,27 @@ export const WaitStepSchema = z.object({
   }),
 });
 
+/** Paso de dominio registrado en el catálogo (step-engine/custom-steps.ts). */
+export const CustomStepSchema = z.object({
+  custom: z.object({
+    name: z.string().min(1),
+    args: z.record(z.unknown()).optional(),
+  }),
+});
+
 export const DeclarativeStepSchema = z.union([
   LoginStepSchema,
   ApiStepSchema,
   BrowserStepSchema,
   WaitStepSchema,
+  CustomStepSchema,
 ]);
 
 export type LoginStep = z.infer<typeof LoginStepSchema>;
 export type ApiStep = z.infer<typeof ApiStepSchema>;
 export type BrowserStep = z.infer<typeof BrowserStepSchema>;
 export type WaitStep = z.infer<typeof WaitStepSchema>;
+export type CustomStep = z.infer<typeof CustomStepSchema>;
 export type DeclarativeStep = z.infer<typeof DeclarativeStepSchema>;
 
 export function isLoginStep(step: DeclarativeStep): step is LoginStep {
@@ -85,4 +108,8 @@ export function isBrowserStep(step: DeclarativeStep): step is BrowserStep {
 
 export function isWaitStep(step: DeclarativeStep): step is WaitStep {
   return 'wait' in step;
+}
+
+export function isCustomStep(step: DeclarativeStep): step is CustomStep {
+  return 'custom' in step;
 }
