@@ -9,6 +9,13 @@ export class HttpResultEvaluator implements DeterministicEvaluator {
   id = 'http_result';
 
   private resolveActionObservation(ctx: EvaluatorContext) {
+    if (ctx.actionObservation) {
+      const declared = ctx.observations.find(
+        (o) => o.kind === 'api_response' && o.label === ctx.actionObservation,
+      );
+      if (declared) return declared;
+    }
+    // Heurística legacy para escenarios sin actionObservation declarado.
     const preferredLabels = ['discharge_approve_attempt', 'mar_approve_attempt', 'approve_attempt'];
     for (const label of preferredLabels) {
       const match = ctx.observations.find((o) => o.kind === 'api_response' && o.label === label);

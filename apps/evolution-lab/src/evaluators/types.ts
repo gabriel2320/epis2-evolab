@@ -11,6 +11,8 @@ export type EvaluatorContext = {
   scenarioId: string;
   expected: Record<string, unknown>;
   observations: ScenarioObservation[];
+  /** Label declarado en el YAML (actionObservation) para la acción evaluada. */
+  actionObservation?: string;
 };
 
 export interface DeterministicEvaluator {

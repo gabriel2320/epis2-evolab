@@ -430,6 +430,10 @@ export class EvolutionOrchestrator {
         expected: scenario.expected,
 
         observations,
+
+        ...(scenario.actionObservation !== undefined
+          ? { actionObservation: scenario.actionObservation }
+          : {}),
       };
 
       const evaluators = buildEvaluatorsForScenario(scenario);

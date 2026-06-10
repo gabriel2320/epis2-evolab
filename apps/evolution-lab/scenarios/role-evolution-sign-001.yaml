@@ -68,6 +68,8 @@ evaluators:
   - functional
   - audit
 
+actionObservation: approve_attempt
+
 timeoutMs: 90000
 maxAttempts: 3
 tags:

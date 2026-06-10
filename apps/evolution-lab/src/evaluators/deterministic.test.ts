@@ -60,6 +60,24 @@ describe('deterministic evaluators', () => {
     expect(result.details?.status).toBe(200);
   });
 
+  it('HttpResultEvaluator usa actionObservation declarado sobre la heurística', () => {
+    const ev = new HttpResultEvaluator();
+    const result = ev.evaluate({
+      runId,
+      scenarioId: 'custom-scenario-001',
+      expected: { actionBlocked: true },
+      actionObservation: 'censo_close_attempt',
+      observations: [
+        // La heurística elegiría approve_attempt; el declarado debe ganar.
+        { kind: 'api_response', label: 'approve_attempt', payload: { status: 200, ok: true } },
+        { kind: 'api_response', label: 'censo_close_attempt', payload: { status: 422, ok: false } },
+      ],
+    });
+    expect(result.passed).toBe(true);
+    expect(result.details?.status).toBe(422);
+    expect(result.details?.label).toBe('censo_close_attempt');
+  });
+
   it('RolePermissionEvaluator valida admin + 403', () => {
     const ev = new RolePermissionEvaluator();
     const result = ev.evaluate({

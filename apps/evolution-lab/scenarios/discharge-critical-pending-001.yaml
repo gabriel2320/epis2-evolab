@@ -88,6 +88,8 @@ evaluators:
   - accessibility
   - audit
 
+actionObservation: discharge_approve_attempt
+
 timeoutMs: 120000
 maxAttempts: 3
 tags:

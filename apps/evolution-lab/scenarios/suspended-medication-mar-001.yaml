@@ -54,6 +54,8 @@ evaluators:
   - mar_safety
   - audit
 
+actionObservation: mar_approve_attempt
+
 timeoutMs: 90000
 maxAttempts: 3
 tags:
