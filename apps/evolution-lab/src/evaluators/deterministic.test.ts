@@ -19,6 +19,21 @@ describe('deterministic evaluators', () => {
     expect(result.passed).toBe(true);
   });
 
+  it('HttpResultEvaluator detecta 409 (conflicto de negocio) como bloqueo esperado', () => {
+    const ev = new HttpResultEvaluator();
+    const result = ev.evaluate({
+      runId,
+      scenarioId: 'test',
+      expected: { actionBlocked: true },
+      actionObservation: 'admission_attempt',
+      observations: [
+        { kind: 'api_response', label: 'admission_attempt', payload: { status: 409, ok: false } },
+      ],
+    });
+    expect(result.passed).toBe(true);
+    expect(result.details?.status).toBe(409);
+  });
+
   it('DomStateEvaluator acepta bloqueo API sin botón aprobar', () => {
     const ev = new DomStateEvaluator();
     const result = ev.evaluate({

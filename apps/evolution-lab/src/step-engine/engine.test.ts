@@ -146,6 +146,7 @@ describe('step-engine', () => {
 
   it('expone catálogo de custom steps', () => {
     expect(listCustomSteps()).toEqual([
+      'census_snapshot',
       'discharge_alerts',
       'discharge_ui_probe',
       'mar_alerts',

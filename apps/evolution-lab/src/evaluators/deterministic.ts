@@ -4,6 +4,7 @@ import { ClinicalSafetyEvaluator, CriticalPendingEvaluator } from './clinical-sa
 import { AuditEvaluator } from './audit.js';
 import { MarSafetyEvaluator } from './mar-safety.js';
 import { CommandResolveEvaluator, PlanFidelityEvaluator } from './plan-fidelity.js';
+import { CensusIntegrityEvaluator } from './census-integrity.js';
 
 export class HttpResultEvaluator implements DeterministicEvaluator {
   id = 'http_result';
@@ -42,7 +43,8 @@ export class HttpResultEvaluator implements DeterministicEvaluator {
       };
     }
 
-    const blocked = status === 403 || status === 401 || status === 400 || status === 422;
+    const blocked =
+      status === 403 || status === 401 || status === 400 || status === 409 || status === 422;
     const passed = expectedBlocked ? blocked : obs.payload.ok === true;
 
     return {
@@ -162,6 +164,7 @@ export function buildEvaluatorsForScenario(scenario: {
     audit: new AuditEvaluator(),
     plan_fidelity: new PlanFidelityEvaluator(),
     command_resolve: new CommandResolveEvaluator(),
+    census_integrity: new CensusIntegrityEvaluator(),
   };
   return ids.map((id) => map[id]).filter((e): e is DeterministicEvaluator => e !== undefined);
 }

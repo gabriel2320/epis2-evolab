@@ -43,7 +43,61 @@ function requirePatientId(ctx: Record<string, unknown>): string {
   return patientId;
 }
 
+type CensusBedRow = {
+  bedId?: string;
+  status?: string;
+  patientId?: string;
+  admissionId?: string;
+};
+
 const registry: Record<string, CustomStepFn> = {
+  /** Snapshot del censo del tablero de servicio con métricas de coherencia. args: { label, unit } */
+  census_snapshot: async ({ api, session, writeApi, ctx, args }) => {
+    const label = typeof args.label === 'string' ? args.label : 'census_snapshot';
+    const unit = typeof args.unit === 'string' ? args.unit : 'CIRUGIA-DEMO';
+    const res = await api.apiRequest(
+      session,
+      'GET',
+      `/api/dashboard/service?unit=${encodeURIComponent(unit)}`,
+    );
+    writeApi(`census-${label}`, { status: res.status, ok: res.ok, body: res.body });
+
+    const body = res.body as {
+      census?: CensusBedRow[];
+      unacknowledgedCriticals?: unknown[];
+    } | null;
+    const census = Array.isArray(body?.census) ? body.census : [];
+    const occupied = census.filter((b) => b.status === 'occupied');
+    const available = census.filter((b) => b.status === 'available');
+    const occupiedWithoutPatient = occupied.filter((b) => !b.patientId).length;
+    const occupiedWithoutAdmission = occupied.filter((b) => !b.admissionId).length;
+    const availableWithPatient = available.filter((b) => Boolean(b.patientId)).length;
+    const demoPatientListed =
+      typeof ctx.patientId === 'string' && occupied.some((b) => b.patientId === ctx.patientId);
+
+    return {
+      observations: [
+        {
+          kind: 'census_snapshot',
+          label,
+          payload: {
+            status: res.status,
+            ok: res.ok,
+            unit,
+            bedCount: census.length,
+            occupiedCount: occupied.length,
+            availableCount: available.length,
+            occupiedWithoutPatient,
+            occupiedWithoutAdmission,
+            availableWithPatient,
+            demoPatientListed,
+            unacknowledgedCriticalCount: body?.unacknowledgedCriticals?.length ?? 0,
+          },
+        },
+      ],
+    };
+  },
+
   /** Críticos sin acuse del dashboard de servicio. args: { label } */
   service_criticals: async ({ api, session, writeApi, ctx, args }) => {
     const label = typeof args.label === 'string' ? args.label : 'unacknowledged_criticals';

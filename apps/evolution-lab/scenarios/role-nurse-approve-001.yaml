@@ -1,0 +1,73 @@
+id: role-nurse-approve-001
+version: 1
+name: RBAC — enfermería no puede aprobar notas clínicas
+description: Nurse crea nota de enfermería pero el approve debe rechazarse (403 sin draft.approve)
+risk: medium
+
+target:
+  capabilities:
+    - rbac
+    - nursing_note
+    - draft_approval
+
+persona:
+  role: nurse
+  experience: intermediate
+
+fixture:
+  type: synthetic-mar-suspended
+  demoCaseCode: DEMO-005
+
+goal:
+  action: approve_nursing_note
+
+steps:
+  - login_nurse
+  - create_nursing_note
+  - attempt_approve
+
+flow:
+  - login:
+      label: login_nurse
+  - api:
+      label: nursing_draft_create
+      evidenceLabel: nursing-draft-create
+      method: POST
+      path: /api/drafts
+      body:
+        patientId: '{patientId}'
+        encounterId: '{encounterId}'
+        draftType: nursing_note
+        title: 'Nota enfermería — Evolab sintético'
+        body:
+          note: 'Control de signos vitales estable (demo sintético)'
+      capture:
+        draftId: draft.id
+      failOnMissingCapture: 'No se pudo crear nota de enfermería (HTTP {status})'
+      observe:
+        payload: [status, ok, draftId]
+  - api:
+      label: nurse_approve_attempt
+      evidenceLabel: nurse-approve-attempt
+      method: POST
+      path: '/api/drafts/{draftId}/approve'
+      observe:
+        payload: [status, ok, draftId]
+
+expected:
+  actionBlocked: true
+  auditEventCreated: true
+
+evaluators:
+  - functional
+  - audit
+
+actionObservation: nurse_approve_attempt
+
+timeoutMs: 60000
+maxAttempts: 3
+tags:
+  - rbac
+  - nursing
+  - permissions
+  - smoke

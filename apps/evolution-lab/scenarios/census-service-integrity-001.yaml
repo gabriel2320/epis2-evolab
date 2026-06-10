@@ -1,0 +1,49 @@
+id: census-service-integrity-001
+version: 1
+name: Censo — integridad del tablero de servicio
+description: El censo de CIRUGIA-DEMO debe ser coherente (ocupadas con paciente, disponibles sin paciente)
+risk: low
+
+target:
+  capabilities:
+    - census
+    - service_dashboard
+
+persona:
+  role: physician
+  experience: intermediate
+
+fixture:
+  type: synthetic-census
+  demoCaseCode: DEMO-004
+  unitCode: CIRUGIA-DEMO
+
+goal:
+  action: verify_census_integrity
+
+steps:
+  - login
+  - snapshot_census
+
+flow:
+  - login:
+      label: login_physician
+  - custom:
+      name: census_snapshot
+      args:
+        label: census_snapshot
+        unit: CIRUGIA-DEMO
+
+expected:
+  censusCoherent: true
+  demoPatientListed: true
+
+evaluators:
+  - census_integrity
+
+timeoutMs: 60000
+maxAttempts: 3
+tags:
+  - census
+  - integrity
+  - smoke

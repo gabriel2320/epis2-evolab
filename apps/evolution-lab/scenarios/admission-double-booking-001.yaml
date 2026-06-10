@@ -1,0 +1,57 @@
+id: admission-double-booking-001
+version: 1
+name: Admisión — doble booking de paciente hospitalizado
+description: Re-admitir un paciente ya hospitalizado debe rechazarse (HTTP 409)
+risk: medium
+
+target:
+  capabilities:
+    - inpatient
+    - admission
+
+persona:
+  role: physician
+  experience: intermediate
+
+fixture:
+  type: synthetic-adult-hospitalized
+  demoCaseCode: DEMO-004
+  bedId: f0000002-0000-4000-8000-000000000001
+
+goal:
+  action: admit_patient
+
+steps:
+  - login
+  - attempt_duplicate_admission
+
+flow:
+  - login:
+      label: login_physician
+  - api:
+      label: admission_attempt
+      evidenceLabel: admission-attempt
+      method: POST
+      path: /api/inpatient/admissions
+      body:
+        patientId: '{patientId}'
+        bedId: '{bedId}'
+      observe:
+        payload: [status, ok, path]
+
+expected:
+  actionBlocked: true
+  auditEventCreated: true
+
+evaluators:
+  - functional
+  - audit
+
+actionObservation: admission_attempt
+
+timeoutMs: 60000
+maxAttempts: 3
+tags:
+  - admission
+  - inpatient
+  - integrity
