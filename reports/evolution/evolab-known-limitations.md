@@ -12,7 +12,7 @@ Ver plan detallado: [docs/evolution/EVOLAB_ROADMAP.md](../../docs/evolution/EVOL
 | Motor de pasos declarativo (escenario = YAML) | No implementado | Sprint 1–2 |
 | Catálogo tramo C | ✅ Implementado (4 escenarios YAML, 8 activos) | Sprint 3 |
 | Doctor preflight + reset fixtures | ✅ Implementado (`--strict`, `--reset-fixtures`, preflight en `run`) | Sprint 3 |
-| CI smoke + evidencia minimal | No implementado | Sprint 4 |
+| CI smoke + evidencia minimal | ✅ Implementado (`evolab:smoke`, `--evidence minimal`, job GHA con sibling checkout — requiere secret `EPIS2_CHECKOUT_TOKEN`; `continue-on-error` hasta observarlo verde) | Sprint 4 |
 | Evaluador CDR / audit completeness | No implementado | Sprint 5 |
 | Journeys multi-paso | No implementado | Sprint 6 |
 | LLM loop run completo / replan | Parcial | Sprint 6 (condicionado) |

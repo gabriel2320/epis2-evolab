@@ -44,6 +44,14 @@ El catálogo tramo C (Sprint 3) se autoriza solo en YAML: `admission-double-book
 
 `evolab doctor [--strict]` y `evolab run` ejecutan `preflightTarget`: ping `health`/`ready` del API (timeout 3 s, detecta proceso zombie en `:3001`) y web solo si `BROWSER=true`. `run --skip-preflight` lo omite; `run --reset-fixtures` convierte el reset de `sandbox-prep` (acuses críticos, dosis MAR held) en obligatorio en PREPARE en vez de best-effort.
 
+## Evidencia por run
+
+`EPIS2_EVOLAB_EVIDENCE=full|minimal` (o `run --evidence minimal`). En `minimal` el run escribe solo `metadata/result/evaluation/findings.json` (las observaciones siguen completas en `result.json`); se omiten `api/`, `model/` y `logs/` (~-80% archivos). `npm run evolab:smoke` ejecuta el subset `--tag smoke` con evidencia minimal — es el job smoke de CI (sibling checkout de EPIS2 + Postgres efímero, requiere secret `EPIS2_CHECKOUT_TOKEN`).
+
+## Orquestador por fases
+
+`orchestrator.ts` (<300 líneas) conserva solo el loop maestro; las fases viven en módulos: `build-run` (guards + run inicial), `run-phases` (fixture prep, plan LLM, browser), `audit-capture`, `evaluate-run` (evaluadores + findings) y `persist-run` (PostgreSQL best-effort).
+
 ## Loop maestro
 
 ```text

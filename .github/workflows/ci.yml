@@ -35,3 +35,98 @@ jobs:
 
       - name: Boundary validate
         run: npm run evolab:boundary:validate
+
+  # Smoke vivo contra sandbox EPIS2 (sibling checkout). Requiere el secret
+  # EPIS2_CHECKOUT_TOKEN (PAT con read sobre gabriel2320/epis2); si falta, se omite.
+  # continue-on-error mientras se observa estabilidad — promover a gate al estar verde.
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    needs: quality
+    continue-on-error: true
+    env:
+      EPIS2_TOKEN: ${{ secrets.EPIS2_CHECKOUT_TOKEN }}
+      DATABASE_URL: postgresql://epis2_app:epis2@127.0.0.1:5433/epis2
+      DATABASE_MIGRATE_URL: postgresql://epis2:epis2@127.0.0.1:5433/epis2
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: epis2
+          POSTGRES_PASSWORD: epis2
+          POSTGRES_DB: epis2
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U epis2"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Check token
+        id: token
+        run: |
+          if [ -n "$EPIS2_TOKEN" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "EPIS2_CHECKOUT_TOKEN no configurado — smoke omitido"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.token.outputs.available == 'true'
+        with:
+          path: evolab
+
+      - uses: actions/checkout@v4
+        if: steps.token.outputs.available == 'true'
+        with:
+          repository: gabriel2320/epis2
+          token: ${{ secrets.EPIS2_CHECKOUT_TOKEN }}
+          path: epis2
+
+      - uses: actions/setup-node@v4
+        if: steps.token.outputs.available == 'true'
+        with:
+          node-version-file: evolab/.nvmrc
+
+      - name: Install EPIS2
+        if: steps.token.outputs.available == 'true'
+        working-directory: epis2
+        run: npm ci
+
+      - name: Install Evolab
+        if: steps.token.outputs.available == 'true'
+        working-directory: evolab
+        run: npm ci
+
+      - name: Migrate + seed EPIS2 (demo cases)
+        if: steps.token.outputs.available == 'true'
+        working-directory: epis2
+        run: node scripts/db-migrate.mjs
+
+      - name: Start EPIS2 API
+        if: steps.token.outputs.available == 'true'
+        working-directory: epis2
+        run: |
+          nohup npm run dev:api > api.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3001/health > /dev/null 2>&1; then
+              echo "API arriba (intento $i)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "API no respondió en 60s"
+          tail -n 50 api.log || true
+          exit 1
+
+      - name: Evolab smoke (--tag smoke, evidence minimal)
+        if: steps.token.outputs.available == 'true'
+        working-directory: evolab
+        env:
+          EPIS2_EVOLAB_ENABLED: 'true'
+          EPIS2_EVOLAB_BROWSER: 'false'
+          EPIS2_EVOLAB_OLLAMA_REQUIRED: 'false'
+          EPIS2_EVOLAB_LLM_SIM: 'off'
+        run: npm run evolab:smoke
