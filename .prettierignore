@@ -4,6 +4,7 @@ coverage/
 reports/evolution/runs/
 reports/evolution/fitness/
 reports/evolution/mutation/
+reports/evolution/evolve/
 apps/evolution-lab/scenarios/candidates/
 reports/evolution/*-raw.json
 package-lock.json
