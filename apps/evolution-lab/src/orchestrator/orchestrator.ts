@@ -134,7 +134,13 @@ export class EvolutionOrchestrator {
     };
   }
 
-  async executeRun(scenarioId: string, seed?: string): Promise<OrchestratorResult> {
+  async executeRun(
+    scenarioId: string,
+
+    seed?: string,
+
+    opts: { resetFixtures?: boolean } = {},
+  ): Promise<OrchestratorResult> {
     const scenario = loadScenario(scenarioId);
 
     const maxAttempts = Math.min(
@@ -147,7 +153,7 @@ export class EvolutionOrchestrator {
 
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
       try {
-        return await this.runOnce(scenarioId, seed, attempt);
+        return await this.runOnce(scenarioId, seed, attempt, opts);
       } catch (err) {
         lastError = err instanceof Error ? err : new Error(String(err));
 
@@ -176,6 +182,8 @@ export class EvolutionOrchestrator {
     seed: string | undefined,
 
     attempt: number,
+
+    opts: { resetFixtures?: boolean } = {},
   ): Promise<OrchestratorResult> {
     const guardReport = runSecurityGuards(this.config);
 
@@ -272,6 +280,13 @@ export class EvolutionOrchestrator {
 
       if (!fixturePrep.ok && !fixturePrep.skipped) {
         throw new Error(fixturePrep.message);
+      }
+
+      // --reset-fixtures: el reset del sandbox es obligatorio, no best-effort.
+      if (opts.resetFixtures && !fixturePrep.ok) {
+        throw new Error(
+          `Reset de fixtures requerido (--reset-fixtures) pero falló: ${fixturePrep.message}`,
+        );
       }
 
       if (this.config.llmSimMode !== 'off') {

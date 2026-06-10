@@ -18,7 +18,68 @@ import { loadScenario } from '../scenarios/loader.js';
 import { createSimulatedUserAgent } from '../simulated-user/agent.js';
 import type { EvolutionOrchestrator } from '../orchestrator/orchestrator.js';
 
-export async function runDoctor(): Promise<number> {
+type TargetProbe = {
+  ok: boolean;
+  status?: number;
+  latencyMs?: number;
+  error?: string;
+};
+
+async function probeUrl(url: string, timeoutMs = 3_000): Promise<TargetProbe> {
+  const started = Date.now();
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+    return { ok: res.ok, status: res.status, latencyMs: Date.now() - started };
+  } catch (err) {
+    const isTimeout = err instanceof Error && err.name === 'TimeoutError';
+    return {
+      ok: false,
+      latencyMs: Date.now() - started,
+      error: isTimeout ? `timeout ${timeoutMs}ms (¿proceso zombie?)` : 'no alcanzable',
+    };
+  }
+}
+
+export async function preflightTarget(config: {
+  apiBaseUrl: string;
+  webBaseUrl: string;
+  browserEnabled: boolean;
+}): Promise<{ ok: boolean; messages: string[] }> {
+  const messages: string[] = [];
+
+  const apiHealth = await probeUrl(`${config.apiBaseUrl}/health`);
+  if (!apiHealth.ok) {
+    messages.push(
+      `API ${config.apiBaseUrl}/health: ✗ ${apiHealth.error ?? `HTTP ${apiHealth.status}`} — reiniciar sandbox EPIS2 (npm run stack:dev) o evolab:stack`,
+    );
+  } else {
+    messages.push(`API health: ✓ (${apiHealth.latencyMs}ms)`);
+    const apiReady = await probeUrl(`${config.apiBaseUrl}/ready`);
+    if (!apiReady.ok) {
+      messages.push(
+        `API /ready: ⚠ HTTP ${apiReady.status ?? '—'} — DB clínica posiblemente degradada (revisar docker epis2-postgres)`,
+      );
+    } else {
+      messages.push(`API ready: ✓ (${apiReady.latencyMs}ms)`);
+    }
+  }
+
+  if (config.browserEnabled) {
+    const web = await probeUrl(config.webBaseUrl);
+    if (!web.ok) {
+      messages.push(
+        `Web ${config.webBaseUrl}: ✗ ${web.error ?? `HTTP ${web.status}`} — requerida con BROWSER=true (npm run dev:web en EPIS2)`,
+      );
+    } else {
+      messages.push(`Web: ✓ (${web.latencyMs}ms)`);
+    }
+    return { ok: apiHealth.ok && web.ok, messages };
+  }
+
+  return { ok: apiHealth.ok, messages };
+}
+
+export async function runDoctor(opts: { strict?: boolean } = {}): Promise<number> {
   console.log('EPIS2 Evolab — doctor\n');
   const config = loadEvolabConfig();
   const guards = runSecurityGuards(config);
@@ -52,13 +113,10 @@ export async function runDoctor(): Promise<number> {
         : 'off';
   console.log(`  LLM sim: ${llmLabel}`);
 
-  try {
-    const health = await fetch(`${config.apiBaseUrl}/health`, {
-      signal: AbortSignal.timeout(5_000),
-    });
-    console.log(`\n  EPIS2 API health: ${health.ok ? '✓' : '✗'} (${health.status})`);
-  } catch {
-    console.log('\n  EPIS2 API health: ✗ (no alcanzable — iniciar stack sandbox)');
+  const preflight = await preflightTarget(config);
+  console.log('\n  Target EPIS2:');
+  for (const msg of preflight.messages) {
+    console.log(`    ${msg}`);
   }
 
   const scenarios = listScenarios();
@@ -83,6 +141,10 @@ export async function runDoctor(): Promise<number> {
   }
   if (config.ollamaRequired && !inventory.up) {
     console.error('evolab:doctor FAILED — Ollama requerido pero no disponible');
+    return 1;
+  }
+  if (opts.strict && !preflight.ok) {
+    console.error('evolab:doctor FAILED (--strict) — target EPIS2 no disponible');
     return 1;
   }
   console.log('evolab:doctor OK');
@@ -299,7 +361,7 @@ export async function runSimulatedUserPlan(scenarioId: string): Promise<number> 
 
 export async function runScenarioBatch(
   orchestrator: EvolutionOrchestrator,
-  opts: { all?: boolean; tag?: string },
+  opts: { all?: boolean; tag?: string; resetFixtures?: boolean },
 ): Promise<{ total: number; passed: number; review: number; failed: number }> {
   let scenarios = listScenarios();
   if (opts.tag) {
@@ -316,7 +378,9 @@ export async function runScenarioBatch(
   for (const scenario of scenarios) {
     console.log(`\n▶ ${scenario.id}`);
     try {
-      const result = await orchestrator.executeRun(scenario.id);
+      const result = await orchestrator.executeRun(scenario.id, undefined, {
+        ...(opts.resetFixtures ? { resetFixtures: true } : {}),
+      });
       if (result.finalStatus === 'completed') passed += 1;
       else if (result.finalStatus === 'human_review') review += 1;
       else failed += 1;

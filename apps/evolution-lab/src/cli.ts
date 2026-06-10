@@ -12,6 +12,7 @@ import {
   runReviewFinding,
   runSimulatedUserPlan,
   runScenarioBatch,
+  preflightTarget,
 } from './cli/commands.js';
 import { EvolutionOrchestrator } from './orchestrator/orchestrator.js';
 import { replayRun } from './replay/replay.js';
@@ -38,6 +39,18 @@ function parseArgs(argv: string[]): {
     }
     if (arg === '--force') {
       booleans.force = true;
+      continue;
+    }
+    if (arg === '--strict') {
+      booleans.strict = true;
+      continue;
+    }
+    if (arg === '--skip-preflight') {
+      booleans.skipPreflight = true;
+      continue;
+    }
+    if (arg === '--reset-fixtures') {
+      booleans.resetFixtures = true;
       continue;
     }
     if (arg?.startsWith('--') && args[i + 1] && !args[i + 1]!.startsWith('--')) {
@@ -72,7 +85,7 @@ async function main(): Promise<number> {
 
   switch (command) {
     case 'doctor':
-      return runDoctor();
+      return runDoctor({ ...(booleans.strict ? { strict: true } : {}) });
     case 'models':
       return runModels();
     case 'scenarios':
@@ -83,12 +96,26 @@ async function main(): Promise<number> {
       return listFindings(Number.parseInt(flags.limit ?? '20', 10) || 20, flags.status);
     case 'run': {
       const config = loadEvolabConfig();
+
+      if (!booleans.skipPreflight) {
+        const preflight = await preflightTarget(config);
+        if (!preflight.ok) {
+          console.error('Preflight target EPIS2 FAILED:\n');
+          for (const msg of preflight.messages) {
+            console.error(`  ${msg}`);
+          }
+          console.error('\n(usar --skip-preflight para omitir esta verificación)');
+          return 1;
+        }
+      }
+
       const orchestrator = new EvolutionOrchestrator(config);
 
       if (booleans.all || flags.tag) {
         const summary = await runScenarioBatch(orchestrator, {
           ...(flags.tag ? { tag: flags.tag } : {}),
           ...(booleans.all ? { all: true } : {}),
+          ...(booleans.resetFixtures ? { resetFixtures: true } : {}),
         });
         console.log(
           `\nBatch: ${summary.passed}/${summary.total} passed, ${summary.review} human_review`,
@@ -102,7 +129,9 @@ async function main(): Promise<number> {
         return 1;
       }
       try {
-        const result = await orchestrator.executeRun(scenarioId);
+        const result = await orchestrator.executeRun(scenarioId, undefined, {
+          ...(booleans.resetFixtures ? { resetFixtures: true } : {}),
+        });
         printRunSummary(result);
         return result.finalStatus === 'completed' ? 0 : 1;
       } catch (err) {
@@ -196,7 +225,7 @@ async function main(): Promise<number> {
       console.log(`EPIS2 Evolab — Simulated Evolution Laboratory
 
 Comandos:
-  doctor       Verificar entorno, guards, Ollama (opcional), target
+  doctor       Verificar entorno, guards, Ollama (opcional), target (--strict: falla si target caído)
   models       Inventario de modelos Ollama
   scenarios    Listar escenarios declarativos
   runs         Listar runs recientes (--limit N) [PostgreSQL o filesystem]
@@ -204,7 +233,7 @@ Comandos:
   queue        Cola human_review (--limit N)
   import       Backfill reports/evolution/runs → PostgreSQL (--dry-run, --force)
   review       Decidir hallazgo (--finding <uuid> --decision approved|rejected|duplicate)
-  run          Ejecutar escenario (--scenario <id> | --all | --tag <tag>)
+  run          Ejecutar escenario (--scenario <id> | --all | --tag <tag>) [--skip-preflight] [--reset-fixtures]
   plan         Plan LLM simulated user (--scenario <id>) sin ejecutar target
   replay       Reproducir run (--run <id>) con mismo seed [filesystem o DB]
   regenerate   Nuevo run desde contexto previo (--run <id> [--strategy exact|new-seed])

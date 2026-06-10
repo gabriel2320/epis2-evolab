@@ -34,9 +34,15 @@ flow:
 
 Capacidades del paso `api`: placeholders en path/body (incluye `{today}`, `{encounterId}`), `capture` (ruta punteada del response al contexto, ej. `draftId: draft.id`), `failOnMissingCapture` y proyección `observe.payload`.
 
-La lógica de dominio reutilizable vive en **custom steps** nombrados (`step-engine/custom-steps.ts`): `service_criticals`, `discharge_alerts`, `discharge_ui_probe`, `mar_dashboard`, `mar_alerts`, `mar_create_and_approve`. Un escenario nuevo los compone desde YAML sin escribir ejecutor.
+La lógica de dominio reutilizable vive en **custom steps** nombrados (`step-engine/custom-steps.ts`): `census_snapshot`, `service_criticals`, `discharge_alerts`, `discharge_ui_probe`, `mar_dashboard`, `mar_alerts`, `mar_create_and_approve`. Un escenario nuevo los compone desde YAML sin escribir ejecutor.
 
 Paridad validada por test: los flows de `role-evolution-sign-001`, `discharge-critical-pending-001` y `suspended-medication-mar-001` producen las mismas observaciones y llamadas que sus ejecutores TS (golden reference).
+
+El catálogo tramo C (Sprint 3) se autoriza solo en YAML: `admission-double-booking-001` (409 doble admisión), `role-nurse-approve-001` (RBAC 403), `draft-lifecycle-cancelled-001` (409 ciclo de vida) y `census-service-integrity-001` (evaluador `census_integrity` sobre `census_snapshot`). El evaluador HTTP trata `409` como bloqueo válido.
+
+## Preflight operativo
+
+`evolab doctor [--strict]` y `evolab run` ejecutan `preflightTarget`: ping `health`/`ready` del API (timeout 3 s, detecta proceso zombie en `:3001`) y web solo si `BROWSER=true`. `run --skip-preflight` lo omite; `run --reset-fixtures` convierte el reset de `sandbox-prep` (acuses críticos, dosis MAR held) en obligatorio en PREPARE en vez de best-effort.
 
 ## Loop maestro
 

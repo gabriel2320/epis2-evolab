@@ -10,8 +10,8 @@ Ver plan detallado: [docs/evolution/EVOLAB_ROADMAP.md](../../docs/evolution/EVOL
 |-----------|--------|-----------------|
 | Lint / CI GitHub Actions | No implementado | Sprint 0 |
 | Motor de pasos declarativo (escenario = YAML) | No implementado | Sprint 1–2 |
-| Catálogo tramo C | No implementado | Sprint 3 |
-| Doctor preflight + reset fixtures | Parcial | Sprint 3 |
+| Catálogo tramo C | ✅ Implementado (4 escenarios YAML, 8 activos) | Sprint 3 |
+| Doctor preflight + reset fixtures | ✅ Implementado (`--strict`, `--reset-fixtures`, preflight en `run`) | Sprint 3 |
 | CI smoke + evidencia minimal | No implementado | Sprint 4 |
 | Evaluador CDR / audit completeness | No implementado | Sprint 5 |
 | Journeys multi-paso | No implementado | Sprint 6 |
@@ -39,8 +39,8 @@ Ver plan detallado: [docs/evolution/EVOLAB_ROADMAP.md](../../docs/evolution/EVOL
 | **Playwright + Vite dev** | Sesión browser vía cookie API; E2E golden usa `pinDemoCase` / `epis2-nav-buscar` |
 | **CDR vs críticos DB** | `clinical_critical_results` y CDR son fuentes distintas en DEMO-004 |
 | **Enforcement clínico** | `discharge-critical-pending-001` registra hallazgo si approve HTTP 200 con crítico sin acuse |
-| **API colgada** | Si `:3001` queda zombie, reiniciar sandbox EPIS2 antes de `evolab:run` |
-| **Fixture críticos** | Tras tests manuales, acuses demo persisten — `sandbox-prep` resetea vía psql |
+| **API colgada** | `evolab run` hace preflight (timeout 3 s) y falla rápido con mensaje accionable; `--skip-preflight` lo omite |
+| **Fixture críticos** | `sandbox-prep` resetea vía psql en PREPARE; `--reset-fixtures` lo hace obligatorio (falla si docker/psql no responde) |
 
 ## Gaps de escenarios
 
@@ -49,6 +49,10 @@ Ver plan detallado: [docs/evolution/EVOLAB_ROADMAP.md](../../docs/evolution/EVOL
 | `discharge-critical-pending-001` | Confirmado: approve epicrisis no bloqueada por PCR pendiente |
 | `suspended-medication-mar-001` | Verificar si EPIS2 bloquea MAR suspendido o solo advierte |
 | `role-evolution-sign-001` | RBAC admin en approve — verificado ✓ |
+| `admission-double-booking-001` | Verificar contra sandbox vivo: 409 ante doble admisión de DEMO-004 |
+| `role-nurse-approve-001` | Verificar contra sandbox vivo: 403 `draft.approve` para nurse |
+| `draft-lifecycle-cancelled-001` | Verificar contra sandbox vivo: 409 al aprobar borrador cancelado |
+| `census-service-integrity-001` | Verificar contra sandbox vivo: censo CIRUGIA-DEMO coherente |
 
 ## Dependencias externas
 
