@@ -23,6 +23,7 @@
     "evolab:models": "tsx apps/evolution-lab/src/cli.ts models",
     "evolab:scenarios": "tsx apps/evolution-lab/src/cli.ts scenarios",
     "evolab:run": "tsx apps/evolution-lab/src/cli.ts run",
+    "evolab:smoke": "tsx apps/evolution-lab/src/cli.ts run --tag smoke --evidence minimal",
     "evolab:runs": "tsx apps/evolution-lab/src/cli.ts runs",
     "evolab:findings": "tsx apps/evolution-lab/src/cli.ts findings",
     "evolab:replay": "tsx apps/evolution-lab/src/cli.ts replay",

@@ -95,7 +95,15 @@ async function main(): Promise<number> {
     case 'findings':
       return listFindings(Number.parseInt(flags.limit ?? '20', 10) || 20, flags.status);
     case 'run': {
-      const config = loadEvolabConfig();
+      let config = loadEvolabConfig();
+
+      if (flags.evidence) {
+        if (flags.evidence !== 'minimal' && flags.evidence !== 'full') {
+          console.error('--evidence debe ser minimal o full');
+          return 1;
+        }
+        config = { ...config, evidenceMode: flags.evidence };
+      }
 
       if (!booleans.skipPreflight) {
         const preflight = await preflightTarget(config);
@@ -233,7 +241,7 @@ Comandos:
   queue        Cola human_review (--limit N)
   import       Backfill reports/evolution/runs → PostgreSQL (--dry-run, --force)
   review       Decidir hallazgo (--finding <uuid> --decision approved|rejected|duplicate)
-  run          Ejecutar escenario (--scenario <id> | --all | --tag <tag>) [--skip-preflight] [--reset-fixtures]
+  run          Ejecutar escenario (--scenario <id> | --all | --tag <tag>) [--skip-preflight] [--reset-fixtures] [--evidence minimal|full]
   plan         Plan LLM simulated user (--scenario <id>) sin ejecutar target
   replay       Reproducir run (--run <id>) con mismo seed [filesystem o DB]
   regenerate   Nuevo run desde contexto previo (--run <id> [--strategy exact|new-seed])
@@ -244,6 +252,7 @@ Eficiencia (API-first, sin Chromium por defecto):
   EPIS2_EVOLAB_BROWSER=false
   EPIS2_EVOLAB_LLM_SIM=off|plan|execute
   EPIS2_EVOLAB_OLLAMA_REQUIRED=false
+  EPIS2_EVOLAB_EVIDENCE=full|minimal (minimal: sin api/, model/, logs/ por run)
 `);
       return command === 'help' ? 0 : 1;
   }

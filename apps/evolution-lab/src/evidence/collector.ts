@@ -12,8 +12,17 @@ export type RunEvidenceBundle = {
   observations: Array<Record<string, unknown>>;
 };
 
+export type EvidenceMode = 'full' | 'minimal';
+
 export class EvidenceCollector {
-  constructor(private readonly reportsDir: string) {}
+  constructor(
+    private readonly reportsDir: string,
+    private readonly mode: EvidenceMode = 'full',
+  ) {}
+
+  get evidenceMode(): EvidenceMode {
+    return this.mode;
+  }
 
   runDirectory(runId: string): string {
     return resolve(process.cwd(), this.reportsDir, runId);
@@ -21,13 +30,13 @@ export class EvidenceCollector {
 
   prepare(run: EvolutionRun, scenario: ScenarioDefinition): RunEvidenceBundle {
     const runDir = this.runDirectory(run.id);
-    const screenshotsDir = join(runDir, 'screenshots');
-    const logsDir = join(runDir, 'logs');
-    const apiDir = join(runDir, 'api');
-    mkdirSync(screenshotsDir, { recursive: true });
-    mkdirSync(logsDir, { recursive: true });
-    mkdirSync(apiDir, { recursive: true });
-    mkdirSync(join(runDir, 'model'), { recursive: true });
+    mkdirSync(runDir, { recursive: true });
+    if (this.mode === 'full') {
+      mkdirSync(join(runDir, 'screenshots'), { recursive: true });
+      mkdirSync(join(runDir, 'logs'), { recursive: true });
+      mkdirSync(join(runDir, 'api'), { recursive: true });
+      mkdirSync(join(runDir, 'model'), { recursive: true });
+    }
 
     const metadata = {
       runId: run.id,
@@ -41,6 +50,7 @@ export class EvidenceCollector {
       configuration: run.configuration,
       synthetic: true,
       source: 'epis2_evolab',
+      evidenceMode: this.mode,
     };
 
     const metadataPath = join(runDir, 'metadata.json');
@@ -65,6 +75,9 @@ export class EvidenceCollector {
     payload: Record<string, unknown>,
   ): string {
     const safe = label.replace(/[^a-z0-9_-]+/gi, '-').toLowerCase();
+    if (this.mode === 'minimal') {
+      return `minimal://api/${safe}`;
+    }
     const path = join(bundle.runDir, 'api', `${safe}.json`);
     writeFileSync(path, JSON.stringify(sanitize(payload), null, 2));
     return path;
@@ -100,12 +113,16 @@ export class EvidenceCollector {
     payload: Record<string, unknown>,
   ): string {
     const safe = label.replace(/[^a-z0-9_-]+/gi, '-').toLowerCase();
+    if (this.mode === 'minimal') {
+      return `minimal://model/${safe}`;
+    }
     const path = join(bundle.runDir, 'model', `${safe}.json`);
     writeFileSync(path, JSON.stringify(sanitize(payload), null, 2));
     return path;
   }
 
   writeLog(bundle: RunEvidenceBundle, label: string, lines: string[]): void {
+    if (this.mode === 'minimal') return;
     const safe = label.replace(/[^a-z0-9_-]+/gi, '-').toLowerCase();
     const path = join(bundle.runDir, 'logs', `${safe}.log`);
     writeFileSync(path, lines.join('\n'));

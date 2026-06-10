@@ -27,6 +27,8 @@ const EvolabEnvSchema = z.object({
   browserEnabled: z.boolean(),
   ollamaRequired: z.boolean(),
   llmSimMode: z.enum(['off', 'plan', 'execute']),
+  /** minimal: solo metadata/result/evaluation/findings; sin api/, model/, logs/ por run. */
+  evidenceMode: z.enum(['full', 'minimal']),
 });
 
 export type EvolabConfig = z.infer<typeof EvolabEnvSchema>;
@@ -71,6 +73,11 @@ function envOptional(key: string): string | undefined {
   return raw ? raw : undefined;
 }
 
+function parseEvidenceMode(): 'full' | 'minimal' {
+  const raw = process.env.EPIS2_EVOLAB_EVIDENCE?.toLowerCase()?.trim();
+  return raw === 'minimal' ? 'minimal' : 'full';
+}
+
 function parseLlmSimMode(): 'off' | 'plan' | 'execute' {
   const raw = process.env.EPIS2_EVOLAB_LLM_SIM?.toLowerCase()?.trim();
   if (!raw || raw === 'false' || raw === '0' || raw === 'off') return 'off';
@@ -106,6 +113,7 @@ export function loadEvolabConfig(): EvolabConfig {
     browserEnabled: envBool('EPIS2_EVOLAB_BROWSER', false),
     ollamaRequired: envBool('EPIS2_EVOLAB_OLLAMA_REQUIRED', false),
     llmSimMode: parseLlmSimMode(),
+    evidenceMode: parseEvidenceMode(),
   };
   return EvolabEnvSchema.parse(config);
 }
