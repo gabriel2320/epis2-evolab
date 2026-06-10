@@ -14,13 +14,21 @@ export type BuiltRun = {
 
 /** Fases PREPARE+SEED: guards, target allowlist y EvolutionRun inicial. */
 export function buildRun(config: EvolabConfig, scenarioId: string, seed?: string): BuiltRun {
+  return buildRunFromScenario(config, loadScenario(scenarioId), seed);
+}
+
+/** Igual que buildRun pero con escenario ya cargado (candidatos S9). */
+export function buildRunFromScenario(
+  config: EvolabConfig,
+  scenario: ScenarioDefinition,
+  seed?: string,
+): BuiltRun {
   const guardReport = runSecurityGuards(config);
   if (!guardReport.ok) {
     throw new Error(`Guards fallaron: ${guardReport.blockedReason}`);
   }
   assertGuardsPass(config);
 
-  const scenario = loadScenario(scenarioId);
   const target = resolveTargetEnvironment(config.targetId);
   if (!target) {
     throw new Error(`Target no resuelto: ${config.targetId}`);

@@ -28,3 +28,23 @@ export function listScenarios(): ScenarioDefinition[] {
     .filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'))
     .map((f) => loadScenario(f.replace(/\.(yaml|yml)$/, '')));
 }
+
+/** Directorio de candidatos mutados (gitignored; no es corpus canónico). */
+export function candidatesDirectory(): string {
+  return join(scenariosDirectory(), 'candidates');
+}
+
+export function loadScenarioFromFile(filePath: string): ScenarioDefinition {
+  const raw = readFileSync(filePath, 'utf8');
+  const parsed = parseYaml(raw) as unknown;
+  return ScenarioDefinitionSchema.parse(parsed);
+}
+
+/** Candidatos YAML aceptados por el pipeline de mutación (S8/S9). */
+export function listCandidateFiles(): string[] {
+  const dir = candidatesDirectory();
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'))
+    .map((f) => join(dir, f));
+}

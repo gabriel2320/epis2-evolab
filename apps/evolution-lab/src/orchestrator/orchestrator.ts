@@ -3,7 +3,12 @@ import { assertGuardsPass, runSecurityGuards } from '../security/guards.js';
 import { resolveTargetEnvironment } from '../security/target-allowlist.js';
 import { createLogger } from '../logger.js';
 import { transition } from '../state-machine/transitions.js';
-import type { EvaluationResult, EvolutionRun, RunStatus } from '../contracts/schemas.js';
+import type {
+  EvaluationResult,
+  EvolutionRun,
+  RunStatus,
+  ScenarioDefinition,
+} from '../contracts/schemas.js';
 import { loadScenario } from '../scenarios/loader.js';
 import { Epis2ApiTargetAdapterImpl } from '../target/epis2-api-target-adapter.js';
 import type { PlaywrightController } from '../browser/playwright-controller.js';
@@ -13,7 +18,7 @@ import type { ScenarioObservation } from '../evaluators/types.js';
 import { isPlanDrivenScenario } from '../plan-executor/path-resolver.js';
 import { resolveDemoPersona } from '../resources/demo-users.js';
 import { captureAuditTrail } from './audit-capture.js';
-import { buildRun } from './build-run.js';
+import { buildRun, buildRunFromScenario } from './build-run.js';
 import { evaluateRun, resolveFinalStatus } from './evaluate-run.js';
 import { orchestratorFailureEvaluation, persistRun } from './persist-run.js';
 import { createRunBrowser, runFixturePhase, runPlanPhase } from './run-phases.js';
@@ -28,6 +33,7 @@ export type OrchestratorResult = {
   evidenceDir?: string;
   finalStatus?: RunStatus;
   findingsCount?: number;
+  observations?: ScenarioObservation[];
 };
 
 export type ExecuteRunOptions = { resetFixtures?: boolean };
@@ -55,6 +61,15 @@ export class EvolutionOrchestrator {
     opts: ExecuteRunOptions = {},
   ): Promise<OrchestratorResult> {
     const scenario = loadScenario(scenarioId);
+    return this.executeScenarioDefinition(scenario, seed, opts);
+  }
+
+  /** Ejecuta un escenario ya cargado (candidatos en scenarios/candidates/, S9). */
+  async executeScenarioDefinition(
+    scenario: ScenarioDefinition,
+    seed?: string,
+    opts: ExecuteRunOptions = {},
+  ): Promise<OrchestratorResult> {
     const maxAttempts = Math.min(
       scenario.maxAttempts ?? this.config.maxScenarioAttempts,
       this.config.maxScenarioAttempts,
@@ -63,14 +78,14 @@ export class EvolutionOrchestrator {
     let lastError: Error | undefined;
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
       try {
-        return await this.runOnce(scenarioId, seed, attempt, opts);
+        return await this.runOnce(scenario, seed, attempt, opts);
       } catch (err) {
         lastError = err instanceof Error ? err : new Error(String(err));
         if (attempt >= maxAttempts || !isTransientError(lastError.message)) {
           throw lastError;
         }
         log.warn('Reintento de escenario', {
-          scenarioId,
+          scenarioId: scenario.id,
           attempt,
           maxAttempts,
           error: lastError.message,
@@ -81,7 +96,7 @@ export class EvolutionOrchestrator {
   }
 
   private async runOnce(
-    scenarioId: string,
+    scenario: ScenarioDefinition,
     seed: string | undefined,
     attempt: number,
     opts: ExecuteRunOptions = {},
@@ -92,18 +107,17 @@ export class EvolutionOrchestrator {
     }
     assertGuardsPass(this.config);
 
-    const scenario = loadScenario(scenarioId);
     const target = resolveTargetEnvironment(this.config.targetId);
     if (!target) {
       throw new Error(`Target no resuelto: ${this.config.targetId}`);
     }
 
-    const { run } = this.buildRun(scenarioId, seed);
+    const { run } = buildRunFromScenario(this.config, scenario, seed);
     const collector = new EvidenceCollector(this.config.reportsDir, this.config.evidenceMode);
     const bundle = collector.prepare(run, scenario);
 
     collector.writeLog(bundle, 'run', [
-      `scenario=${scenarioId}`,
+      `scenario=${scenario.id}`,
       `attempt=${attempt}`,
       `browser=${this.config.browserEnabled}`,
       `seed=${run.randomSeed}`,
@@ -245,6 +259,8 @@ export class EvolutionOrchestrator {
         attempt,
       });
 
+      const observations = bundle.observations as ScenarioObservation[];
+
       return {
         run,
         guardReport,
@@ -252,11 +268,12 @@ export class EvolutionOrchestrator {
         evidenceDir: bundle.runDir,
         finalStatus: status,
         findingsCount: findings.length,
+        observations,
         message: passed
-          ? `Run ${run.id} PASSED — escenario ${scenarioId}`
+          ? `Run ${run.id} PASSED — escenario ${scenario.id}`
           : findings.length > 0
-            ? `Run ${run.id} — ${findings.length} hallazgo(s) — escenario ${scenarioId}`
-            : `Run ${run.id} requiere revisión — escenario ${scenarioId}`,
+            ? `Run ${run.id} — ${findings.length} hallazgo(s) — escenario ${scenario.id}`
+            : `Run ${run.id} requiere revisión — escenario ${scenario.id}`,
       };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

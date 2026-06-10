@@ -16,6 +16,7 @@ import {
 } from './cli/commands.js';
 import { runFitnessReport } from './cli/fitness-command.js';
 import { runMutate } from './cli/mutate-command.js';
+import { runEvolve } from './cli/evolve-command.js';
 import { EvolutionOrchestrator } from './orchestrator/orchestrator.js';
 import { replayRun } from './replay/replay.js';
 import { regenerateRun, type RegenerateStrategy } from './replay/regenerate.js';
@@ -131,6 +132,29 @@ async function main(): Promise<number> {
           ? { noveltyThreshold }
           : {}),
         ...(booleans.json ? { json: true } : {}),
+      });
+    }
+    case 'evolve': {
+      const generations = Number.parseInt(flags.generations ?? '3', 10);
+      const budgetMinutes = Number.parseFloat(flags['budget-minutes'] ?? '30');
+      const population = flags.population ? Number.parseInt(flags.population, 10) : undefined;
+      if (!Number.isFinite(generations) || generations < 1) {
+        console.error(
+          'Uso: evolab evolve --generations N --budget-minutes M [--population K] [--json] [--dry-run]',
+        );
+        return 1;
+      }
+      if (!Number.isFinite(budgetMinutes) || budgetMinutes <= 0) {
+        console.error('--budget-minutes debe ser > 0');
+        return 1;
+      }
+      return runEvolve({
+        generations,
+        budgetMinutes,
+        ...(population !== undefined && Number.isFinite(population) ? { population } : {}),
+        ...(booleans.json ? { json: true } : {}),
+        ...(booleans.dryRun ? { dryRun: true } : {}),
+        ...(booleans.skipPreflight ? { skipPreflight: true } : {}),
       });
     }
     case 'run': {
@@ -279,6 +303,7 @@ Comandos:
   findings     Listar hallazgos (--limit N, --status open) — incluye UUID
   fitness      Mapa de cobertura y novedad del corpus (fitness report [--json])
   mutate       Motor de mutación LLM (--count N [--operator X] [--seed-scenario id] [--novelty-threshold T] [--json])
+  evolve       Loop evolutivo MAP-Elites (--generations N --budget-minutes M [--population K] [--json] [--dry-run])
   queue        Cola human_review (--limit N)
   import       Backfill reports/evolution/runs → PostgreSQL (--dry-run, --force)
   review       Decidir hallazgo (--finding <uuid> --decision approved|rejected|duplicate)

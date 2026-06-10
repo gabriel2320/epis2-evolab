@@ -74,6 +74,8 @@ export type MutationPipelineOptions = {
   repairModel: string;
   runSeed?: string;
   seedScenarioId?: string;
+  /** Índice base para buildTask (variar inputs entre generaciones S9). */
+  startIndex?: number;
   noveltyThreshold?: number;
   /** null ⇒ solo dedup estructural (Ollama embeddings no disponible). */
   embeddings?: EmbeddingsClient | null;
@@ -290,9 +292,10 @@ export async function runMutationPipeline(
 
   // Tareas con orden de lote por modelo: amplitud (7b) primero, profundidad después.
   const tasks: Array<{ operator: MutationOperator; task: MutationTask }> = [];
+  const startIndex = options.startIndex ?? 0;
   for (let i = 0; i < options.count; i += 1) {
-    const operator = options.operators[i % options.operators.length]!;
-    const task = buildTask(operator, options.corpus, i, options.seedScenarioId);
+    const operator = options.operators[(startIndex + i) % options.operators.length]!;
+    const task = buildTask(operator, options.corpus, startIndex + i, options.seedScenarioId);
     if (!task) {
       records.push({
         index: i,

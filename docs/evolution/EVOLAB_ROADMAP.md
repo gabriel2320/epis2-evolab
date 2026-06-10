@@ -101,7 +101,9 @@ Operadores de mutación sobre YAML vía Ollama con salida JSON estructurada (reu
 | S9.3 | Selección: prioriza padres de nichos frontera (vecinos vacíos) + fitness multiobjetivo (cobertura nueva, hallazgos, novedad, costo) | Sin colapso a un solo nicho |
 | S9.4 | Variantes élite quedan como YAML en `scenarios/candidates/` + cola `human_review`; promoción a `scenarios/` es decisión humana (PR) | IA nunca escribe el corpus canónico |
 
-**Gate:** una corrida nocturna (2–3 h) produce **≥5 candidatos élite en nichos vacíos** del mapa de Sprint 7.
+**Gate:** una corrida nocturna (2–3 h) produce **≥5 candidatos élite en nichos vacíos** del mapa de Sprint 7. Ver `reports/evolution/evolve/` para telemetría de la corrida gate.
+
+**Estado:** ✓ **Implementado 2026-06-10** — loop, CLI, tests y persistencia listos. **Gate parcial:** corrida de validación (`--generations 3 --budget-minutes 30`) → **1/5** élites en nichos previamente vacíos, 3 élites totales, 2.8 min efectivos — ver [`evolab-sprint9-gate.md`](../../reports/evolution/evolab-sprint9-gate.md). Corrida nocturna calibrada (≥15 gen, 150 min) pendiente de ejecutar en estación.
 
 ---
 
@@ -182,4 +184,4 @@ Cuando el mapa muestra nichos **inalcanzables** con los pasos/evaluadores actual
 
 ## 8. Próximo paso inmediato
 
-**Sprint 8:** motor de mutación LLM. Primer operador: `cambiar_rol` (el más barato de validar — el dry-run y el evaluador RBAC existen). Medir tasa de válidas desde el día 1 contra el gate de ≥70%.
+**Sprint 10:** relaciones metamórficas clínicas — spec en `reports/evolution/evolab-sprint10-metamorphic-spec.md`. Primer evaluador: inversión admitir→alta sobre `admission-discharge-001`.

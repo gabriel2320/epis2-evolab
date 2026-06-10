@@ -1,0 +1,364 @@
+{
+  "options": {
+    "generations": 3,
+    "budgetMinutes": 30,
+    "population": 3
+  },
+  "result": {
+    "generationsCompleted": 3,
+    "budgetMinutes": 30,
+    "budgetExceeded": false,
+    "summaries": [
+      {
+        "generation": 1,
+        "mutationsAttempted": 3,
+        "mutationsValid": 2,
+        "evaluated": 2,
+        "newElites": 2,
+        "replacedElites": 0,
+        "keptCandidates": 0,
+        "discarded": 0,
+        "durationMs": 51366
+      },
+      {
+        "generation": 2,
+        "mutationsAttempted": 3,
+        "mutationsValid": 3,
+        "evaluated": 3,
+        "newElites": 1,
+        "replacedElites": 0,
+        "keptCandidates": 1,
+        "discarded": 1,
+        "durationMs": 53025
+      },
+      {
+        "generation": 3,
+        "mutationsAttempted": 3,
+        "mutationsValid": 2,
+        "evaluated": 1,
+        "newElites": 0,
+        "replacedElites": 1,
+        "keptCandidates": 0,
+        "discarded": 0,
+        "durationMs": 66104
+      }
+    ],
+    "archive": {
+      "elites": [
+        {
+          "candidateId": "admission-discharge-001-m8rs-001",
+          "scenarioYaml": "id: admission-discharge-001-m8rs-001\nversion: 1\nname: Journey — admisión a alta hospitalaria completa (nurse)\nrisk: high\ntarget:\n  capabilities:\n    - inpatient\n    - admission\n    - discharge\n    - census\npersona:\n  role: nurse\nfixture:\n  type: synthetic-journey\n  demoCaseCode: DEMO-001\n  unitCode: CIRUGIA-DEMO\ngoal:\n  action: complete_admission_discharge_journey\nsteps:\n  - login\n  - ensure_patient_not_admitted\n  - find_available_bed\n  - admit_patient\n  - census_after_admission\n  - create_discharge_summary\n  - approve_discharge_summary\n  - discharge_admission\n  - census_after_discharge\nflow:\n  - login:\n      label: login_nurse\n  - custom:\n      name: ensure_patient_not_admitted\n      args:\n        label: ensure_not_admitted\n        unit: CIRUGIA-DEMO\n  - custom:\n      name: find_available_bed\n      args:\n        label: available_bed\n        unit: CIRUGIA-DEMO\n  - api:\n      label: admission_create\n      method: POST\n      path: /api/inpatient/admissions\n      body:\n        patientId: \"{patientId}\"\n        bedId: \"{bedId}\"\n        unitCode: CIRUGIA-DEMO\n      evidenceLabel: admission-create\n      capture:\n        admissionId: admission.id\n      failOnMissingCapture: No se pudo admitir al paciente (HTTP {status})\n      observe:\n        payload:\n          - status\n          - ok\n          - admissionId\n  - custom:\n      name: census_snapshot\n      args:\n        label: census_after_admission\n        unit: CIRUGIA-DEMO\n  - api:\n      label: journey_draft_create\n      method: POST\n      path: /api/drafts\n      body:\n        patientId: \"{patientId}\"\n        encounterId: \"{encounterId}\"\n        draftType: discharge_summary\n        title: Epicrisis journey — Evolab sintético\n        body:\n          diagnoses: Journey demo Evolab — observación (sintético)\n          dischargeDate: \"{today}\"\n          hospitalizationSummary: Evolución favorable — journey sintético\n          dischargeMedications: Losartán 50 mg/día (demo)\n          instructions: Control ambulatorio en 7 días (demo)\n          followUpPlan: Control medicina interna en 7 días\n      evidenceLabel: journey-draft-create\n      capture:\n        draftId: draft.id\n      failOnMissingCapture: No se pudo crear epicrisis del journey (HTTP {status})\n      observe:\n        payload:\n          - status\n          - ok\n          - draftId\n  - api:\n      label: journey_draft_approve\n      method: POST\n      path: /api/drafts/{draftId}/approve\n      evidenceLabel: journey-draft-approve\n      observe:\n        payload:\n          - status\n          - ok\n          - draftId\n  - api:\n      label: admission_discharge\n      method: POST\n      path: /api/inpatient/admissions/{admissionId}/discharge\n      evidenceLabel: admission-discharge\n      observe:\n        payload:\n          - status\n          - ok\n          - admissionId\n  - custom:\n      name: census_snapshot\n      args:\n        label: census_after_discharge\n        unit: CIRUGIA-DEMO\nexpected:\n  actionBlocked: true\n  auditEventCreated: false\n  auditMustInclude:\n    - auth.login.success\n    - inpatient.admitted\n    - clinical.draft.created\n    - clinical.draft.approved\n    - inpatient.discharged\nevaluators:\n  - functional\n  - audit\n  - audit_completeness\nactionObservation: admission_discharge\ntimeoutMs: 120000\nmaxAttempts: 2\ntags:\n  - journey\n  - admission\n  - discharge\n",
+          "niche": {
+            "role": "nurse",
+            "module": "inpatient",
+            "outcome": "blocked"
+          },
+          "nicheKey": "nurse|inpatient|blocked",
+          "fitness": {
+            "endpointsCovered": [
+              "GET /api/dashboard/service",
+              "POST /api/auth/login",
+              "POST /api/drafts",
+              "POST /api/drafts/:draftId/approve",
+              "POST /api/inpatient/admissions",
+              "POST /api/inpatient/admissions/:admissionId/discharge"
+            ],
+            "auditEventsCovered": [],
+            "newEndpoints": 0,
+            "newAuditEvents": 0,
+            "findingsCount": 2,
+            "durationMs": 216,
+            "novelty": 0.06835490706242375,
+            "score": 3.2041647211872712,
+            "executionOk": true
+          },
+          "status": "elite",
+          "parentIds": [
+            "admission-discharge-001"
+          ],
+          "operator": "role_swap",
+          "generation": 1,
+          "runId": "139a47a9-81ef-4340-82a6-336bfa4ccdc3",
+          "createdAt": "2026-06-10T17:00:31.982Z"
+        },
+        {
+          "candidateId": "admission-double-booking-001-m8cx-004",
+          "scenarioYaml": "id: admission-double-booking-001-m8cx-004\nversion: 1\nname: Admisión — doble booking de paciente hospitalizado con resultado crítico\n  pendiente\nrisk: high\ntarget:\n  capabilities:\n    - inpatient\n    - admission\n    - hospitalization\n    - discharge\n    - critical-results\npersona:\n  role: physician\nfixture:\n  type: synthetic-adult-hospitalized\n  demoCaseCode: DEMO-004\n  bedId: f0000002-0000-4000-8000-000000000001\n  criticalResultId: f0000004-0000-4000-8000-000000000002\n  criticalResultPendingAcknowledgement: true\ngoal:\n  action: attempt_discharge_with_pending_critical\nsteps:\n  - login\n  - service_criticals_unacknowledged\n  - discharge_alerts\n  - discharge_draft_create\n  - discharge_ui_probe\n  - discharge_approve_attempt\n  - service_criticals_after_discharge_attempt\nflow:\n  - login:\n      label: login_physician\n  - custom:\n      name: service_criticals\n      args:\n        label: unacknowledged_criticals\n  - custom:\n      name: discharge_alerts\n      args:\n        label: discharge_alerts\n  - api:\n      label: discharge_draft_create\n      method: POST\n      path: /api/drafts\n      body:\n        patientId: \"{patientId}\"\n        encounterId: \"{encounterId}\"\n        draftType: discharge_summary\n        title: Epicrisis — Evolab sintético\n        body:\n          diagnoses: Alta demo Evolab — apendicectomía (sintético)\n          dischargeDate: \"{today}\"\n          hospitalizationSummary: Evolución favorable — demo sintético\n          dischargeMedications: Paracetamol 1 g c/8 h PRN (demo)\n          instructions: Control ambulatorio en 7 días (demo)\n          followUpPlan: Control cirugía general en 7 días\n      capture:\n        draftId: draft.id\n      failOnMissingCapture: No se pudo crear borrador de alta (HTTP {status})\n      observe:\n        payload:\n          - status\n          - ok\n          - draftId\n  - custom:\n      name: discharge_ui_probe\n  - api:\n      label: discharge_approve_attempt\n      method: POST\n      path: /api/drafts/{draftId}/approve\n      evidenceLabel: discharge-approve-attempt\n      observe:\n        payload:\n          - status\n          - ok\n          - draftId\n  - custom:\n      name: service_criticals\n      args:\n        label: after_discharge_attempt\nexpected:\n  dischargeBlocked: true\n  warningVisible: true\n  auditEventCreated: true\n  criticalResultRemainsPending: true\n  cdrConsistent: true\n  auditMustInclude:\n    - auth.login.success\n    - clinical.draft.created\n  auditMustNotInclude:\n    - clinical.draft.approved\nevaluators:\n  - functional\n  - clinical_safety\n  - accessibility\n  - audit\n  - cdr_consistency\n  - audit_completeness\nactionObservation: discharge_approve_attempt\ntimeoutMs: 120000\nmaxAttempts: 3\ntags:\n  - admission\n  - inpatient\n  - integrity\n  - clinical_safety\n  - discharge\n  - critical-results\n",
+          "niche": {
+            "role": "physician",
+            "module": "clinical",
+            "outcome": "allowed"
+          },
+          "nicheKey": "physician|clinical|allowed",
+          "fitness": {
+            "endpointsCovered": [
+              "GET /api/audit/events",
+              "GET /api/dashboard/service",
+              "GET /api/patients/:patientId/clinical-alerts",
+              "POST /api/auth/login",
+              "POST /api/drafts",
+              "POST /api/drafts/:draftId/approve"
+            ],
+            "auditEventsCovered": [
+              "admin.catalog.created",
+              "admin.drug_intel.promoted",
+              "admin.drug_intel.reviewed",
+              "auth.login.success",
+              "clinical.draft.approved",
+              "clinical.draft.created",
+              "clinical.encounter.closed",
+              "command.resolve",
+              "critical.acknowledged",
+              "dashboard.opened",
+              "inpatient.admitted",
+              "inpatient.discharged",
+              "inpatient.transferred",
+              "interop.hl7.quarantined",
+              "interop.hl7.reverted",
+              "interop.hl7.writeback_proposed"
+            ],
+            "newEndpoints": 0,
+            "newAuditEvents": 11,
+            "findingsCount": 4,
+            "durationMs": 273,
+            "novelty": 0.12975223245435463,
+            "score": 17.388119197363064,
+            "executionOk": true
+          },
+          "status": "elite",
+          "parentIds": [
+            "admission-double-booking-001",
+            "discharge-critical-pending-001"
+          ],
+          "operator": "crossover",
+          "generation": 2,
+          "runId": "518b0f66-f281-460e-ad24-e073a18aa4f2",
+          "createdAt": "2026-06-10T17:01:24.978Z"
+        },
+        {
+          "candidateId": "admission-discharge-001-m8cx-008",
+          "scenarioYaml": "id: admission-discharge-001-m8cx-008\nversion: 1\nname: Journey — admisión a alta hospitalaria completa con crossover entre roles\n  (physician y nurse)\nrisk: high\ntarget:\n  capabilities:\n    - inpatient\n    - admission\n    - discharge\n    - census\npersona:\n  role: physician\nfixture:\n  type: synthetic-journey\n  demoCaseCode: DEMO-001\n  unitCode: CIRUGIA-DEMO\ngoal:\n  action: complete_admission_discharge_journey_with_role_crossover\nsteps:\n  - login\n  - ensure_patient_not_admitted\n  - find_available_bed\n  - admit_patient\n  - census_after_admission\n  - create_discharge_summary\n  - approve_discharge_summary\n  - discharge_admission\n  - census_after_discharge\nflow:\n  - login:\n      label: login_physician\n  - custom:\n      name: ensure_patient_not_admitted\n      args:\n        label: ensure_not_admitted\n        unit: CIRUGIA-DEMO\n  - custom:\n      name: find_available_bed\n      args:\n        label: available_bed\n        unit: CIRUGIA-DEMO\n  - api:\n      label: admission_create\n      method: POST\n      path: /api/inpatient/admissions\n      body:\n        patientId: \"{patientId}\"\n        bedId: \"{bedId}\"\n        unitCode: CIRUGIA-DEMO\n      evidenceLabel: admission-create\n      capture:\n        admissionId: admission.id\n      failOnMissingCapture: No se pudo admitir al paciente (HTTP {status})\n      observe:\n        payload:\n          - status\n          - ok\n          - admissionId\n  - custom:\n      name: census_snapshot\n      args:\n        label: census_after_admission\n        unit: CIRUGIA-DEMO\n  - api:\n      label: journey_draft_create\n      method: POST\n      path: /api/drafts\n      body:\n        patientId: \"{patientId}\"\n        encounterId: \"{encounterId}\"\n        draftType: discharge_summary\n        title: Epicrisis journey — Evolab sintético\n        body:\n          diagnoses: Journey demo Evolab — observación (sintético)\n          dischargeDate: \"{today}\"\n          hospitalizationSummary: Evolución favorable — journey sintético\n          dischargeMedications: Losartán 50 mg/día (demo)\n          instructions: Control ambulatorio en 7 días (demo)\n          followUpPlan: Control medicina interna en 7 días\n      evidenceLabel: journey-draft-create\n      capture:\n        draftId: draft.id\n      failOnMissingCapture: No se pudo crear epicrisis del journey (HTTP {status})\n      observe:\n        payload:\n          - status\n          - ok\n          - draftId\n  - login:\n      label: login_nurse\n  - api:\n      label: journey_draft_approve_crossover\n      method: POST\n      path: /api/drafts/{draftId}/approve\n      evidenceLabel: journey-draft-approve-crossover\n      observe:\n        payload:\n          - status\n          - ok\n          - draftId\n  - api:\n      label: admission_discharge_crossover\n      method: POST\n      path: /api/inpatient/admissions/{admissionId}/discharge\n      evidenceLabel: admission-discharge-crossover\n      observe:\n        payload:\n          - status\n          - ok\n          - admissionId\n  - custom:\n      name: census_snapshot\n      args:\n        label: census_after_discharge_crossover\n        unit: CIRUGIA-DEMO\nexpected:\n  actionBlocked: true\n  auditEventCreated: false\n  auditMustInclude:\n    - auth.login.success\n    - inpatient.admitted\n    - clinical.draft.created\n    - clinical.draft.approved\n    - inpatient.discharged\nevaluators:\n  - functional\n  - audit\n  - audit_completeness\nactionObservation: admission_discharge_crossover\ntimeoutMs: 120000\nmaxAttempts: 2\ntags:\n  - journey\n  - admission\n  - discharge\n  - role_crossover\n",
+          "niche": {
+            "role": "physician",
+            "module": "inpatient",
+            "outcome": "blocked"
+          },
+          "nicheKey": "physician|inpatient|blocked",
+          "fitness": {
+            "endpointsCovered": [
+              "GET /api/dashboard/service",
+              "POST /api/auth/login",
+              "POST /api/drafts",
+              "POST /api/drafts/:draftId/approve",
+              "POST /api/inpatient/admissions",
+              "POST /api/inpatient/admissions/:admissionId/discharge"
+            ],
+            "auditEventsCovered": [],
+            "newEndpoints": 0,
+            "newAuditEvents": 0,
+            "findingsCount": 2,
+            "durationMs": 164,
+            "novelty": 0.06070031454852021,
+            "score": 3.181417610312227,
+            "executionOk": true
+          },
+          "status": "elite",
+          "parentIds": [
+            "admission-discharge-001",
+            "admission-discharge-001-m8rs-001"
+          ],
+          "operator": "crossover",
+          "generation": 3,
+          "runId": "df88c218-ee35-4f6d-8153-bc34f512eb78",
+          "createdAt": "2026-06-10T17:02:31.157Z"
+        }
+      ],
+      "emptyNiches": [
+        {
+          "role": "physician",
+          "module": "auth",
+          "outcome": "allowed"
+        },
+        {
+          "role": "physician",
+          "module": "auth",
+          "outcome": "blocked"
+        },
+        {
+          "role": "physician",
+          "module": "auth",
+          "outcome": "journey"
+        },
+        {
+          "role": "physician",
+          "module": "clinical",
+          "outcome": "journey"
+        },
+        {
+          "role": "physician",
+          "module": "inpatient",
+          "outcome": "allowed"
+        },
+        {
+          "role": "physician",
+          "module": "dashboard",
+          "outcome": "blocked"
+        },
+        {
+          "role": "physician",
+          "module": "dashboard",
+          "outcome": "journey"
+        },
+        {
+          "role": "physician",
+          "module": "audit",
+          "outcome": "allowed"
+        },
+        {
+          "role": "physician",
+          "module": "audit",
+          "outcome": "blocked"
+        },
+        {
+          "role": "physician",
+          "module": "audit",
+          "outcome": "journey"
+        },
+        {
+          "role": "nurse",
+          "module": "auth",
+          "outcome": "allowed"
+        },
+        {
+          "role": "nurse",
+          "module": "auth",
+          "outcome": "blocked"
+        },
+        {
+          "role": "nurse",
+          "module": "auth",
+          "outcome": "journey"
+        },
+        {
+          "role": "nurse",
+          "module": "clinical",
+          "outcome": "journey"
+        },
+        {
+          "role": "nurse",
+          "module": "inpatient",
+          "outcome": "allowed"
+        },
+        {
+          "role": "nurse",
+          "module": "inpatient",
+          "outcome": "journey"
+        },
+        {
+          "role": "nurse",
+          "module": "dashboard",
+          "outcome": "allowed"
+        },
+        {
+          "role": "nurse",
+          "module": "dashboard",
+          "outcome": "blocked"
+        },
+        {
+          "role": "nurse",
+          "module": "dashboard",
+          "outcome": "journey"
+        },
+        {
+          "role": "nurse",
+          "module": "audit",
+          "outcome": "allowed"
+        },
+        {
+          "role": "nurse",
+          "module": "audit",
+          "outcome": "blocked"
+        },
+        {
+          "role": "nurse",
+          "module": "audit",
+          "outcome": "journey"
+        },
+        {
+          "role": "admin",
+          "module": "auth",
+          "outcome": "allowed"
+        },
+        {
+          "role": "admin",
+          "module": "auth",
+          "outcome": "blocked"
+        },
+        {
+          "role": "admin",
+          "module": "auth",
+          "outcome": "journey"
+        },
+        {
+          "role": "admin",
+          "module": "clinical",
+          "outcome": "allowed"
+        },
+        {
+          "role": "admin",
+          "module": "clinical",
+          "outcome": "journey"
+        },
+        {
+          "role": "admin",
+          "module": "inpatient",
+          "outcome": "allowed"
+        },
+        {
+          "role": "admin",
+          "module": "inpatient",
+          "outcome": "blocked"
+        },
+        {
+          "role": "admin",
+          "module": "inpatient",
+          "outcome": "journey"
+        },
+        {
+          "role": "admin",
+          "module": "dashboard",
+          "outcome": "allowed"
+        },
+        {
+          "role": "admin",
+          "module": "dashboard",
+          "outcome": "blocked"
+        },
+        {
+          "role": "admin",
+          "module": "dashboard",
+          "outcome": "journey"
+        },
+        {
+          "role": "admin",
+          "module": "audit",
+          "outcome": "allowed"
+        },
+        {
+          "role": "admin",
+          "module": "audit",
+          "outcome": "blocked"
+        },
+        {
+          "role": "admin",
+          "module": "audit",
+          "outcome": "journey"
+        }
+      ],
+      "candidatesPending": 1,
+      "newElitesInPreviouslyEmpty": 1
+    },
+    "totalDurationMs": 170540
+  },
+  "gatePassed": false
+}

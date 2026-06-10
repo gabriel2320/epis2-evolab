@@ -75,6 +75,18 @@ El módulo `mutation/` genera variantes de escenarios YAML vía Ollama con salid
 
 `evolab mutate --count N [--operator X] [--seed-scenario id] [--novelty-threshold T] [--json]` (`npm run evolab:mutate`). Los candidatos **no entran al corpus**: `scenarios/candidates/` está gitignored, el loader del runner solo lee el nivel superior de `scenarios/`, `requiresHumanReview` se hereda/endurece y la promoción al corpus es decisión humana (PR), igual que S9.4.
 
+## Loop evolutivo MAP-Elites (Sprint 9)
+
+El módulo `evolution/` cierra el programa v3 con archivo persistente, evaluación real y loop generacional:
+
+- **`niches.ts`** — espacio MAP-Elites (rol × módulo clínico × resultado): 45 celdas, asignación determinista, vecinos frontera y celdas vacías vs corpus + archivo.
+- **`archive.ts` + `archive-repository.ts`** — fitness multiobjetivo escalar (`scoreFitness`: cobertura nueva, hallazgos, novedad, penalización duración), política de reemplazo (élites `promoted` intocables; desplazamiento solo con score estrictamente mejor; históricos `discarded`, nunca DELETE). Tabla `evolution.evolution_archive` (migración 004).
+- **`select-parents.ts`** — selección sesgada hacia nichos vacíos y frontera (peso 4/2/1); incluye corpus humano + élites parseadas del YAML archivado.
+- **`evaluate-candidate.ts`** — ejecuta candidatos vía `executeScenarioDefinition` (orquestador existente), reset fixtures cuando aplica, fitness post-run Sprint 7; fallo ⇒ `minimalFitness` + `discarded`, sin romper el loop.
+- **`evolve.ts` + `evolab evolve`** — loop generacional con presupuesto `--budget-minutes`, mutación S8 (`startIndex` por generación para variar inputs de operadores), evaluación sandbox solo para válidos, telemetría en `reports/evolution/evolve/`.
+
+`npm run evolab:evolve -- --generations N --budget-minutes M [--population K] [--json] [--dry-run]`. Gate Sprint 9: ≥5 élites nuevos en nichos previamente vacíos tras corrida nocturna. Status `promoted` exclusivamente humano (PR al corpus).
+
 ## Preflight operativo
 
 `evolab doctor [--strict]` y `evolab run` ejecutan `preflightTarget`: ping `health`/`ready` del API (timeout 3 s, detecta proceso zombie en `:3001`) y web solo si `BROWSER=true`. `run --skip-preflight` lo omite; `run --reset-fixtures` convierte el reset de `sandbox-prep` (acuses críticos, dosis MAR held) en obligatorio en PREPARE en vez de best-effort.
