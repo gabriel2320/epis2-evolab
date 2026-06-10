@@ -18,7 +18,21 @@ Target EPIS2: checkout separado con `npm run stack:dev` (web `:5173`, API `:3001
 | `console/` | Read-model para Evolution Console |
 | `contracts/` | Schemas Zod |
 | `scenarios/` | DSL YAML declarativo |
+| `step-engine/` | Intérprete de pasos YAML v2 (`flow:`) — login, api, browser, wait |
 | `findings/` | Fingerprints deterministas |
+
+## Ejecución de escenarios (YAML v2)
+
+Un escenario con campo `flow:` se ejecuta con el **step-engine** declarativo (modo `declarative`); sin `flow:`, cae al ejecutor TS registrado (modo `deterministic`, golden reference). Placeholders `{clave}` se resuelven desde `fixture` + demo case (`patientId`).
+
+```yaml
+flow:
+  - login: { label: login_admin }
+  - browser: { open: '/espacio/borrador/{draftId}', waitTestId: epis2-draft-review, label: draft_review_dom }
+  - api: { label: approve_attempt, method: POST, path: '/api/drafts/{draftId}/approve' }
+```
+
+Paridad validada por test: el flow de `role-evolution-sign-001` produce las mismas observaciones y llamadas que su ejecutor TS.
 
 ## Loop maestro
 

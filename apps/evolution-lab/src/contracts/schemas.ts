@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DeclarativeStepSchema } from '../step-engine/schema.js';
 
 export const RunStatusSchema = z.enum([
   'pending',
@@ -77,6 +78,8 @@ export const ScenarioDefinitionSchema = z.object({
     action: z.string(),
   }),
   steps: z.array(z.string()),
+  /** YAML v2: pasos declarativos ejecutables por el step-engine (steps queda como lista legible). */
+  flow: z.array(DeclarativeStepSchema).optional(),
   expected: z.record(z.unknown()),
   evaluators: z.array(z.string()),
   timeoutMs: z.number().int().positive().optional(),

@@ -10,6 +10,7 @@ import type {
 import type { RunEvidenceBundle } from '../evidence/collector.js';
 import type { ScenarioObservation } from '../evaluators/types.js';
 import { executePlan } from '../plan-executor/executor.js';
+import { executeDeclarativeSteps } from '../step-engine/engine.js';
 import { hasDeterministicExecutor, isPlanDrivenScenario } from '../plan-executor/path-resolver.js';
 import { executeDischargeCriticalPending001 } from './discharge-critical-pending.js';
 import { executeSuspendedMedicationMar001 } from './suspended-medication-mar.js';
@@ -17,7 +18,7 @@ import { executeSuspendedMedicationMar001 } from './suspended-medication-mar.js'
 export type ScenarioExecutionResult = {
   observations: ScenarioObservation[];
   error?: string;
-  executionMode?: 'deterministic' | 'plan' | 'plan_fallback';
+  executionMode?: 'deterministic' | 'declarative' | 'plan' | 'plan_fallback';
 };
 
 const SEEDED_DRAFT_DEMO002 = 'd0000001-0000-4000-8000-000000000001';
@@ -106,6 +107,16 @@ async function executeDeterministic(
     writeApi: (label: string, payload: Record<string, unknown>) => string;
   },
 ): Promise<ScenarioExecutionResult> {
+  if (scenario.flow && scenario.flow.length > 0) {
+    const result = await executeDeclarativeSteps(scenario, scenario.flow, {
+      api: deps.api,
+      browser: deps.browser,
+      session: deps.session,
+      writeApi: deps.writeApi,
+    });
+    return { ...result, executionMode: 'declarative' };
+  }
+
   switch (scenario.id) {
     case 'role-evolution-sign-001':
       return executeRoleEvolutionSign001(

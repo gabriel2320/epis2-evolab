@@ -29,6 +29,35 @@ steps:
   - open_evolution_draft
   - attempt_approve_or_sign
 
+# YAML v2 — pasos ejecutables por step-engine (paridad con ejecutor TS golden)
+flow:
+  - login:
+      label: login_admin
+  - browser:
+      open: /comando
+  - browser:
+      open: '/espacio/ficha?patientId={patientId}'
+      screenshot: 01-patient-workspace
+  - browser:
+      open: '/espacio/borrador/{draftId}'
+      waitTestId: epis2-draft-review
+      waitTimeoutMs: 20000
+      waitAs: draftReviewVisible
+      visible:
+        forbiddenVisible: epis2-forbidden
+        approveButtonVisible:
+          testId: epis2-draft-approve
+          ifKey: draftReviewVisible
+      screenshot: 02-draft-review-admin
+      label: draft_review_dom
+      payload:
+        draftId: '{draftId}'
+  - api:
+      label: approve_attempt
+      evidenceLabel: approve-attempt
+      method: POST
+      path: '/api/drafts/{draftId}/approve'
+
 expected:
   actionBlocked: true
   permissionDeniedVisible: true
