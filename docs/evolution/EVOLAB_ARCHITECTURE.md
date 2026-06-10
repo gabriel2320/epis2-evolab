@@ -64,6 +64,17 @@ El módulo `fitness/` mide el corpus para el programa de evolución de escenario
 - **`persist-fitness.ts`** — escribe `evolution.scenario_fitness` (migración 003: cobertura jsonb, hallazgos, duración, novedad) en la fase PERSIST. Best-effort, invocado desde `persist-run` sin engordar el orquestador.
 - **`report.ts` + `evolab fitness report [--json]`** — mapa de cobertura del corpus (cubierto/huecos por módulo), novedad por escenario y métricas persistidas si la DB responde. No requiere sandbox vivo.
 
+## Motor de mutación LLM (Sprint 8)
+
+El módulo `mutation/` genera variantes de escenarios YAML vía Ollama con salida estructurada (spec: `reports/evolution/evolab-sprint8-mutation-spec.md`, respaldada por benchmark empírico):
+
+- **`ollama-mutator.ts`** — cliente `/api/chat` con `format` = JSON schema laxo del escenario (estricto solo después, en capas); timeout y modelo parametrizables. `target` y `fixture` van en `required` del schema: con constrained decoding los modelos omiten las propiedades no requeridas.
+- **`operators.ts`** — 4 operadores data-driven con ensemble validado: `role_swap` y `step_injection` con `qwen2.5-coder:7b` (amplitud, 113 tok/s), `payload_perturbation` y `crossover` directo con `qwen2.5-coder:14b` (único que razona cadenas de captures rotas). Prompts con matriz RBAC, allowlist de paths e instrucción explícita de limpieza de dependencias; `promptVersion` registrado por variante.
+- **`validate.ts`** — validación en 3 capas: (1) Zod real (`ScenarioDefinitionSchema`), (2) semántica del motor: resolución de placeholders `{x}` (modo de fallo dominante del benchmark), `actionObservation` apunta a label existente, colisión de id, roles válidos, coherencia RBAC y **allowlist de seguridad** (solo paths del catálogo Sprint 7 — violación = descarte sin reparación), (3) dry-run simbólico del flow sin HTTP. Reparable solo capas 2-3 con ≤4 errores.
+- **`pipeline.ts`** — generación (lotes por modelo para minimizar swaps de VRAM) → validación → **1 reintento de reparación** con el 14b (temperature 0.2, errores literales) → dedup por hash estructural + novedad bge-m3 (reusa `fitness/novelty.ts`; degrada a dedup estructural con warning) → candidato YAML en `scenarios/candidates/` con telemetría por variante (operador, modelo, intentos, motivo de descarte).
+
+`evolab mutate --count N [--operator X] [--seed-scenario id] [--novelty-threshold T] [--json]` (`npm run evolab:mutate`). Los candidatos **no entran al corpus**: `scenarios/candidates/` está gitignored, el loader del runner solo lee el nivel superior de `scenarios/`, `requiresHumanReview` se hereda/endurece y la promoción al corpus es decisión humana (PR), igual que S9.4.
+
 ## Preflight operativo
 
 `evolab doctor [--strict]` y `evolab run` ejecutan `preflightTarget`: ping `health`/`ready` del API (timeout 3 s, detecta proceso zombie en `:3001`) y web solo si `BROWSER=true`. `run --skip-preflight` lo omite; `run --reset-fixtures` convierte el reset de `sandbox-prep` (acuses críticos, dosis MAR held) en obligatorio en PREPARE en vez de best-effort.

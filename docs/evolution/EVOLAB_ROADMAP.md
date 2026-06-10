@@ -88,7 +88,7 @@ Operadores de mutación sobre YAML vía Ollama con salida JSON estructurada (reu
 | S8.3 | Ensemble: `qwen3:8b` genera K variantes; las que fallan Zod/dry-run van a `qwen2.5-coder:14b` con el error como contexto de reparación (1 intento) | Tasa de válidas medida y persistida |
 | S8.4 | Novelty rejection (ShinkaEvolve): embedding de la variante vs corpus + variantes de la sesión; distancia < umbral ⇒ descarte antes de ejecutar | Reusa `fitness/novelty.ts` |
 
-**Gate:** 50 mutaciones generadas, **≥70%** pasan Zod + dry-run (tras reparación).
+**Gate:** 50 mutaciones generadas, **≥70%** pasan Zod + dry-run (tras reparación). ✓ **Completado 2026-06-10 — 92% validez final (90% directa) en corrida real de 50 sobre el corpus** (role_swap 13/13, payload_perturbation 12/13, step_injection 9/12, crossover 12/12; 700 s total; telemetría en `reports/evolution/evolab-sprint8-gate.md`). Nota: el ensemble final usa `qwen2.5-coder:7b` para amplitud (no `qwen3:8b`) según benchmark empírico de la spec.
 
 ---
 

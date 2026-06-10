@@ -3,6 +3,8 @@ node_modules/
 coverage/
 reports/evolution/runs/
 reports/evolution/fitness/
+reports/evolution/mutation/
+apps/evolution-lab/scenarios/candidates/
 reports/evolution/*-raw.json
 package-lock.json
 *.md

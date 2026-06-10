@@ -27,6 +27,7 @@
     "evolab:runs": "tsx apps/evolution-lab/src/cli.ts runs",
     "evolab:findings": "tsx apps/evolution-lab/src/cli.ts findings",
     "evolab:fitness": "tsx apps/evolution-lab/src/cli.ts fitness report",
+    "evolab:mutate": "tsx apps/evolution-lab/src/cli.ts mutate",
     "evolab:replay": "tsx apps/evolution-lab/src/cli.ts replay",
     "evolab:plan": "tsx apps/evolution-lab/src/cli.ts plan",
     "evolab:import": "tsx apps/evolution-lab/src/cli.ts import",

@@ -15,6 +15,7 @@ import {
   preflightTarget,
 } from './cli/commands.js';
 import { runFitnessReport } from './cli/fitness-command.js';
+import { runMutate } from './cli/mutate-command.js';
 import { EvolutionOrchestrator } from './orchestrator/orchestrator.js';
 import { replayRun } from './replay/replay.js';
 import { regenerateRun, type RegenerateStrategy } from './replay/regenerate.js';
@@ -112,6 +113,25 @@ async function main(): Promise<number> {
         return 1;
       }
       return runFitnessReport({ ...(booleans.json ? { json: true } : {}) });
+    }
+    case 'mutate': {
+      const count = Number.parseInt(flags.count ?? '10', 10);
+      if (!Number.isFinite(count) || count < 1) {
+        console.error('Uso: evolab mutate --count N [--operator X] [--seed-scenario id] [--json]');
+        return 1;
+      }
+      const noveltyThreshold = flags['novelty-threshold']
+        ? Number.parseFloat(flags['novelty-threshold'])
+        : undefined;
+      return runMutate({
+        count,
+        ...(flags.operator ? { operator: flags.operator } : {}),
+        ...(flags['seed-scenario'] ? { seedScenario: flags['seed-scenario'] } : {}),
+        ...(noveltyThreshold !== undefined && Number.isFinite(noveltyThreshold)
+          ? { noveltyThreshold }
+          : {}),
+        ...(booleans.json ? { json: true } : {}),
+      });
     }
     case 'run': {
       let config = loadEvolabConfig();
@@ -258,6 +278,7 @@ Comandos:
   runs         Listar runs recientes (--limit N) [PostgreSQL o filesystem]
   findings     Listar hallazgos (--limit N, --status open) — incluye UUID
   fitness      Mapa de cobertura y novedad del corpus (fitness report [--json])
+  mutate       Motor de mutación LLM (--count N [--operator X] [--seed-scenario id] [--novelty-threshold T] [--json])
   queue        Cola human_review (--limit N)
   import       Backfill reports/evolution/runs → PostgreSQL (--dry-run, --force)
   review       Decidir hallazgo (--finding <uuid> --decision approved|rejected|duplicate)
