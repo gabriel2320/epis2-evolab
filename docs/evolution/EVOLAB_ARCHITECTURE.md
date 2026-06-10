@@ -40,6 +40,13 @@ Paridad validada por test: los flows de `role-evolution-sign-001`, `discharge-cr
 
 El catálogo tramo C (Sprint 3) se autoriza solo en YAML: `admission-double-booking-001` (409 doble admisión), `role-nurse-approve-001` (RBAC 403), `draft-lifecycle-cancelled-001` (409 ciclo de vida) y `census-service-integrity-001` (evaluador `census_integrity` sobre `census_snapshot`). El evaluador HTTP trata `409` como bloqueo válido.
 
+## Evaluadores de profundidad clínica (Sprint 5)
+
+- **`cdr_consistency`** (`expected.cdrConsistent: true`): cruza `clinical_critical_results` (observación `sandbox_critical` del dashboard de servicio) contra el motor CDR (`clinical_alerts_api`). DB con crítico sin acuse y CDR sin alerta crítica ⇒ finding `clinical_safety` high (`generate_test`); alerta crítica sin respaldo DB ⇒ medium (falso positivo).
+- **`audit_completeness`** (`expected.auditMustInclude` / `auditMustNotInclude`): verifica eventos reales post-acción en `/api/audit/events` (`auth.login.success`, `clinical.draft.created`…). Los patrones prohibidos se correlacionan por `entityId === draftId` de la `actionObservation` — si una acción bloqueada aparece como `clinical.draft.approved`, finding high. Cubre `discharge-critical-pending-001` y `suspended-medication-mar-001`.
+
+Ambos se auto-agregan desde `expected` en `buildEvaluatorsForScenario`.
+
 ## Preflight operativo
 
 `evolab doctor [--strict]` y `evolab run` ejecutan `preflightTarget`: ping `health`/`ready` del API (timeout 3 s, detecta proceso zombie en `:3001`) y web solo si `BROWSER=true`. `run --skip-preflight` lo omite; `run --reset-fixtures` convierte el reset de `sandbox-prep` (acuses críticos, dosis MAR held) en obligatorio en PREPARE en vez de best-effort.

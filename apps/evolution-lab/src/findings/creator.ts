@@ -57,11 +57,13 @@ function mapCategory(evaluatorId: string): string {
     case 'clinical_safety':
     case 'mar_safety':
     case 'critical_pending':
+    case 'cdr_consistency':
       return 'clinical_safety';
     case 'role_permission':
     case 'functional':
       return 'authorization';
     case 'audit':
+    case 'audit_completeness':
       return 'audit_trail';
     case 'dom_state':
       return 'ui_consistency';
@@ -77,6 +79,12 @@ function inferComponents(evaluatorId: string, scenarioId: string): string[] {
   }
   if (evaluatorId === 'mar_safety') {
     return [...base, 'apps/api/clinical/mar', 'packages/clinical-domain/cdr'];
+  }
+  if (evaluatorId === 'cdr_consistency') {
+    return [...base, 'apps/api/clinical', 'packages/clinical-domain/cdr'];
+  }
+  if (evaluatorId === 'audit_completeness') {
+    return [...base, 'apps/api/audit'];
   }
   if (evaluatorId === 'role_permission') {
     return [...base, 'apps/api/auth'];

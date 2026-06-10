@@ -13,7 +13,7 @@ Ver plan detallado: [docs/evolution/EVOLAB_ROADMAP.md](../../docs/evolution/EVOL
 | Catálogo tramo C | ✅ Implementado (4 escenarios YAML, 8 activos) | Sprint 3 |
 | Doctor preflight + reset fixtures | ✅ Implementado (`--strict`, `--reset-fixtures`, preflight en `run`) | Sprint 3 |
 | CI smoke + evidencia minimal | ✅ Implementado (`evolab:smoke`, `--evidence minimal`, job GHA con sibling checkout — requiere secret `EPIS2_CHECKOUT_TOKEN`; `continue-on-error` hasta observarlo verde) | Sprint 4 |
-| Evaluador CDR / audit completeness | No implementado | Sprint 5 |
+| Evaluador CDR / audit completeness | ✅ Implementado (`cdr_consistency`, `audit_completeness` en discharge + MAR) | Sprint 5 |
 | Journeys multi-paso | No implementado | Sprint 6 |
 | LLM loop run completo / replan | Parcial | Sprint 6 (condicionado) |
 | Batch paralelo / run queue | Diferido | §4 roadmap (con disparador) |
@@ -37,7 +37,7 @@ Ver plan detallado: [docs/evolution/EVOLAB_ROADMAP.md](../../docs/evolution/EVOL
 |------|---------|
 | **Sandbox EPIS2 externo** | Requiere checkout EPIS2 con `npm run stack:dev` o `$env:EPIS2_ROOT` + `evolab:stack` |
 | **Playwright + Vite dev** | Sesión browser vía cookie API; E2E golden usa `pinDemoCase` / `epis2-nav-buscar` |
-| **CDR vs críticos DB** | `clinical_critical_results` y CDR son fuentes distintas en DEMO-004 |
+| **CDR vs críticos DB** | `clinical_critical_results` y CDR son fuentes distintas en DEMO-004 — el evaluador `cdr_consistency` cruza ambas y emite finding si divergen |
 | **Enforcement clínico** | `discharge-critical-pending-001` registra hallazgo si approve HTTP 200 con crítico sin acuse |
 | **API colgada** | `evolab run` hace preflight (timeout 3 s) y falla rápido con mensaje accionable; `--skip-preflight` lo omite |
 | **Fixture críticos** | `sandbox-prep` resetea vía psql en PREPARE; `--reset-fixtures` lo hace obligatorio (falla si docker/psql no responde) |

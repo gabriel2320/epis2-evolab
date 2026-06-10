@@ -5,6 +5,8 @@ import { AuditEvaluator } from './audit.js';
 import { MarSafetyEvaluator } from './mar-safety.js';
 import { CommandResolveEvaluator, PlanFidelityEvaluator } from './plan-fidelity.js';
 import { CensusIntegrityEvaluator } from './census-integrity.js';
+import { CdrConsistencyEvaluator } from './cdr-consistency.js';
+import { AuditCompletenessEvaluator } from './audit-completeness.js';
 
 export class HttpResultEvaluator implements DeterministicEvaluator {
   id = 'http_result';
@@ -151,6 +153,16 @@ export function buildEvaluatorsForScenario(scenario: {
   if (scenario.expected.auditEventCreated === true && !ids.includes('audit')) {
     ids.push('audit');
   }
+  if (scenario.expected.cdrConsistent === true && !ids.includes('cdr_consistency')) {
+    ids.push('cdr_consistency');
+  }
+  if (
+    (Array.isArray(scenario.expected.auditMustInclude) ||
+      Array.isArray(scenario.expected.auditMustNotInclude)) &&
+    !ids.includes('audit_completeness')
+  ) {
+    ids.push('audit_completeness');
+  }
   const functional = new HttpResultEvaluator();
   functional.id = 'functional';
   const map: Record<string, DeterministicEvaluator> = {
@@ -165,6 +177,8 @@ export function buildEvaluatorsForScenario(scenario: {
     plan_fidelity: new PlanFidelityEvaluator(),
     command_resolve: new CommandResolveEvaluator(),
     census_integrity: new CensusIntegrityEvaluator(),
+    cdr_consistency: new CdrConsistencyEvaluator(),
+    audit_completeness: new AuditCompletenessEvaluator(),
   };
   return ids.map((id) => map[id]).filter((e): e is DeterministicEvaluator => e !== undefined);
 }

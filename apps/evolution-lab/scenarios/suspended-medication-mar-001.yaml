@@ -48,11 +48,17 @@ expected:
   administrationBlocked: true
   warningVisible: true
   auditEventCreated: true
+  auditMustInclude:
+    - auth.login.success
+    - clinical.draft.created
+  auditMustNotInclude:
+    - clinical.draft.approved
 
 evaluators:
   - functional
   - mar_safety
   - audit
+  - audit_completeness
 
 actionObservation: mar_approve_attempt
 

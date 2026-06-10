@@ -81,12 +81,20 @@ expected:
   warningVisible: true
   auditEventCreated: true
   criticalResultRemainsPending: true
+  cdrConsistent: true
+  auditMustInclude:
+    - auth.login.success
+    - clinical.draft.created
+  auditMustNotInclude:
+    - clinical.draft.approved
 
 evaluators:
   - functional
   - clinical_safety
   - accessibility
   - audit
+  - cdr_consistency
+  - audit_completeness
 
 actionObservation: discharge_approve_attempt
 
