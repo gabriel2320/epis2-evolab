@@ -2,14 +2,15 @@ import { getDemoCaseByCode } from '@evolab/demo-fixtures';
 import { fallbackPlanFromScenario } from '../simulated-user/agent.js';
 import type { SimulatedUserPlan } from '../simulated-user/schemas.js';
 import type { ScenarioDefinition } from '../contracts/schemas.js';
-import type { Epis2ApiTargetAdapter, Epis2BrowserTargetAdapter, TargetSession } from '../target/types.js';
+import type {
+  Epis2ApiTargetAdapter,
+  Epis2BrowserTargetAdapter,
+  TargetSession,
+} from '../target/types.js';
 import type { RunEvidenceBundle } from '../evidence/collector.js';
 import type { ScenarioObservation } from '../evaluators/types.js';
 import { executePlan } from '../plan-executor/executor.js';
-import {
-  hasDeterministicExecutor,
-  isPlanDrivenScenario,
-} from '../plan-executor/path-resolver.js';
+import { hasDeterministicExecutor, isPlanDrivenScenario } from '../plan-executor/path-resolver.js';
 import { executeDischargeCriticalPending001 } from './discharge-critical-pending.js';
 import { executeSuspendedMedicationMar001 } from './suspended-medication-mar.js';
 

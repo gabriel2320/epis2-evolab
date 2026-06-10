@@ -38,9 +38,7 @@ async function ensureDatabase(adminUrl) {
 }
 
 async function applyMigrations(targetUrl) {
-  const files = (await readdir(migrationsDir))
-    .filter((f) => f.endsWith('.sql'))
-    .sort();
+  const files = (await readdir(migrationsDir)).filter((f) => f.endsWith('.sql')).sort();
 
   const dbUrl = new URL(targetUrl);
   dbUrl.pathname = `/${EVOLAB_DB}`;

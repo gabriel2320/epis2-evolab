@@ -25,9 +25,7 @@ export class ClinicalSafetyEvaluator implements DeterministicEvaluator {
       ? (alertsApi.payload.alerts as Array<{ ruleId?: string; severity?: string }>)
       : [];
     const hasCriticalLabRule = apiAlerts.some(
-      (a) =>
-        a.ruleId?.includes('critical_lab') ||
-        a.ruleId?.includes('discharge_with_open'),
+      (a) => a.ruleId?.includes('critical_lab') || a.ruleId?.includes('discharge_with_open'),
     );
     const hasBlockSeverity = apiAlerts.some(
       (a) => a.severity === 'critical' || a.severity === 'block',
@@ -37,8 +35,7 @@ export class ClinicalSafetyEvaluator implements DeterministicEvaluator {
     const alertsPanelVisible = dom?.payload.clinicalAlertsPanelVisible === true;
     const signDisabled = dom?.payload.signDisabled === true;
 
-    const approveStatus =
-      typeof approve?.payload.status === 'number' ? approve.payload.status : 0;
+    const approveStatus = typeof approve?.payload.status === 'number' ? approve.payload.status : 0;
     const approveSucceeded = approve?.payload.ok === true;
     const dischargeBlocked =
       signDisabled || approveStatus === 403 || approveStatus === 400 || approveStatus === 422;

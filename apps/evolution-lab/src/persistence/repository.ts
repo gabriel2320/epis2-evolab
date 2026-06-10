@@ -117,10 +117,7 @@ export async function persistRunBundle(input: PersistRunInput): Promise<void> {
   });
 }
 
-export async function listRunsFromDb(
-  databaseUrl: string,
-  limit = 10,
-): Promise<RunListRow[]> {
+export async function listRunsFromDb(databaseUrl: string, limit = 10): Promise<RunListRow[]> {
   const sql = getEvolabSql(databaseUrl);
   const rows = await sql<
     {
@@ -223,10 +220,7 @@ export async function getRunSeedFromDb(
   };
 }
 
-export async function listHumanReviewRuns(
-  databaseUrl: string,
-  limit = 20,
-): Promise<RunListRow[]> {
+export async function listHumanReviewRuns(databaseUrl: string, limit = 20): Promise<RunListRow[]> {
   const sql = getEvolabSql(databaseUrl);
   const rows = await sql<
     {

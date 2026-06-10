@@ -64,9 +64,7 @@ export function runSecurityGuards(config: EvolabConfig): GuardReport {
     checks.push({
       id: 'target_sandbox_type',
       label: 'Target environmentType sandbox',
-      passed:
-        target.environmentType === 'local-sandbox' ||
-        target.environmentType === 'ci-sandbox',
+      passed: target.environmentType === 'local-sandbox' || target.environmentType === 'ci-sandbox',
       severity: 'critical',
       message: `environmentType=${target.environmentType}`,
     });
@@ -135,8 +133,6 @@ export function runSecurityGuards(config: EvolabConfig): GuardReport {
 export function assertGuardsPass(config: EvolabConfig): void {
   const report = runSecurityGuards(config);
   if (!report.ok) {
-    throw new Error(
-      `Guards de seguridad fallaron: ${report.blockedReason ?? 'desconocido'}`,
-    );
+    throw new Error(`Guards de seguridad fallaron: ${report.blockedReason ?? 'desconocido'}`);
   }
 }

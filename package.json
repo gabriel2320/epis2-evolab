@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "description": "EPIS2 Evolab — laboratorio autónomo de simulación y evolución supervisada",
+  "engines": {
+    "node": ">=20"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -12,6 +15,10 @@
     "build": "npm run build -w @evolab/demo-fixtures && npm run build -w @evolab/evolution-lab",
     "typecheck": "npm run build -w @evolab/demo-fixtures && npm run typecheck -w @evolab/demo-fixtures && npm run typecheck -w @evolab/evolution-lab && npm run typecheck -w @evolab/evolution-console",
     "test": "npm run build -w @evolab/demo-fixtures && vitest run",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "quality": "npm run typecheck && npm run lint && npm run format:check && npm run test",
     "evolab:doctor": "tsx apps/evolution-lab/src/cli.ts doctor",
     "evolab:models": "tsx apps/evolution-lab/src/cli.ts models",
     "evolab:scenarios": "tsx apps/evolution-lab/src/cli.ts scenarios",
@@ -33,8 +40,14 @@
     "evolab:console": "tsx apps/evolution-console/src/server.ts"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^20.19.42",
+    "eslint": "^10.4.1",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.4",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.61.0",
     "vitest": "^3.2.6"
   },
   "dependencies": {

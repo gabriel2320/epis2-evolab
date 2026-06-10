@@ -1,6 +1,10 @@
 import type { ScenarioDefinition } from '../contracts/schemas.js';
 import type { SimulatedUserPlan, SimulatedUserStep } from '../simulated-user/schemas.js';
-import type { Epis2ApiTargetAdapter, Epis2BrowserTargetAdapter, TargetSession } from '../target/types.js';
+import type {
+  Epis2ApiTargetAdapter,
+  Epis2BrowserTargetAdapter,
+  TargetSession,
+} from '../target/types.js';
 import type { ScenarioObservation } from '../evaluators/types.js';
 import type { ScenarioExecutionResult } from '../scenarios/executor.js';
 import { resolveDemoPatientId, resolvePlanTarget } from './path-resolver.js';
@@ -31,8 +35,8 @@ export async function executePlan(
 
   for (const step of plan.steps) {
     const stepObs = await executePlanStep(step, scenario, deps, {
-      patientId,
-      lastRoutePath,
+      ...(patientId !== undefined ? { patientId } : {}),
+      ...(lastRoutePath !== undefined ? { lastRoutePath } : {}),
     });
     if (stepObs.routePath) lastRoutePath = stepObs.routePath;
     if (!stepObs.ok) failedSteps += 1;
@@ -88,10 +92,7 @@ async function executePlanStep(
             base,
           );
         }
-        if (
-          (step.stepId.includes('open') || step.stepId.includes('route')) &&
-          ctx.lastRoutePath
-        ) {
+        if ((step.stepId.includes('open') || step.stepId.includes('route')) && ctx.lastRoutePath) {
           return await executeBrowserStep(
             { ...step, channel: 'browser' },
             scenario,
@@ -207,7 +208,10 @@ async function executeBrowserStep(
   await deps.browser.open(path);
   await deps.browser.screenshot(`plan-${step.stepId}`);
 
-  let domProbe: Record<string, unknown> = { resolvedPath: path, url: await deps.browser.currentUrl() };
+  let domProbe: Record<string, unknown> = {
+    resolvedPath: path,
+    url: await deps.browser.currentUrl(),
+  };
   if (path.includes('/borrador/')) {
     domProbe = {
       ...domProbe,
@@ -218,7 +222,10 @@ async function executeBrowserStep(
   } else if (path.includes('/evolucion')) {
     domProbe = {
       ...domProbe,
-      evolutionFormVisible: await deps.browser.waitForTestId('epis2-generated-clinical-page', 12_000),
+      evolutionFormVisible: await deps.browser.waitForTestId(
+        'epis2-generated-clinical-page',
+        12_000,
+      ),
     };
   } else if (path.includes('/ficha')) {
     domProbe = {
@@ -281,7 +288,7 @@ async function executeCommandStep(
 
   return {
     ok: commandResolved,
-    routePath,
+    ...(routePath !== undefined ? { routePath } : {}),
     observation: {
       kind: 'api_response',
       label: 'command_resolve',
@@ -334,7 +341,7 @@ async function executeObserveStep(
 
   return {
     ok: true,
-    routePath: ctx.lastRoutePath,
+    ...(ctx.lastRoutePath !== undefined ? { routePath: ctx.lastRoutePath } : {}),
     observation: {
       kind: 'observe',
       label: `plan_observe_${step.stepId}`,

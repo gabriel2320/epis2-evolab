@@ -90,16 +90,7 @@ export type ScenarioDefinition = z.infer<typeof ScenarioDefinitionSchema>;
 export const EvidenceItemSchema = z.object({
   id: z.string().uuid(),
   runId: z.string().uuid(),
-  kind: z.enum([
-    'screenshot',
-    'trace',
-    'log',
-    'api',
-    'audit',
-    'database',
-    'model',
-    'observation',
-  ]),
+  kind: z.enum(['screenshot', 'trace', 'log', 'api', 'audit', 'database', 'model', 'observation']),
   label: z.string(),
   path: z.string().optional(),
   payload: z.record(z.unknown()).optional(),

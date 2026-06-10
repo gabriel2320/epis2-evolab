@@ -85,10 +85,7 @@ export class EvidenceCollector {
       findingCount: findings.length,
     };
     writeFileSync(bundle.resultPath, JSON.stringify(result, null, 2));
-    writeFileSync(
-      bundle.evaluationPath,
-      JSON.stringify({ runId: run.id, evaluations }, null, 2),
-    );
+    writeFileSync(bundle.evaluationPath, JSON.stringify({ runId: run.id, evaluations }, null, 2));
     if (findings.length > 0) {
       writeFileSync(
         join(bundle.runDir, 'findings.json'),

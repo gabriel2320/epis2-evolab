@@ -27,16 +27,15 @@ export async function resolveRunContext(runId: string): Promise<ResolvedRunConte
       runId,
       scenarioId: fromDb.scenarioId,
       randomSeed: fromDb.randomSeed,
-      targetEnvironmentId: fromDb.targetEnvironmentId,
+      ...(fromDb.targetEnvironmentId !== undefined
+        ? { targetEnvironmentId: fromDb.targetEnvironmentId }
+        : {}),
       source: 'database',
     };
   }
 }
 
-export function resolveSeedForStrategy(
-  strategy: RegenerateStrategy,
-  originalSeed: string,
-): string {
+export function resolveSeedForStrategy(strategy: RegenerateStrategy, originalSeed: string): string {
   if (strategy === 'exact') return originalSeed;
   return randomUUID();
 }

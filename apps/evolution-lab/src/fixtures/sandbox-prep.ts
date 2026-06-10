@@ -3,8 +3,7 @@ import { createLogger } from '../logger.js';
 
 const log = createLogger('sandbox-prep');
 
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type SandboxPrepResult = {
   ok: boolean;
@@ -13,9 +12,7 @@ export type SandboxPrepResult = {
 };
 
 /** Restaura acknowledged_at=NULL para un resultado crítico demo (idempotente). */
-export function resetCriticalPendingAcknowledgement(
-  criticalResultId: string,
-): SandboxPrepResult {
+export function resetCriticalPendingAcknowledgement(criticalResultId: string): SandboxPrepResult {
   if (!UUID_RE.test(criticalResultId)) {
     return { ok: false, message: `criticalResultId inválido: ${criticalResultId}` };
   }
@@ -41,7 +38,9 @@ export function resetCriticalPendingAcknowledgement(
   return { ok: true, message: `Crítico ${criticalResultId} sin acuse` };
 }
 
-export function prepareScenarioFixture(fixture: Record<string, unknown> | undefined): SandboxPrepResult {
+export function prepareScenarioFixture(
+  fixture: Record<string, unknown> | undefined,
+): SandboxPrepResult {
   if (fixture?.criticalResultPendingAcknowledgement === true) {
     const criticalResultId = fixture.criticalResultId;
     if (typeof criticalResultId !== 'string' || !criticalResultId) {

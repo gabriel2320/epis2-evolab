@@ -37,7 +37,9 @@ export async function runDoctor(): Promise<number> {
 
   const registry = new OllamaModelRegistry(config.ollamaUrl, config.model);
   const inventory = await registry.discover();
-  console.log(`\n  Ollama: ${inventory.up ? '✓ UP' : config.ollamaRequired ? '✗ DOWN' : '⚠ DOWN (opcional)'}`);
+  console.log(
+    `\n  Ollama: ${inventory.up ? '✓ UP' : config.ollamaRequired ? '✗ DOWN' : '⚠ DOWN (opcional)'}`,
+  );
   console.log(`  Modelos: ${inventory.models.length}`);
   console.log(`  Seleccionado: ${inventory.selectedModel || '(ninguno)'}`);
   console.log(`  Preferido (${config.model}): ${inventory.preferredAvailable ? '✓' : '✗'}`);
@@ -133,7 +135,12 @@ export function printRunReport(runId: string): number {
     return 1;
   }
   console.log(`EPIS2 Evolab — reporte ${runId}\n`);
-  for (const file of ['metadata.json', 'result.json', 'evaluation.json', 'findings.json'] as const) {
+  for (const file of [
+    'metadata.json',
+    'result.json',
+    'evaluation.json',
+    'findings.json',
+  ] as const) {
     const path = join(runDir, file);
     if (existsSync(path)) {
       console.log(`--- ${file} ---`);
@@ -150,9 +157,7 @@ export async function listRecentRuns(limit = 10): Promise<number> {
     const rows = await listRunsFromDb(config.databaseUrl, limit);
     console.log('EPIS2 Evolab — runs recientes (PostgreSQL)\n');
     for (const e of rows) {
-      console.log(
-        `  ${e.id}  [${e.finalStatus}]  ${e.scenarioId}  hallazgos=${e.findingCount}`,
-      );
+      console.log(`  ${e.id}  [${e.finalStatus}]  ${e.scenarioId}  hallazgos=${e.findingCount}`);
     }
     console.log(`\nTotal listado: ${rows.length}`);
     return 0;
@@ -227,9 +232,7 @@ export async function listReviewQueue(limit = 20): Promise<number> {
   const runs = await listHumanReviewRuns(config.databaseUrl, limit);
   console.log('EPIS2 Evolab — cola human_review\n');
   for (const r of runs) {
-    console.log(
-      `  ${r.id}  ${r.scenarioId}  hallazgos=${r.findingCount}  ${r.startedAt ?? ''}`,
-    );
+    console.log(`  ${r.id}  ${r.scenarioId}  hallazgos=${r.findingCount}  ${r.startedAt ?? ''}`);
   }
   console.log(`\nTotal: ${runs.length}`);
   return 0;
@@ -330,6 +333,7 @@ export async function runScenarioBatch(
 function printRunSummaryInline(
   result: Awaited<ReturnType<EvolutionOrchestrator['executeRun']>>,
 ): void {
-  const icon = result.finalStatus === 'completed' ? '✓' : result.finalStatus === 'human_review' ? '◐' : '✗';
+  const icon =
+    result.finalStatus === 'completed' ? '✓' : result.finalStatus === 'human_review' ? '◐' : '✗';
   console.log(`  ${icon} ${result.finalStatus} — ${result.findingsCount ?? 0} hallazgos`);
 }

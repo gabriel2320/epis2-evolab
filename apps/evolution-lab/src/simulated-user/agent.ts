@@ -52,7 +52,10 @@ export class SimulatedUserAgent {
       };
     }
 
-    const route = this.router.route('simulated_user', inventory.models.map((m) => m.name));
+    const route = this.router.route(
+      'simulated_user',
+      inventory.models.map((m) => m.name),
+    );
     if (!route.model) {
       return {
         plan: fallbackPlanFromScenario(scenario),

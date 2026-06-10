@@ -9,13 +9,13 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const EVOLAB_APPS = ['apps/evolution-lab', 'apps/evolution-console'];
-const FORBIDDEN_EVOLAB_IMPORTS = [
-  'apps/api/src',
-  'apps/web/src',
-  '@epis2/api',
-  '@epis2/web',
+const FORBIDDEN_EVOLAB_IMPORTS = ['apps/api/src', 'apps/web/src', '@epis2/api', '@epis2/web'];
+const FORBIDDEN_CLINICAL_IMPORTS = [
+  '@evolab/evolution-lab',
+  '@evolab/evolution-console',
+  'evolution-lab',
+  'evolution-console',
 ];
-const FORBIDDEN_CLINICAL_IMPORTS = ['@evolab/evolution-lab', '@evolab/evolution-console', 'evolution-lab', 'evolution-console'];
 
 function walkFiles(dir, acc = []) {
   if (!existsSync(dir)) return acc;

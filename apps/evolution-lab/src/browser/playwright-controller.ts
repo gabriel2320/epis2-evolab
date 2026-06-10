@@ -117,7 +117,9 @@ export class PlaywrightController {
 
   private async adapterWaitForTestId(testId: string, timeoutMs = 15_000): Promise<boolean> {
     try {
-      await this.requirePage().getByTestId(testId).waitFor({ state: 'visible', timeout: timeoutMs });
+      await this.requirePage()
+        .getByTestId(testId)
+        .waitFor({ state: 'visible', timeout: timeoutMs });
       return true;
     } catch {
       return false;

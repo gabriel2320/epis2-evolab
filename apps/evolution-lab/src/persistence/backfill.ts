@@ -160,9 +160,7 @@ export async function backfillRunsFromFilesystem(opts: {
       });
       result.imported += 1;
     } catch (err) {
-      result.errors.push(
-        `${runDir}: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      result.errors.push(`${runDir}: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 

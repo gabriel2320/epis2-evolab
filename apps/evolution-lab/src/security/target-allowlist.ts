@@ -16,8 +16,8 @@ export const TARGET_ALLOWLIST: readonly TargetEnvironment[] = [
     id: 'epis2-ci-sandbox',
     name: 'EPIS2 CI Sandbox',
     webBaseUrl: process.env.PLAYWRIGHT_WEB_URL ?? 'http://127.0.0.1:5173',
-    apiBaseUrl: process.env.PLAYWRIGHT_API_HEALTH_URL?.replace(/\/health$/, '') ??
-      'http://127.0.0.1:3001',
+    apiBaseUrl:
+      process.env.PLAYWRIGHT_API_HEALTH_URL?.replace(/\/health$/, '') ?? 'http://127.0.0.1:3001',
     databaseMode: 'read-only',
     environmentType: 'ci-sandbox',
     syntheticOnly: true,

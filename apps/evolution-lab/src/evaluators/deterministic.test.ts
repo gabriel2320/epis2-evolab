@@ -14,9 +14,7 @@ describe('deterministic evaluators', () => {
       runId,
       scenarioId: 'test',
       expected: { actionBlocked: true },
-      observations: [
-        { kind: 'api_response', label: 'x', payload: { status: 403, ok: false } },
-      ],
+      observations: [{ kind: 'api_response', label: 'x', payload: { status: 403, ok: false } }],
     });
     expect(result.passed).toBe(true);
   });
@@ -28,7 +26,11 @@ describe('deterministic evaluators', () => {
       scenarioId: 'test',
       expected: { permissionDeniedVisible: true },
       observations: [
-        { kind: 'dom_state', label: 'x', payload: { draftReviewVisible: false, approveButtonVisible: false } },
+        {
+          kind: 'dom_state',
+          label: 'x',
+          payload: { draftReviewVisible: false, approveButtonVisible: false },
+        },
         { kind: 'api_response', label: 'x', payload: { status: 403 } },
       ],
     });
@@ -42,8 +44,16 @@ describe('deterministic evaluators', () => {
       scenarioId: 'discharge-critical-pending-001',
       expected: { dischargeBlocked: true },
       observations: [
-        { kind: 'api_response', label: 'discharge_draft_create', payload: { status: 201, ok: true } },
-        { kind: 'api_response', label: 'discharge_approve_attempt', payload: { status: 200, ok: true } },
+        {
+          kind: 'api_response',
+          label: 'discharge_draft_create',
+          payload: { status: 201, ok: true },
+        },
+        {
+          kind: 'api_response',
+          label: 'discharge_approve_attempt',
+          payload: { status: 200, ok: true },
+        },
       ],
     });
     expect(result.passed).toBe(false);

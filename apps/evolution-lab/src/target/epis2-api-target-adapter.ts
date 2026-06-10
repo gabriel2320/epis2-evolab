@@ -74,8 +74,8 @@ export class Epis2ApiTargetAdapterImpl implements Epis2ApiTargetAdapter {
       init.body = JSON.stringify(body);
     }
     const res = await fetch(`${this.apiBaseUrl}${path}`, init);
-    let parsed: unknown = null;
     const text = await res.text();
+    let parsed: unknown;
     try {
       parsed = text ? JSON.parse(text) : null;
     } catch {

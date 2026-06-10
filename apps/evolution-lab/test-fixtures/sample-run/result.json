@@ -44,12 +44,8 @@
       "payload": {
         "hasUnacknowledgedCritical": true,
         "count": 1,
-        "criticalIds": [
-          "f0000004-0000-4000-8000-000000000002"
-        ],
-        "labels": [
-          "PCR"
-        ]
+        "criticalIds": ["f0000004-0000-4000-8000-000000000002"],
+        "labels": ["PCR"]
       }
     },
     {
@@ -97,12 +93,8 @@
       "payload": {
         "hasUnacknowledgedCritical": true,
         "count": 1,
-        "criticalIds": [
-          "f0000004-0000-4000-8000-000000000002"
-        ],
-        "labels": [
-          "PCR"
-        ]
+        "criticalIds": ["f0000004-0000-4000-8000-000000000002"],
+        "labels": ["PCR"]
       }
     }
   ]

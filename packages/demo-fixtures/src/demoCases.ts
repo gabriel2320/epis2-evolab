@@ -78,7 +78,8 @@ export const DEMO_CLINICAL_CASES: DemoClinicalCase[] = [
     scenario: 'Neumonía grave hospitalaria — postoperatorio (demo)',
     encounterId: 'b0000001-0000-4000-8000-000000000004',
     summaryFields: {
-      activeProblems: 'Postoperatorio día 2 — apendicectomía (sintético)\nDolor abdominal controlado (demo)',
+      activeProblems:
+        'Postoperatorio día 2 — apendicectomía (sintético)\nDolor abdominal controlado (demo)',
       recentEvents: 'Últimas 24 h: tolera vía oral; sin fiebre (sintético)',
       relevantLabs: 'Leucocitos 9.2 ×10³/µL · PCR 12 mg/L (demo)',
       activeMedications: 'Paracetamol 1 g c/8 h · Profilaxis antibiótica finalizada (demo)',

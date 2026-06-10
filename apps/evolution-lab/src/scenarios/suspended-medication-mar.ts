@@ -1,6 +1,10 @@
 import { getDemoCaseByCode } from '@evolab/demo-fixtures';
 import type { ScenarioDefinition } from '../contracts/schemas.js';
-import type { Epis2ApiTargetAdapter, Epis2BrowserTargetAdapter, TargetSession } from '../target/types.js';
+import type {
+  Epis2ApiTargetAdapter,
+  Epis2BrowserTargetAdapter,
+  TargetSession,
+} from '../target/types.js';
 import type { RunEvidenceBundle } from '../evidence/collector.js';
 import type { ScenarioObservation } from '../evaluators/types.js';
 
@@ -133,11 +137,7 @@ export async function executeSuspendedMedicationMar001(
     payload: { status: createRes.status, ok: createRes.ok, draftId },
   });
 
-  const approveAttempt = await api.apiRequest(
-    session,
-    'POST',
-    `/api/drafts/${draftId}/approve`,
-  );
+  const approveAttempt = await api.apiRequest(session, 'POST', `/api/drafts/${draftId}/approve`);
   writeApi('mar-approve-attempt', {
     status: approveAttempt.status,
     ok: approveAttempt.ok,

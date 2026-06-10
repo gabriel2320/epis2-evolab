@@ -9,15 +9,9 @@ export class HttpResultEvaluator implements DeterministicEvaluator {
   id = 'http_result';
 
   private resolveActionObservation(ctx: EvaluatorContext) {
-    const preferredLabels = [
-      'discharge_approve_attempt',
-      'mar_approve_attempt',
-      'approve_attempt',
-    ];
+    const preferredLabels = ['discharge_approve_attempt', 'mar_approve_attempt', 'approve_attempt'];
     for (const label of preferredLabels) {
-      const match = ctx.observations.find(
-        (o) => o.kind === 'api_response' && o.label === label,
-      );
+      const match = ctx.observations.find((o) => o.kind === 'api_response' && o.label === label);
       if (match) return match;
     }
     return ctx.observations.find((o) => o.kind === 'api_response');
@@ -85,9 +79,7 @@ export class DomStateEvaluator implements DeterministicEvaluator {
       (o) => o.kind === 'api_response' && o.payload.status === 403,
     );
     const passed = expectedHidden
-      ? (reviewVisible && !approveVisible) ||
-        forbiddenVisible ||
-        (apiBlocked && !approveVisible)
+      ? (reviewVisible && !approveVisible) || forbiddenVisible || (apiBlocked && !approveVisible)
       : approveVisible;
 
     return {
@@ -138,7 +130,10 @@ export function buildEvaluatorsForScenario(scenario: {
   if (scenario.expected.dischargeBlocked === true && !ids.includes('clinical_safety')) {
     ids.push('clinical_safety');
   }
-  if (scenario.expected.criticalResultRemainsPending === true && !ids.includes('critical_pending')) {
+  if (
+    scenario.expected.criticalResultRemainsPending === true &&
+    !ids.includes('critical_pending')
+  ) {
     ids.push('critical_pending');
   }
   if (scenario.expected.administrationBlocked === true && !ids.includes('mar_safety')) {
@@ -161,7 +156,5 @@ export function buildEvaluatorsForScenario(scenario: {
     plan_fidelity: new PlanFidelityEvaluator(),
     command_resolve: new CommandResolveEvaluator(),
   };
-  return ids
-    .map((id) => map[id])
-    .filter((e): e is DeterministicEvaluator => e !== undefined);
+  return ids.map((id) => map[id]).filter((e): e is DeterministicEvaluator => e !== undefined);
 }

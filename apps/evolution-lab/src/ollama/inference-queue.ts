@@ -45,7 +45,9 @@ export class OllamaInferenceQueue {
 
   enqueue<T>(fn: () => Promise<T>, signal?: AbortSignal): Promise<T> {
     if (Date.now() < this.circuitOpenUntil) {
-      return Promise.reject(new Error('Circuit breaker abierto — Ollama temporalmente unavailable'));
+      return Promise.reject(
+        new Error('Circuit breaker abierto — Ollama temporalmente unavailable'),
+      );
     }
     this.metrics.enqueued += 1;
     return new Promise<T>((resolve, reject) => {

@@ -48,9 +48,7 @@ function parseArgs(argv: string[]): {
   return { command, flags, booleans };
 }
 
-function printRunSummary(
-  result: Awaited<ReturnType<EvolutionOrchestrator['executeRun']>>,
-): void {
+function printRunSummary(result: Awaited<ReturnType<EvolutionOrchestrator['executeRun']>>): void {
   console.log(result.message);
   console.log(`  run_id: ${result.run.id}`);
   console.log(`  status: ${result.finalStatus ?? result.run.status}`);
@@ -82,10 +80,7 @@ async function main(): Promise<number> {
     case 'runs':
       return listRecentRuns(Number.parseInt(flags.limit ?? '10', 10) || 10);
     case 'findings':
-      return listFindings(
-        Number.parseInt(flags.limit ?? '20', 10) || 20,
-        flags.status,
-      );
+      return listFindings(Number.parseInt(flags.limit ?? '20', 10) || 20, flags.status);
     case 'run': {
       const config = loadEvolabConfig();
       const orchestrator = new EvolutionOrchestrator(config);
@@ -95,7 +90,9 @@ async function main(): Promise<number> {
           ...(flags.tag ? { tag: flags.tag } : {}),
           ...(booleans.all ? { all: true } : {}),
         });
-        console.log(`\nBatch: ${summary.passed}/${summary.total} passed, ${summary.review} human_review`);
+        console.log(
+          `\nBatch: ${summary.passed}/${summary.total} passed, ${summary.review} human_review`,
+        );
         return summary.failed > 0 ? 1 : 0;
       }
 

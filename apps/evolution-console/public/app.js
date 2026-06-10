@@ -28,13 +28,17 @@ function runsTable(runs, linkPrefix = '#/run/') {
   if (!runs?.length) return '<p class="empty">Sin runs.</p>';
   return `<table>
     <thead><tr><th>Run</th><th>Escenario</th><th>Estado</th><th>Inicio</th><th>Findings</th></tr></thead>
-    <tbody>${runs.map((r) => `<tr>
+    <tbody>${runs
+      .map(
+        (r) => `<tr>
       <td><a class="link" href="${linkPrefix}${esc(r.id)}">${esc(r.id.slice(0, 8))}…</a></td>
       <td>${esc(r.scenarioId)}</td>
       <td>${badge(r.finalStatus)}</td>
       <td>${fmtDate(r.startedAt)}</td>
       <td>${r.findingCount ?? 0}</td>
-    </tr>`).join('')}</tbody>
+    </tr>`,
+      )
+      .join('')}</tbody>
   </table>`;
 }
 
@@ -42,13 +46,17 @@ function findingsTable(findings) {
   if (!findings?.length) return '<p class="empty">Sin hallazgos abiertos.</p>';
   return `<table>
     <thead><tr><th>Severidad</th><th>Título</th><th>Escenario</th><th>Run</th><th>Estado</th></tr></thead>
-    <tbody>${findings.map((f) => `<tr>
+    <tbody>${findings
+      .map(
+        (f) => `<tr>
       <td class="sev-${esc(f.severity)}">${esc(f.severity)}</td>
       <td>${esc(f.title)}</td>
       <td>${esc(f.scenarioId)}</td>
       <td><a class="link" href="#/run/${esc(f.runId)}">${esc(f.runId.slice(0, 8))}…</a></td>
       <td>${badge(f.reviewStatus)}</td>
-    </tr>`).join('')}</tbody>
+    </tr>`,
+      )
+      .join('')}</tbody>
   </table>`;
 }
 

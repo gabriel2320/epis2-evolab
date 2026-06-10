@@ -21,7 +21,12 @@ export function resolvePlanTarget(step: SimulatedUserStep, scenario: ScenarioDef
   const patientId = resolveDemoPatientId(scenario);
 
   if (raw.startsWith('/espacio/') || raw.startsWith('/comando')) {
-    if (raw.startsWith('/espacio/') && patientId && !raw.includes('?') && !raw.includes('/borrador/')) {
+    if (
+      raw.startsWith('/espacio/') &&
+      patientId &&
+      !raw.includes('?') &&
+      !raw.includes('/borrador/')
+    ) {
       return `${raw}?patientId=${patientId}`;
     }
     return raw;
@@ -43,7 +48,9 @@ export function resolvePlanTarget(step: SimulatedUserStep, scenario: ScenarioDef
 
   const demoCode =
     raw.match(/DEMO-\d{3}/i)?.[0] ??
-    (typeof scenario.fixture?.demoCaseCode === 'string' ? scenario.fixture.demoCaseCode : undefined);
+    (typeof scenario.fixture?.demoCaseCode === 'string'
+      ? scenario.fixture.demoCaseCode
+      : undefined);
   const demo = demoCode ? getDemoCaseByCode(demoCode) : undefined;
   const pid = demo?.patientId ?? patientId;
 

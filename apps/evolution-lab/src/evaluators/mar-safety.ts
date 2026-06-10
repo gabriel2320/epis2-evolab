@@ -30,8 +30,7 @@ export class MarSafetyEvaluator implements DeterministicEvaluator {
         a.ruleId?.includes('high_risk'),
     );
 
-    const approveStatus =
-      typeof approve?.payload.status === 'number' ? approve.payload.status : 0;
+    const approveStatus = typeof approve?.payload.status === 'number' ? approve.payload.status : 0;
     const approveSucceeded = approve?.payload.ok === true;
     const administrationBlocked =
       approveStatus === 403 || approveStatus === 400 || approveStatus === 422;

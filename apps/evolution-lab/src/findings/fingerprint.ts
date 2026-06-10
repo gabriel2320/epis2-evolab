@@ -13,10 +13,7 @@ export type FingerprintInput = {
 };
 
 function normalize(value: string | undefined): string {
-  return (value ?? '')
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, ' ');
+  return (value ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
 export function computeFindingFingerprint(input: FingerprintInput): string {
