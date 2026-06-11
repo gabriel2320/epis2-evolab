@@ -17,6 +17,7 @@ import {
 import { runFitnessReport } from './cli/fitness-command.js';
 import { runMutate } from './cli/mutate-command.js';
 import { runEvolve } from './cli/evolve-command.js';
+import { runMetamorphic } from './cli/metamorphic-command.js';
 import { EvolutionOrchestrator } from './orchestrator/orchestrator.js';
 import { replayRun } from './replay/replay.js';
 import { regenerateRun, type RegenerateStrategy } from './replay/regenerate.js';
@@ -132,6 +133,29 @@ async function main(): Promise<number> {
           ? { noveltyThreshold }
           : {}),
         ...(booleans.json ? { json: true } : {}),
+      });
+    }
+    case 'metamorphic': {
+      const subcommand = positionals[0] ?? 'run';
+      if (subcommand !== 'run') {
+        console.error(
+          'Uso: evolab metamorphic run --relation <id> | --tag <tag> | --all [--dry-run] [--json]',
+        );
+        return 1;
+      }
+      if (!flags.relation && !flags.tag && !booleans.all && !booleans.dryRun) {
+        console.error(
+          'Uso: evolab metamorphic run --relation <id> | --tag <tag> | --all [--dry-run] [--json] [--skip-preflight]',
+        );
+        return 1;
+      }
+      return runMetamorphic({
+        ...(flags.relation ? { relation: flags.relation } : {}),
+        ...(flags.tag ? { tag: flags.tag } : {}),
+        ...(booleans.all ? { all: true } : {}),
+        ...(booleans.dryRun ? { dryRun: true } : {}),
+        ...(booleans.json ? { json: true } : {}),
+        ...(booleans.skipPreflight ? { skipPreflight: true } : {}),
       });
     }
     case 'evolve': {
@@ -303,6 +327,7 @@ Comandos:
   findings     Listar hallazgos (--limit N, --status open) — incluye UUID
   fitness      Mapa de cobertura y novedad del corpus (fitness report [--json])
   mutate       Motor de mutación LLM (--count N [--operator X] [--seed-scenario id] [--novelty-threshold T] [--json])
+  metamorphic  Relaciones metamórficas (run --relation <id> | --tag <tag> | --all [--dry-run] [--json])
   evolve       Loop evolutivo MAP-Elites (--generations N --budget-minutes M [--population K] [--json] [--dry-run])
   queue        Cola human_review (--limit N)
   import       Backfill reports/evolution/runs → PostgreSQL (--dry-run, --force)

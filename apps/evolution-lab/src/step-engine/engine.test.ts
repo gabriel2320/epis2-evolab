@@ -426,4 +426,30 @@ describe('step-engine paridad escenarios complejos', () => {
     const fallback = declarativeResult.observations.find((o) => o.label === 'mar_approve_attempt');
     expect(fallback?.payload.error).toBe('draft_no_creado');
   });
+
+  it('omite paso api con capture ya presente en inheritedContext', async () => {
+    const scenario = loadScenario('role-nurse-approve-001');
+    const { api, browser, writeApi, apiCalls } = makeMockAdapters();
+
+    const result = await executeDeclarativeSteps(
+      scenario,
+      scenario.flow ?? [],
+      { api, browser, session: SESSION, writeApi },
+      { inheritedContext: { draftId: 'draft-inherited-001' } },
+    );
+
+    expect(result.error).toBeUndefined();
+    expect(apiCalls.some((c) => c === 'POST /api/drafts')).toBe(false);
+    expect(apiCalls.some((c) => c === 'POST /api/drafts/draft-inherited-001/approve')).toBe(true);
+    const approve = result.observations.find((o) => o.label === 'nurse_approve_attempt');
+    expect(approve).toBeDefined();
+  });
+
+  it('buildStepContext fusiona inheritedContext', () => {
+    const scenario = loadScenario('role-nurse-approve-001');
+    const ctx = buildStepContext(scenario, { draftId: 'draft-x', extra: 1 });
+    expect(ctx.draftId).toBe('draft-x');
+    expect(ctx.extra).toBe(1);
+    expect(ctx.patientId).toBeTruthy();
+  });
 });

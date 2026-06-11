@@ -32,8 +32,16 @@ export type StepEngineResult = {
 
 export type StepContext = Record<string, unknown>;
 
+export type ExecuteDeclarativeOptions = {
+  /** Claves capturadas del run source (MR-03 reuseContext). */
+  inheritedContext?: Record<string, unknown>;
+};
+
 /** Contexto de placeholders: fixture + demo case (patientId, encounterId) + today. */
-export function buildStepContext(scenario: ScenarioDefinition): StepContext {
+export function buildStepContext(
+  scenario: ScenarioDefinition,
+  inheritedContext?: Record<string, unknown>,
+): StepContext {
   const ctx: StepContext = {};
   const fixture = scenario.fixture ?? {};
   for (const [key, value] of Object.entries(fixture)) {
@@ -48,7 +56,19 @@ export function buildStepContext(scenario: ScenarioDefinition): StepContext {
     }
   }
   ctx.today = new Date().toISOString().slice(0, 10);
+  if (inheritedContext) {
+    for (const [key, value] of Object.entries(inheritedContext)) {
+      ctx[key] = value;
+    }
+  }
   return ctx;
+}
+
+function shouldSkipApiStep(step: ApiStep['api'], ctx: StepContext): boolean {
+  if (!step.capture) return false;
+  const keys = Object.keys(step.capture);
+  if (keys.length === 0) return false;
+  return keys.every((key) => ctx[key] !== undefined && ctx[key] !== null);
 }
 
 export function resolvePlaceholders(template: string, ctx: StepContext): string {
@@ -191,9 +211,10 @@ export async function executeDeclarativeSteps(
   scenario: ScenarioDefinition,
   steps: DeclarativeStep[],
   deps: StepEngineDeps,
+  opts: ExecuteDeclarativeOptions = {},
 ): Promise<StepEngineResult> {
   const observations: ScenarioObservation[] = [];
-  const ctx = buildStepContext(scenario);
+  const ctx = buildStepContext(scenario, opts.inheritedContext);
 
   const fixture = scenario.fixture ?? {};
   if (typeof fixture.demoCaseCode === 'string' && !getDemoCaseByCode(fixture.demoCaseCode)) {
@@ -213,6 +234,9 @@ export async function executeDeclarativeSteps(
           },
         });
       } else if (isApiStep(step)) {
+        if (shouldSkipApiStep(step.api, ctx)) {
+          continue;
+        }
         const result = await executeApiStep(step.api, ctx, deps);
         if (result.error) {
           return { observations, error: result.error };

@@ -175,6 +175,7 @@ describe('journey admission-discharge-001', () => {
     expect(mocks.apiCalls).toEqual([
       'GET /api/dashboard/service?unit=CIRUGIA-DEMO',
       'GET /api/dashboard/service?unit=CIRUGIA-DEMO',
+      'GET /api/dashboard/service?unit=CIRUGIA-DEMO',
       'POST /api/inpatient/admissions',
       'GET /api/dashboard/service?unit=CIRUGIA-DEMO',
       'POST /api/drafts',

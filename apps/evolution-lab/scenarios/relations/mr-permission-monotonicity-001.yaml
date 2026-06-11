@@ -1,0 +1,27 @@
+id: mr-permission-monotonicity-001
+version: 1
+kind: metamorphic
+relation: permission_monotonicity
+name: Monotonicidad — si physician aprueba, nurse (sin draft.approve) debe ser bloqueado
+risk: high
+
+source:
+  scenario: role-nurse-approve-001
+  overrides:
+    persona: { role: physician }
+    expected: { actionBlocked: false }
+
+followUp:
+  scenario: role-nurse-approve-001
+
+verify:
+  - compare: outcome_implication
+    premise: { run: source, observation: nurse_approve_attempt, outcome: allowed }
+    conclusion: { run: followUp, observation: nurse_approve_attempt, outcome: blocked }
+    permission: draft.approve
+
+onViolation:
+  severity: high
+  category: metamorphic_rbac
+requiresHumanReview: true
+tags: [metamorphic, rbac, smoke]

@@ -36,7 +36,11 @@ export type OrchestratorResult = {
   observations?: ScenarioObservation[];
 };
 
-export type ExecuteRunOptions = { resetFixtures?: boolean };
+export type ExecuteRunOptions = {
+  resetFixtures?: boolean;
+  configuration?: Record<string, unknown>;
+  inheritedContext?: Record<string, unknown>;
+};
 
 function isTransientError(message: string): boolean {
   return /no alcanzable|ECONNREFUSED|fetch failed|timeout|ETIMEDOUT|503|502|504/i.test(message);
@@ -112,7 +116,14 @@ export class EvolutionOrchestrator {
       throw new Error(`Target no resuelto: ${this.config.targetId}`);
     }
 
-    const { run } = buildRunFromScenario(this.config, scenario, seed);
+    const { run: builtRun } = buildRunFromScenario(this.config, scenario, seed);
+    const run = {
+      ...builtRun,
+      configuration: {
+        ...builtRun.configuration,
+        ...(opts.configuration ?? {}),
+      },
+    };
     const collector = new EvidenceCollector(this.config.reportsDir, this.config.evidenceMode);
     const bundle = collector.prepare(run, scenario);
 
@@ -182,6 +193,7 @@ export class EvolutionOrchestrator {
           ...(simulatedPlan ? { plan: simulatedPlan } : {}),
           llmSimMode: this.config.llmSimMode,
           browserEnabled: this.config.browserEnabled,
+          ...(opts.inheritedContext ? { inheritedContext: opts.inheritedContext } : {}),
         },
       );
 

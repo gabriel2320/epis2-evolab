@@ -1,0 +1,29 @@
+id: mr-census-inversion-001
+version: 1
+kind: metamorphic
+relation: inversion
+name: Inversión — admitir y dar de alta devuelve el censo a baseline
+risk: high
+
+source:
+  scenario: admission-discharge-001
+
+verify:
+  - compare: snapshot_equal
+    left: { run: source, observation: census_baseline }
+    right: { run: source, observation: census_after_discharge }
+    fields: [bedCount, occupiedCount, availableCount]
+  - compare: invariant_repeat
+    observation: census_after_discharge
+    field: demoPatientListed
+    equals: false
+  - compare: invariant_repeat
+    observation: census_after_admission
+    field: demoPatientListed
+    equals: true
+
+onViolation:
+  severity: high
+  category: metamorphic_inversion
+requiresHumanReview: true
+tags: [metamorphic, census, smoke]

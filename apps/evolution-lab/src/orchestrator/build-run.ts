@@ -56,7 +56,7 @@ export function buildRunFromScenario(
       browserEnabled: config.browserEnabled,
       llmSimMode: config.llmSimMode,
       attemptBudget: config.maxScenarioAttempts,
-    },
+    } as Record<string, unknown>,
   };
 
   return { run, guardReport, scenario };

@@ -1,0 +1,29 @@
+id: mr-blocked-idempotence-001
+version: 1
+kind: metamorphic
+relation: idempotence
+name: Idempotencia — repetir un approve bloqueado no cambia estado ni omite auditoría
+risk: medium
+
+source:
+  scenario: role-nurse-approve-001
+
+followUp:
+  scenario: role-nurse-approve-001
+  repeat: 2
+  reuseContext: [draftId]
+  resetFixturesBetween: false
+
+verify:
+  - compare: invariant_repeat
+    observation: nurse_approve_attempt
+    field: status
+  - compare: audit_delta
+    forbidden: [clinical.draft.approved]
+    correlateBy: draftId
+
+onViolation:
+  severity: high
+  category: metamorphic_idempotence
+requiresHumanReview: true
+tags: [metamorphic, rbac, audit, smoke]

@@ -1,6 +1,6 @@
 # EPIS2 Evolab — Limitaciones conocidas
 
-**Actualizado:** 2026-06-10 · repo **epis2-evolab** · roadmap **v3**
+**Actualizado:** 2026-06-11 · repo **epis2-evolab** · roadmap **v3**
 
 Plan: [EVOLAB_ROADMAP.md](../../docs/evolution/EVOLAB_ROADMAP.md)
 
@@ -22,7 +22,7 @@ Plan: [EVOLAB_ROADMAP.md](../../docs/evolution/EVOLAB_ROADMAP.md)
 
 | Capacidad | Sprint |
 |-----------|--------|
-| Evaluador metamórfico + relaciones clínicas | S10 (spec lista) |
+| Evaluador metamórfico + relaciones clínicas | S10 (core en repo; CLI + YAML relations pendiente) |
 | Judge local + bandit UCB | S11 (spec lista) |
 | DGM-lite propuestas custom steps | S12 |
 | LLM replan completo | Condicionado (S6) |

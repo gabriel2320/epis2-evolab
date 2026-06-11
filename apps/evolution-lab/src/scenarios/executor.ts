@@ -27,6 +27,7 @@ export type ScenarioExecuteOptions = {
   plan?: SimulatedUserPlan;
   llmSimMode?: 'off' | 'plan' | 'execute';
   browserEnabled?: boolean;
+  inheritedContext?: Record<string, unknown>;
 };
 
 export async function executeRoleEvolutionSign001(
@@ -106,14 +107,22 @@ async function executeDeterministic(
     evidence: RunEvidenceBundle;
     writeApi: (label: string, payload: Record<string, unknown>) => string;
   },
+  opts: ScenarioExecuteOptions = {},
 ): Promise<ScenarioExecutionResult> {
   if (scenario.flow && scenario.flow.length > 0) {
-    const result = await executeDeclarativeSteps(scenario, scenario.flow, {
-      api: deps.api,
-      browser: deps.browser,
-      session: deps.session,
-      writeApi: deps.writeApi,
-    });
+    const result = await executeDeclarativeSteps(
+      scenario,
+      scenario.flow,
+      {
+        api: deps.api,
+        browser: deps.browser,
+        session: deps.session,
+        writeApi: deps.writeApi,
+      },
+      {
+        ...(opts.inheritedContext ? { inheritedContext: opts.inheritedContext } : {}),
+      },
+    );
     return { ...result, executionMode: 'declarative' };
   }
 
@@ -211,7 +220,7 @@ export async function executeScenario(
       return { ...planResult, executionMode: 'plan' };
     }
     if (hasDeterministicExecutor(scenario.id)) {
-      const deterministic = await executeDeterministic(scenario, deps);
+      const deterministic = await executeDeterministic(scenario, deps, opts);
       return {
         observations: [...planResult.observations, ...deterministic.observations],
         ...(deterministic.error ? { error: deterministic.error } : {}),
@@ -221,5 +230,5 @@ export async function executeScenario(
     return { ...planResult, executionMode: 'plan' };
   }
 
-  return executeDeterministic(scenario, deps);
+  return executeDeterministic(scenario, deps, opts);
 }

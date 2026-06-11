@@ -27,6 +27,7 @@ goal:
 steps:
   - login
   - ensure_patient_not_admitted
+  - census_baseline
   - find_available_bed
   - admit_patient
   - census_after_admission
@@ -41,6 +42,9 @@ flow:
   - custom:
       name: ensure_patient_not_admitted
       args: { label: ensure_not_admitted, unit: CIRUGIA-DEMO }
+  - custom:
+      name: census_snapshot
+      args: { label: census_baseline, unit: CIRUGIA-DEMO }
   - custom:
       name: find_available_bed
       args: { label: available_bed, unit: CIRUGIA-DEMO }
