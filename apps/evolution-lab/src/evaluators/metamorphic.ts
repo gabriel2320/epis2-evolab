@@ -35,6 +35,7 @@ function resolveObservation(
   return (
     side.observations.find((o) => o.label === ref.observation) ??
     side.observations.find((o) => o.kind === 'census_snapshot' && o.label === ref.observation) ??
+    side.observations.find((o) => o.kind === 'drafts_count' && o.label === ref.observation) ??
     resolveApiObservation(side.observations, ref.observation)
   );
 }

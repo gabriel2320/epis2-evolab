@@ -276,8 +276,10 @@ export async function listFindings(limit = 20, reviewStatus?: string): Promise<n
   });
   console.log('EPIS2 Evolab — hallazgos\n');
   for (const f of rows) {
+    const judge =
+      f.judgeVerdict != null ? ` judge=${f.judgeVerdict} P=${f.judgePriority ?? '—'}` : '';
     console.log(
-      `  ${f.id}  [${f.severity}] ${f.fingerprint}  ${f.scenarioId}  run=${f.runId.slice(0, 8)}…  ${f.reviewStatus}`,
+      `  ${f.id}  [${f.severity}] ${f.fingerprint}  ${f.scenarioId}  run=${f.runId.slice(0, 8)}…  ${f.reviewStatus}${judge}`,
     );
     console.log(`    ${f.title}`);
   }

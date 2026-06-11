@@ -25,6 +25,7 @@ steps:
   - login_nurse
   - create_nursing_note
   - attempt_approve
+  - count_drafts
 
 flow:
   - login:
@@ -53,6 +54,9 @@ flow:
       path: '/api/drafts/{draftId}/approve'
       observe:
         payload: [status, ok, draftId]
+  - custom:
+      name: drafts_count
+      args: { label: drafts_count }
 
 expected:
   actionBlocked: true

@@ -125,6 +125,13 @@ describe('sprint 3 — escenarios tramo C declarativos', () => {
       ) {
         return ok(403, { error: 'Sin permiso', permission: 'draft.approve' });
       }
+      if (method === 'GET' && path.startsWith('/api/drafts?')) {
+        return ok(200, {
+          drafts: [{ id: 'aaaa1111-0000-4000-8000-000000000001' }],
+          limit: 50,
+          offset: 0,
+        });
+      }
       return undefined;
     });
 
@@ -139,6 +146,8 @@ describe('sprint 3 — escenarios tramo C declarativos', () => {
     const attempt = result.observations.find((o) => o.label === 'nurse_approve_attempt');
     expect(attempt?.payload.status).toBe(403);
     expect(attempt?.payload.draftId).toBe('aaaa1111-0000-4000-8000-000000000001');
+    const draftsCount = result.observations.find((o) => o.label === 'drafts_count');
+    expect(draftsCount?.payload.total).toBe(1);
 
     const functional = runEvaluators(scenario, result.observations).find(
       (e) => e.evaluatorId === 'functional',

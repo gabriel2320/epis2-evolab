@@ -173,6 +173,64 @@ describe('metamorphic evaluator', () => {
     );
   });
 
+  it('delta exige conteo de drafts estable entre source y follow-up (MR-03)', () => {
+    const relation = loadRelation('mr-blocked-idempotence-001');
+    const countObs = (total: number): ScenarioObservation => ({
+      kind: 'drafts_count',
+      label: 'drafts_count',
+      payload: { total, ok: true, status: 200 },
+    });
+    const pass = evaluateMetamorphicRelation({
+      relation,
+      correlationId: 'corr-delta-ok',
+      source: {
+        runId: 'run-src',
+        scenarioId: 'role-nurse-approve-001',
+        observations: [
+          apiObs('nurse_approve_attempt', 403, { draftId: 'draft-1' }),
+          countObs(1),
+          { kind: 'audit_trail', label: 'audit', payload: { events: [] } },
+        ],
+        finalStatus: 'completed',
+      },
+      followUps: [
+        {
+          runId: 'run-fu-1',
+          scenarioId: 'role-nurse-approve-001',
+          observations: [
+            apiObs('nurse_approve_attempt', 403, { draftId: 'draft-1' }),
+            countObs(1),
+            { kind: 'audit_trail', label: 'audit', payload: { events: [] } },
+          ],
+          finalStatus: 'completed',
+        },
+      ],
+    });
+    expect(pass.passed).toBe(true);
+    expect(pass.evaluations.some((e) => e.details?.clause === 'delta' && e.passed)).toBe(true);
+
+    const fail = evaluateMetamorphicRelation({
+      relation,
+      correlationId: 'corr-delta-fail',
+      source: {
+        runId: 'run-src',
+        scenarioId: 'role-nurse-approve-001',
+        observations: [countObs(1)],
+        finalStatus: 'completed',
+      },
+      followUps: [
+        {
+          runId: 'run-fu-1',
+          scenarioId: 'role-nurse-approve-001',
+          observations: [countObs(2)],
+          finalStatus: 'completed',
+        },
+      ],
+    });
+    expect(fail.passed).toBe(false);
+    expect(fail.evaluations.some((e) => e.details?.clause === 'delta' && !e.passed)).toBe(true);
+  });
+
   it('par no evaluable ante fallo de infraestructura', () => {
     const relation = loadRelation('mr-census-inversion-001');
     const result = evaluateMetamorphicRelation({

@@ -30,6 +30,15 @@ function makeMockAdapters() {
     login: async () => SESSION,
     apiRequest: async (_session, method, path) => {
       apiCalls.push(`${method} ${path}`);
+      if (method === 'GET' && path.startsWith('/api/drafts?')) {
+        return {
+          ok: true,
+          status: 200,
+          latencyMs: 3,
+          body: { drafts: [{ id: 'draft-inherited-001' }], limit: 50, offset: 0 },
+          headers: {},
+        };
+      }
       return {
         ok: false,
         status: 403,
@@ -149,6 +158,7 @@ describe('step-engine', () => {
       'census_snapshot',
       'discharge_alerts',
       'discharge_ui_probe',
+      'drafts_count',
       'ensure_patient_not_admitted',
       'find_available_bed',
       'mar_alerts',

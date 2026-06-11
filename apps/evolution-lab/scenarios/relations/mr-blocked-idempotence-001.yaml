@@ -21,6 +21,10 @@ verify:
   - compare: audit_delta
     forbidden: [clinical.draft.approved]
     correlateBy: draftId
+  - compare: delta
+    observation: drafts_count
+    field: total
+    expected: 0
 
 onViolation:
   severity: high

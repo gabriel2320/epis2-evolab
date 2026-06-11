@@ -118,7 +118,9 @@ Oráculos sin ground truth: relaciones declaradas en YAML entre **pares de ejecu
 | S10.3 | Relación **monotonicidad de permisos**: si rol R no puede X, un rol con menos permisos tampoco; éxito inesperado ⇒ finding RBAC high | Cubre matriz nurse/physician/admin |
 | S10.4 | Relación **idempotencia de bloqueos**: repetir una acción bloqueada N veces no cambia el estado (sin drafts fantasma ni eventos `approved`) | Reusa `audit_completeness` |
 
-**Gate:** **3 relaciones** metamórficas corriendo en CI smoke.
+**Gate:** **3 relaciones** metamórficas corriendo en CI smoke (dry-run en job `quality`; smoke vivo opcional con `EPIS2_CHECKOUT_TOKEN`).
+
+**Estado:** ✓ **Completado 2026-06-11** — MR-01…03, CLI `metamorphic run`, `drafts_count` (MR-03 delta). Ver [`evolab-sprint10-close-2026-06-11.md`](../../reports/evolution/evolab-sprint10-close-2026-06-11.md).
 
 ---
 
@@ -131,6 +133,8 @@ Oráculos sin ground truth: relaciones declaradas en YAML entre **pares de ejecu
 | S11.3 | Bandit UCB sobre modelos locales por tarea (mutación amplitud / reparación / judge): recompensa = tasa de válidas o acierto vs golden, por modelo; persiste estadísticas y converge solo | `evolab models --bandit` muestra estado |
 
 **Gate:** precisión del judge **≥80%** contra la muestra etiquetada.
+
+**Estado:** ✓ **Implementado 2026-06-11** — judge advisory, bandit UCB, migración `005`, gate mock 100% (25/25). Eval live Ollama pendiente F2 del [`evolab-dev-plan-2026-06-11.md`](../../reports/evolution/evolab-dev-plan-2026-06-11.md).
 
 ---
 
@@ -184,4 +188,6 @@ Cuando el mapa muestra nichos **inalcanzables** con los pasos/evaluadores actual
 
 ## 8. Próximo paso inmediato
 
-**Sprint 10:** relaciones metamórficas clínicas — spec en `reports/evolution/evolab-sprint10-metamorphic-spec.md`. Primer evaluador: inversión admitir→alta sobre `admission-discharge-001`.
+**Fase F1 (operación):** ver [`reports/evolution/evolab-dev-plan-2026-06-11.md`](../../reports/evolution/evolab-dev-plan-2026-06-11.md) — migración `005`, `review --judge`, smoke metamórfico vivo. Evolve nocturno (S9 gate calibrado) queda en **F5** al final del plan.
+
+**Estado sprints v3:** S7–S8 ✓ · S9 implementado (gate parcial 1/5) · S10 ✓ (MR-01…03 + `drafts_count`) · S11 ✓ (judge + bandit, gate mock) · S12 planificado.

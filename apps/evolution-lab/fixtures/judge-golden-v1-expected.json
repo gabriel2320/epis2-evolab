@@ -1,0 +1,104 @@
+{
+  "entries": [
+    {
+      "id": "golden-001",
+      "verdict": "signal"
+    },
+    {
+      "id": "golden-002",
+      "verdict": "signal"
+    },
+    {
+      "id": "golden-003",
+      "verdict": "signal"
+    },
+    {
+      "id": "golden-004",
+      "verdict": "signal"
+    },
+    {
+      "id": "golden-005",
+      "verdict": "duplicate"
+    },
+    {
+      "id": "golden-006",
+      "verdict": "duplicate"
+    },
+    {
+      "id": "golden-007",
+      "verdict": "signal"
+    },
+    {
+      "id": "golden-008",
+      "verdict": "signal"
+    },
+    {
+      "id": "golden-009",
+      "verdict": "signal"
+    },
+    {
+      "id": "golden-010",
+      "verdict": "noise"
+    },
+    {
+      "id": "golden-011",
+      "verdict": "noise"
+    },
+    {
+      "id": "golden-012",
+      "verdict": "signal"
+    },
+    {
+      "id": "golden-013",
+      "verdict": "signal"
+    },
+    {
+      "id": "golden-014",
+      "verdict": "noise"
+    },
+    {
+      "id": "golden-015",
+      "verdict": "signal"
+    },
+    {
+      "id": "golden-016",
+      "verdict": "noise"
+    },
+    {
+      "id": "golden-017",
+      "verdict": "noise"
+    },
+    {
+      "id": "golden-018",
+      "verdict": "noise"
+    },
+    {
+      "id": "golden-019",
+      "verdict": "noise"
+    },
+    {
+      "id": "golden-020",
+      "verdict": "noise"
+    },
+    {
+      "id": "golden-021",
+      "verdict": "noise"
+    },
+    {
+      "id": "golden-022",
+      "verdict": "signal"
+    },
+    {
+      "id": "golden-023",
+      "verdict": "signal"
+    },
+    {
+      "id": "golden-024",
+      "verdict": "noise"
+    },
+    {
+      "id": "golden-025",
+      "verdict": "noise"
+    }
+  ]
+}

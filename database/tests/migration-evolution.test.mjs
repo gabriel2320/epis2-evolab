@@ -30,4 +30,11 @@ describe('migration-evolution', () => {
     const sql = await readFile(join(migrationsDir, '001_bootstrap_role.sql'), 'utf8');
     expect(sql).toContain('epis2_evolab');
   });
+
+  it('Sprint 11: judge advisory + bandit UCB', async () => {
+    const sql = await readFile(join(migrationsDir, '005_judge_bandit.sql'), 'utf8');
+    expect(sql).toContain('judge_verdict');
+    expect(sql).toContain('model_bandit_stats');
+    expect(sql).toContain('model_bandit_events');
+  });
 });

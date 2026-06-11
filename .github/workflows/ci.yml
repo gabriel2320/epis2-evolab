@@ -36,6 +36,12 @@ jobs:
       - name: Boundary validate
         run: npm run evolab:boundary:validate
 
+      - name: Metamorphic dry-run (S10 gate)
+        run: npm run evolab:metamorphic -- run --dry-run --tag smoke
+
+      - name: Judge eval mock (S11 gate)
+        run: npm run evolab:judge:eval -- --mock
+
   # Smoke vivo contra sandbox EPIS2 (sibling checkout). Requiere el secret
   # EPIS2_CHECKOUT_TOKEN (PAT con read sobre gabriel2320/epis2); si falta, se omite.
   # continue-on-error mientras se observa estabilidad — promover a gate al estar verde.

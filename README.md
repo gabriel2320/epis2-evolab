@@ -66,6 +66,10 @@ npm run evolab:run -- --all
 npm run evolab:findings -- --status open
 npm run evolab:queue
 npm run evolab:review -- --finding <uuid> --decision approved
+npm run evolab:metamorphic -- run --dry-run --tag smoke
+npm run evolab:judge:eval -- --mock
+npm run evolab:review -- --judge
+npm run evolab:models -- --bandit --seed
 npm run evolab:plan -- --scenario llm-command-evolution-001
 $env:EPIS2_EVOLAB_LLM_SIM="execute"
 npm run evolab:run -- --scenario llm-command-evolution-001

@@ -198,6 +198,50 @@ const registry: Record<string, CustomStepFn> = {
     };
   },
 
+  /** Conteo paginado de borradores del paciente (MR-03 idempotencia). args: { label } */
+  drafts_count: async ({ api, session, writeApi, ctx, args }) => {
+    const label = typeof args.label === 'string' ? args.label : 'drafts_count';
+    const patientId = requirePatientId(ctx);
+    const limit = 50;
+    let offset = 0;
+    let total = 0;
+
+    for (;;) {
+      const res = await api.apiRequest(
+        session,
+        'GET',
+        `/api/drafts?patientId=${encodeURIComponent(patientId)}&limit=${limit}&offset=${offset}`,
+      );
+      writeApi(`drafts-count-${label}-${offset}`, {
+        status: res.status,
+        ok: res.ok,
+        body: res.body,
+      });
+      if (!res.ok) {
+        return {
+          observations: [],
+          error: `Listado de drafts no disponible (HTTP ${res.status})`,
+        };
+      }
+
+      const body = res.body as { drafts?: unknown[] } | null;
+      const page = Array.isArray(body?.drafts) ? body.drafts : [];
+      total += page.length;
+      if (page.length < limit) {
+        return {
+          observations: [
+            {
+              kind: 'drafts_count',
+              label,
+              payload: { status: res.status, ok: res.ok, total, patientId },
+            },
+          ],
+        };
+      }
+      offset += limit;
+    }
+  },
+
   /** Críticos sin acuse del dashboard de servicio. args: { label } */
   service_criticals: async ({ api, session, writeApi, ctx, args }) => {
     const label = typeof args.label === 'string' ? args.label : 'unacknowledged_criticals';

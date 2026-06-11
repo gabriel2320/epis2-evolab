@@ -17,13 +17,14 @@ Plan: [EVOLAB_ROADMAP.md](../../docs/evolution/EVOLAB_ROADMAP.md)
 | Fitness + mapa cobertura + `scenario_fitness` | ✓ S7 |
 | Motor mutación LLM (4 operadores, gate 92%) | ✓ S8 |
 | Loop `evolab evolve` + archivo MAP-Elites | ✓ S9 (gate nocturno pendiente) |
+| Evaluador metamórfico + 3 relaciones P0 (MR-01…03) | ✓ S10 |
+| Judge local + bandit UCB | ✓ S11 (gate mock ≥80%) |
 
-## Pendiente (roadmap v3 S10–S12)
+## Pendiente (roadmap v3 S11–S12)
 
 | Capacidad | Sprint |
 |-----------|--------|
-| Evaluador metamórfico + relaciones clínicas | S10 (core en repo; CLI + YAML relations pendiente) |
-| Judge local + bandit UCB | S11 (spec lista) |
+| Judge live Ollama + smoke cola `--judge` | F1–F2 ([dev plan](evolab-dev-plan-2026-06-11.md)) |
 | DGM-lite propuestas custom steps | S12 |
 | LLM replan completo | Condicionado (S6) |
 | Batch paralelo / fault injection / UI review | Diferido §4 roadmap |

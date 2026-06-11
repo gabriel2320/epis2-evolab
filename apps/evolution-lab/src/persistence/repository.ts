@@ -28,6 +28,8 @@ export type FindingListRow = {
   fingerprint: string;
   reviewStatus: string;
   createdAt: string;
+  judgeVerdict: string | null;
+  judgePriority: number | null;
 };
 
 export async function persistRunBundle(input: PersistRunInput): Promise<void> {
@@ -159,9 +161,12 @@ export async function listFindingsFromDb(
           fingerprint: string;
           review_status: string;
           created_at: Date;
+          judge_verdict: string | null;
+          judge_priority: number | null;
         }[]
       >`
-        SELECT id, run_id, scenario_id, severity, title, fingerprint, review_status, created_at
+        SELECT id, run_id, scenario_id, severity, title, fingerprint, review_status, created_at,
+               judge_verdict, judge_priority
         FROM evolution.findings
         WHERE review_status = ${opts.reviewStatus}
         ORDER BY created_at DESC
@@ -177,9 +182,12 @@ export async function listFindingsFromDb(
           fingerprint: string;
           review_status: string;
           created_at: Date;
+          judge_verdict: string | null;
+          judge_priority: number | null;
         }[]
       >`
-        SELECT id, run_id, scenario_id, severity, title, fingerprint, review_status, created_at
+        SELECT id, run_id, scenario_id, severity, title, fingerprint, review_status, created_at,
+               judge_verdict, judge_priority
         FROM evolution.findings
         ORDER BY created_at DESC
         LIMIT ${limit}
@@ -194,6 +202,8 @@ export async function listFindingsFromDb(
     fingerprint: r.fingerprint,
     reviewStatus: r.review_status,
     createdAt: r.created_at.toISOString(),
+    judgeVerdict: r.judge_verdict,
+    judgePriority: r.judge_priority,
   }));
 }
 

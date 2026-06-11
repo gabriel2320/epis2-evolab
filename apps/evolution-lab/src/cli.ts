@@ -18,6 +18,9 @@ import { runFitnessReport } from './cli/fitness-command.js';
 import { runMutate } from './cli/mutate-command.js';
 import { runEvolve } from './cli/evolve-command.js';
 import { runMetamorphic } from './cli/metamorphic-command.js';
+import { runJudgeTriage } from './cli/judge-command.js';
+import { runJudgeEval } from './cli/judge-eval-command.js';
+import { runBanditReport, runBanditSeed } from './cli/bandit-command.js';
 import { EvolutionOrchestrator } from './orchestrator/orchestrator.js';
 import { replayRun } from './replay/replay.js';
 import { regenerateRun, type RegenerateStrategy } from './replay/regenerate.js';
@@ -41,6 +44,26 @@ function parseArgs(argv: string[]): {
     }
     if (arg === '--json') {
       booleans.json = true;
+      continue;
+    }
+    if (arg === '--judge') {
+      booleans.judge = true;
+      continue;
+    }
+    if (arg === '--refresh') {
+      booleans.refresh = true;
+      continue;
+    }
+    if (arg === '--mock') {
+      booleans.mock = true;
+      continue;
+    }
+    if (arg === '--bandit') {
+      booleans.bandit = true;
+      continue;
+    }
+    if (arg === '--seed') {
+      booleans.seed = true;
       continue;
     }
     if (arg === '--dry-run') {
@@ -101,6 +124,12 @@ async function main(): Promise<number> {
     case 'doctor':
       return runDoctor({ ...(booleans.strict ? { strict: true } : {}) });
     case 'models':
+      if (booleans.bandit) {
+        return runBanditReport({
+          ...(booleans.json ? { json: true } : {}),
+          ...(booleans.seed ? { seed: true } : {}),
+        });
+      }
       return runModels();
     case 'scenarios':
       return runScenariosList();
@@ -285,11 +314,22 @@ async function main(): Promise<number> {
     case 'queue':
       return listReviewQueue(Number.parseInt(flags.limit ?? '20', 10) || 20);
     case 'review': {
+      if (booleans.judge) {
+        return runJudgeTriage({
+          ...(flags.finding ? { findingId: flags.finding } : {}),
+          ...(booleans.dryRun ? { dryRun: true } : {}),
+          ...(booleans.refresh ? { refresh: true } : {}),
+          ...(booleans.json ? { json: true } : {}),
+          ...(booleans.mock ? { mock: true } : {}),
+          ...(flags.model ? { model: flags.model } : {}),
+        });
+      }
       const findingId = flags.finding;
       const decision = flags.decision as 'approved' | 'rejected' | 'duplicate' | undefined;
       if (!findingId || !decision) {
         console.error(
-          'Uso: evolab review --finding <uuid> --decision approved|rejected|duplicate [--actor name] [--comment text]',
+          'Uso humano: evolab review --finding <uuid> --decision approved|rejected|duplicate\n' +
+            '       judge: evolab review --judge [--finding uuid] [--dry-run] [--refresh] [--json]',
         );
         return 1;
       }
@@ -303,6 +343,25 @@ async function main(): Promise<number> {
         ...(flags.actor ? { actor: flags.actor } : {}),
         ...(flags.comment ? { comment: flags.comment } : {}),
       });
+    }
+    case 'judge': {
+      const sub = positionals[0] ?? 'eval';
+      if (sub === 'eval') {
+        return runJudgeEval({
+          goldenPath: flags.golden ?? 'apps/evolution-lab/fixtures/judge-golden-v1.json',
+          ...(flags.model ? { model: flags.model } : {}),
+          ...(booleans.mock ? { mock: true } : {}),
+          ...(booleans.json ? { json: true } : {}),
+        });
+      }
+      console.error('Uso: evolab judge eval [--golden path] [--model qwen3:8b] [--mock] [--json]');
+      return 1;
+    }
+    case 'bandit': {
+      const sub = positionals[0] ?? 'seed';
+      if (sub === 'seed') return runBanditSeed();
+      console.error('Uso: evolab bandit seed');
+      return 1;
     }
     case 'plan': {
       const scenarioId = flags.scenario;
@@ -332,6 +391,10 @@ Comandos:
   queue        Cola human_review (--limit N)
   import       Backfill reports/evolution/runs → PostgreSQL (--dry-run, --force)
   review       Decidir hallazgo (--finding <uuid> --decision approved|rejected|duplicate)
+               Judge triage (--judge [--finding uuid] [--dry-run] [--refresh] [--json] [--mock])
+  judge        Gate eval (judge eval [--golden path] [--mock] [--json])
+  models       Inventario Ollama (--bandit [--seed] [--json])
+  bandit       Warm-start UCB (bandit seed)
   run          Ejecutar escenario (--scenario <id> | --all | --tag <tag>) [--skip-preflight] [--reset-fixtures] [--evidence minimal|full]
   plan         Plan LLM simulated user (--scenario <id>) sin ejecutar target
   replay       Reproducir run (--run <id>) con mismo seed [filesystem o DB]
