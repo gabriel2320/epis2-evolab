@@ -14,7 +14,7 @@ import {
 } from '../judge/ollama-judge-client.js';
 import { classifyFinding } from '../judge/triage-judge.js';
 import type { JudgeTriageOutput } from '../judge/schemas.js';
-import { recordBanditReward } from '../bandit/repository.js';
+import { recordBanditReward, selectBanditModel } from '../bandit/repository.js';
 
 export type JudgeTriageRunResult = {
   findingId: string;
@@ -75,8 +75,14 @@ export async function runJudgeTriage(opts: {
       }
     : createOllamaJudgeClient({ baseUrl: config.ollamaUrl });
 
-  const model = opts.model ?? DEFAULT_JUDGE_MODEL;
+  const banditModel =
+    !opts.mock && !opts.model ? await selectBanditModel(config.databaseUrl, 'judge_triage') : null;
+  const model = opts.model ?? banditModel ?? DEFAULT_JUDGE_MODEL;
   const results: JudgeTriageRunResult[] = [];
+
+  if (!opts.mock && !opts.json) {
+    console.log(`Judge model: ${model}${banditModel ? ' (bandit UCB)' : ''}\n`);
+  }
 
   for (const finding of findings) {
     const input = await buildJudgeInputFromDb({

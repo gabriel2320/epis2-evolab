@@ -42,10 +42,17 @@ function runsTable(runs, linkPrefix = '#/run/') {
   </table>`;
 }
 
-function findingsTable(findings) {
+function judgeBadge(verdict) {
+  if (!verdict) return '<span class="badge badge-PENDING">sin judge</span>';
+  return `<span class="badge badge-judge-${esc(verdict)}">${esc(verdict)}</span>`;
+}
+
+function findingsTable(findings, opts = {}) {
+  const showJudge = opts.judgeQueue ?? false;
   if (!findings?.length) return '<p class="empty">Sin hallazgos abiertos.</p>';
+  const judgeCols = showJudge ? '<th>Judge</th><th>Prio</th>' : '<th>Judge</th><th>Prio</th>';
   return `<table>
-    <thead><tr><th>Severidad</th><th>Título</th><th>Escenario</th><th>Run</th><th>Estado</th></tr></thead>
+    <thead><tr><th>Severidad</th><th>Título</th><th>Escenario</th><th>Run</th>${judgeCols}<th>Estado</th></tr></thead>
     <tbody>${findings
       .map(
         (f) => `<tr>
@@ -53,6 +60,8 @@ function findingsTable(findings) {
       <td>${esc(f.title)}</td>
       <td>${esc(f.scenarioId)}</td>
       <td><a class="link" href="#/run/${esc(f.runId)}">${esc(f.runId.slice(0, 8))}…</a></td>
+      <td>${judgeBadge(f.judgeVerdict)}</td>
+      <td>${f.judgePriority ?? '—'}</td>
       <td>${badge(f.reviewStatus)}</td>
     </tr>`,
       )
@@ -83,8 +92,15 @@ async function pageRuns() {
 }
 
 async function pageFindings() {
-  const { findings } = await api('/api/findings?limit=50');
+  const { findings } = await api('/api/findings?limit=50&status=open');
   main.innerHTML = `<h1>Hallazgos</h1>${findingsTable(findings)}`;
+}
+
+async function pageJudgeQueue() {
+  const { findings } = await api('/api/judge-queue?limit=50');
+  main.innerHTML = `<h1>Cola judge</h1>
+    <p class="hint">Ordenada por verdict (signal → duplicate → noise) y prioridad ascendente.</p>
+    ${findingsTable(findings, { judgeQueue: true })}`;
 }
 
 async function pageQueue() {
@@ -121,6 +137,7 @@ async function router() {
     if (hash === '/' || hash === '') await pageDashboard();
     else if (hash === '/runs') await pageRuns();
     else if (hash === '/findings') await pageFindings();
+    else if (hash === '/judge-queue') await pageJudgeQueue();
     else if (hash === '/queue') await pageQueue();
     else if (hash.startsWith('/run/')) await pageRunDetail(hash.slice('/run/'.length));
     else main.innerHTML = '<p class="empty">Ruta desconocida</p>';

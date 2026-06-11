@@ -36,6 +36,7 @@
     "evolab:review": "tsx apps/evolution-lab/src/cli.ts review",
     "evolab:metamorphic": "tsx apps/evolution-lab/src/cli.ts metamorphic",
     "evolab:judge:eval": "tsx apps/evolution-lab/src/cli.ts judge eval",
+    "evolab:judge:export-golden": "node scripts/evolution/export-judge-golden.mjs",
     "evolab:bandit:seed": "tsx apps/evolution-lab/src/cli.ts bandit seed",
     "evolab:report": "tsx apps/evolution-lab/src/cli.ts report",
     "evolab:regenerate": "tsx apps/evolution-lab/src/cli.ts regenerate",

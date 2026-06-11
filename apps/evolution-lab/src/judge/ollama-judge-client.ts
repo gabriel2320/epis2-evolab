@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { createLogger } from '../logger.js';
 import {
   DEFAULT_JUDGE_MODEL,
@@ -26,6 +27,19 @@ export type JudgeTriageClient = {
     | { ok: false; error: string; raw: string; durationMs: number }
   >;
 };
+
+function sanitizeJudgeParsed(parsed: unknown): unknown {
+  if (!parsed || typeof parsed !== 'object') return parsed;
+  const obj = { ...(parsed as Record<string, unknown>) };
+  if (Array.isArray(obj.relatedFindingIds)) {
+    const uuids = obj.relatedFindingIds.filter(
+      (id) => typeof id === 'string' && z.string().uuid().safeParse(id).success,
+    );
+    if (uuids.length > 0) obj.relatedFindingIds = uuids;
+    else delete obj.relatedFindingIds;
+  }
+  return obj;
+}
 
 function tryParseJson(raw: string): unknown | undefined {
   try {
@@ -91,7 +105,7 @@ export function createOllamaJudgeClient(opts: {
           return { ok: false, error: 'JSON inválido en respuesta judge', raw, durationMs };
         }
 
-        const validated = JudgeTriageOutputSchema.safeParse(parsed);
+        const validated = JudgeTriageOutputSchema.safeParse(sanitizeJudgeParsed(parsed));
         if (!validated.success) {
           return {
             ok: false,

@@ -1,5 +1,5 @@
 {
-  "version": "judge-golden-v1",
+  "version": "judge-golden-v1-dossier",
   "entries": [
     {
       "id": "golden-001",
@@ -8,44 +8,158 @@
         "id": "golden-001",
         "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
         "scenarioId": "discharge-critical-pending-001",
+        "targetEnvironmentId": "epis2-local-sandbox",
         "category": "clinical_safety",
         "severity": "critical",
-        "confidence": 0.9,
-        "title": "clinical_safety finding 0",
-        "expectedResult": "Expected behavior for discharge-critical-pending-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-001",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
-        "reviewStatus": "open"
+        "confidence": 0.95,
+        "title": "discharge-critical-pending-001 — clinical_safety",
+        "expectedResult": "Evaluador clinical_safety debe pasar",
+        "actualResult": "Hallazgo: alta aprobada con resultado crítico sin acuse — regla clínica no aplicada en UI/API",
+        "fingerprint": "e0ff3dbe64c63ab8",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/clinical_safety",
+          "evolab:scenario/discharge-critical-pending-001",
+          "apps/api/clinical",
+          "packages/clinical-domain/cdr"
+        ],
+        "reviewStatus": "approved"
       },
       "goldenVerdict": "signal",
       "goldenRationale": "Labeled signal for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "ceac9c2a-1b83-4308-8cae-d60c57b45b6f",
+      "fingerprintHistory": [
+        {
+          "findingId": "ccd3049c-5afc-4464-b9b0-378b864b6beb",
+          "runId": "aafd3e1d-687f-4ca0-a67f-98de404b4a7f",
+          "scenarioId": "discharge-critical-pending-001",
+          "severity": "critical",
+          "reviewStatus": "approved",
+          "createdAt": "2026-06-09T02:00:34.552Z"
+        },
+        {
+          "findingId": "3892a533-afa4-4704-9644-ba9b33173b26",
+          "runId": "7f2a0877-0605-4d98-92e8-7042306195d2",
+          "scenarioId": "discharge-critical-pending-001",
+          "severity": "critical",
+          "reviewStatus": "duplicate",
+          "createdAt": "2026-06-09T02:00:52.575Z"
+        }
+      ],
+      "evaluations": [
+        {
+          "evaluatorId": "audit",
+          "passed": true,
+          "severity": "info",
+          "message": "Auditoría capturada (80 eventos recientes)"
+        },
+        {
+          "evaluatorId": "audit_completeness",
+          "passed": false,
+          "severity": "high",
+          "message": "Hallazgo: auditoría registra evento prohibido para la acción bloqueada (clinical.draft.approved)"
+        },
+        {
+          "evaluatorId": "cdr_consistency",
+          "passed": false,
+          "severity": "high",
+          "message": "Hallazgo: clinical_critical_results tiene críticos sin acuse pero el CDR no emite alerta crítica en clinical-alerts — fuentes desincronizadas"
+        },
+        {
+          "evaluatorId": "clinical_safety",
+          "passed": false,
+          "severity": "critical",
+          "message": "Hallazgo: alta aprobada con resultado crítico sin acuse — regla clínica no aplicada en UI/API"
+        },
+        {
+          "evaluatorId": "critical_pending",
+          "passed": true,
+          "severity": "info",
+          "message": "Resultado crítico permanece pendiente de acuse"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": false,
+          "severity": "high",
+          "message": "HTTP 200 — se esperaba bloqueo (true)"
+        }
+      ]
     },
     {
       "id": "golden-002",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "7f2a0877-0605-4d98-92e8-7042306195d2",
       "findingSnapshot": {
         "id": "golden-002",
-        "runId": "7f2a0877-0000-4000-8000-000000000001",
+        "runId": "7f2a0877-0605-4d98-92e8-7042306195d2",
         "scenarioId": "discharge-critical-pending-001",
+        "targetEnvironmentId": "epis2-local-sandbox",
         "category": "clinical_safety",
         "severity": "critical",
-        "confidence": 0.9,
-        "title": "clinical_safety finding 1",
-        "expectedResult": "Expected behavior for discharge-critical-pending-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-002",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
-        "reviewStatus": "open"
+        "confidence": 0.95,
+        "title": "discharge-critical-pending-001 — clinical_safety",
+        "expectedResult": "Evaluador clinical_safety debe pasar",
+        "actualResult": "Hallazgo: alta aprobada con resultado crítico sin acuse — regla clínica no aplicada en UI/API",
+        "fingerprint": "e0ff3dbe64c63ab8",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/clinical_safety",
+          "evolab:scenario/discharge-critical-pending-001",
+          "apps/api/clinical",
+          "packages/clinical-domain/cdr"
+        ],
+        "reviewStatus": "duplicate"
       },
       "goldenVerdict": "signal",
       "goldenRationale": "Labeled signal for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "3892a533-afa4-4704-9644-ba9b33173b26",
+      "fingerprintHistory": [
+        {
+          "findingId": "ccd3049c-5afc-4464-b9b0-378b864b6beb",
+          "runId": "aafd3e1d-687f-4ca0-a67f-98de404b4a7f",
+          "scenarioId": "discharge-critical-pending-001",
+          "severity": "critical",
+          "reviewStatus": "approved",
+          "createdAt": "2026-06-09T02:00:34.552Z"
+        },
+        {
+          "findingId": "ceac9c2a-1b83-4308-8cae-d60c57b45b6f",
+          "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+          "scenarioId": "discharge-critical-pending-001",
+          "severity": "critical",
+          "reviewStatus": "approved",
+          "createdAt": "2026-06-10T15:09:04.832Z"
+        }
+      ],
+      "evaluations": [
+        {
+          "evaluatorId": "audit",
+          "passed": true,
+          "severity": "info",
+          "message": "Auditoría capturada (80 eventos recientes)"
+        },
+        {
+          "evaluatorId": "clinical_safety",
+          "passed": false,
+          "severity": "critical",
+          "message": "Hallazgo: alta aprobada con resultado crítico sin acuse — regla clínica no aplicada en UI/API"
+        },
+        {
+          "evaluatorId": "critical_pending",
+          "passed": true,
+          "severity": "info",
+          "message": "Resultado crítico permanece pendiente de acuse"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": false,
+          "severity": "high",
+          "message": "HTTP 200 — se esperaba bloqueo (true)"
+        }
+      ]
     },
     {
       "id": "golden-003",
@@ -54,90 +168,280 @@
         "id": "golden-003",
         "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
         "scenarioId": "discharge-critical-pending-001",
-        "category": "clinical_safety",
-        "severity": "critical",
-        "confidence": 0.9,
-        "title": "clinical_safety finding 2",
-        "expectedResult": "Expected behavior for discharge-critical-pending-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-003",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
-        "reviewStatus": "open"
+        "targetEnvironmentId": "epis2-local-sandbox",
+        "category": "authorization",
+        "severity": "high",
+        "confidence": 0.85,
+        "title": "discharge-critical-pending-001 — functional",
+        "expectedResult": "Evaluador functional debe pasar",
+        "actualResult": "HTTP 200 — se esperaba bloqueo (true)",
+        "fingerprint": "9ee6d8dde5da219c",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/functional",
+          "evolab:scenario/discharge-critical-pending-001"
+        ],
+        "reviewStatus": "approved"
       },
       "goldenVerdict": "signal",
       "goldenRationale": "Labeled signal for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "3ad7cd9e-996e-40dd-b237-7ec034d3cbf5",
+      "fingerprintHistory": [
+        {
+          "findingId": "6cfd6d72-59aa-411c-82d7-f0858aa2e72b",
+          "runId": "7f2a0877-0605-4d98-92e8-7042306195d2",
+          "scenarioId": "discharge-critical-pending-001",
+          "severity": "high",
+          "reviewStatus": "duplicate",
+          "createdAt": "2026-06-09T02:00:52.575Z"
+        }
+      ],
+      "evaluations": [
+        {
+          "evaluatorId": "audit",
+          "passed": true,
+          "severity": "info",
+          "message": "Auditoría capturada (80 eventos recientes)"
+        },
+        {
+          "evaluatorId": "audit_completeness",
+          "passed": false,
+          "severity": "high",
+          "message": "Hallazgo: auditoría registra evento prohibido para la acción bloqueada (clinical.draft.approved)"
+        },
+        {
+          "evaluatorId": "cdr_consistency",
+          "passed": false,
+          "severity": "high",
+          "message": "Hallazgo: clinical_critical_results tiene críticos sin acuse pero el CDR no emite alerta crítica en clinical-alerts — fuentes desincronizadas"
+        },
+        {
+          "evaluatorId": "clinical_safety",
+          "passed": false,
+          "severity": "critical",
+          "message": "Hallazgo: alta aprobada con resultado crítico sin acuse — regla clínica no aplicada en UI/API"
+        },
+        {
+          "evaluatorId": "critical_pending",
+          "passed": true,
+          "severity": "info",
+          "message": "Resultado crítico permanece pendiente de acuse"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": false,
+          "severity": "high",
+          "message": "HTTP 200 — se esperaba bloqueo (true)"
+        }
+      ]
     },
     {
       "id": "golden-004",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "7f2a0877-0605-4d98-92e8-7042306195d2",
       "findingSnapshot": {
         "id": "golden-004",
-        "runId": "7f2a0877-0000-4000-8000-000000000001",
+        "runId": "7f2a0877-0605-4d98-92e8-7042306195d2",
         "scenarioId": "discharge-critical-pending-001",
-        "category": "clinical_safety",
-        "severity": "critical",
-        "confidence": 0.9,
-        "title": "clinical_safety finding 3",
-        "expectedResult": "Expected behavior for discharge-critical-pending-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-004",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
-        "reviewStatus": "open"
+        "targetEnvironmentId": "epis2-local-sandbox",
+        "category": "authorization",
+        "severity": "high",
+        "confidence": 0.85,
+        "title": "discharge-critical-pending-001 — functional",
+        "expectedResult": "Evaluador functional debe pasar",
+        "actualResult": "HTTP 200 — se esperaba bloqueo (true)",
+        "fingerprint": "9ee6d8dde5da219c",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/functional",
+          "evolab:scenario/discharge-critical-pending-001"
+        ],
+        "reviewStatus": "duplicate"
       },
       "goldenVerdict": "signal",
       "goldenRationale": "Labeled signal for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "6cfd6d72-59aa-411c-82d7-f0858aa2e72b",
+      "fingerprintHistory": [
+        {
+          "findingId": "3ad7cd9e-996e-40dd-b237-7ec034d3cbf5",
+          "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+          "scenarioId": "discharge-critical-pending-001",
+          "severity": "high",
+          "reviewStatus": "approved",
+          "createdAt": "2026-06-10T15:09:04.832Z"
+        }
+      ],
+      "evaluations": [
+        {
+          "evaluatorId": "audit",
+          "passed": true,
+          "severity": "info",
+          "message": "Auditoría capturada (80 eventos recientes)"
+        },
+        {
+          "evaluatorId": "clinical_safety",
+          "passed": false,
+          "severity": "critical",
+          "message": "Hallazgo: alta aprobada con resultado crítico sin acuse — regla clínica no aplicada en UI/API"
+        },
+        {
+          "evaluatorId": "critical_pending",
+          "passed": true,
+          "severity": "info",
+          "message": "Resultado crítico permanece pendiente de acuse"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": false,
+          "severity": "high",
+          "message": "HTTP 200 — se esperaba bloqueo (true)"
+        }
+      ]
     },
     {
       "id": "golden-005",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "aafd3e1d-687f-4ca0-a67f-98de404b4a7f",
       "findingSnapshot": {
         "id": "golden-005",
-        "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+        "runId": "aafd3e1d-687f-4ca0-a67f-98de404b4a7f",
         "scenarioId": "discharge-critical-pending-001",
+        "targetEnvironmentId": "epis2-local-sandbox",
         "category": "clinical_safety",
         "severity": "critical",
-        "confidence": 0.9,
-        "title": "clinical_safety finding 0",
-        "expectedResult": "Expected behavior for discharge-critical-pending-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "e0ff3dbea1b2c3d4",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
-        "reviewStatus": "open"
+        "confidence": 0.95,
+        "title": "discharge-critical-pending-001 — clinical_safety",
+        "expectedResult": "Evaluador clinical_safety debe pasar",
+        "actualResult": "Hallazgo: alta aprobada con resultado crítico sin acuse — regla clínica no aplicada en UI/API",
+        "fingerprint": "e0ff3dbe64c63ab8",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/clinical_safety",
+          "evolab:scenario/discharge-critical-pending-001",
+          "apps/api/clinical",
+          "packages/clinical-domain/cdr"
+        ],
+        "reviewStatus": "approved"
       },
       "goldenVerdict": "duplicate",
       "goldenRationale": "Labeled duplicate for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "ccd3049c-5afc-4464-b9b0-378b864b6beb",
+      "fingerprintHistory": [
+        {
+          "findingId": "3892a533-afa4-4704-9644-ba9b33173b26",
+          "runId": "7f2a0877-0605-4d98-92e8-7042306195d2",
+          "scenarioId": "discharge-critical-pending-001",
+          "severity": "critical",
+          "reviewStatus": "duplicate",
+          "createdAt": "2026-06-09T02:00:52.575Z"
+        },
+        {
+          "findingId": "ceac9c2a-1b83-4308-8cae-d60c57b45b6f",
+          "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+          "scenarioId": "discharge-critical-pending-001",
+          "severity": "critical",
+          "reviewStatus": "approved",
+          "createdAt": "2026-06-10T15:09:04.832Z"
+        }
+      ],
+      "evaluations": [
+        {
+          "evaluatorId": "clinical_safety",
+          "passed": false,
+          "severity": "critical",
+          "message": "Hallazgo: alta aprobada con resultado crítico sin acuse — regla clínica no aplicada en UI/API"
+        },
+        {
+          "evaluatorId": "critical_pending",
+          "passed": true,
+          "severity": "info",
+          "message": "Resultado crítico permanece pendiente de acuse"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": true,
+          "severity": "info",
+          "message": "HTTP 201 — acción bloqueada como se esperaba"
+        }
+      ]
     },
     {
       "id": "golden-006",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "7f2a0877-0605-4d98-92e8-7042306195d2",
       "findingSnapshot": {
         "id": "golden-006",
-        "runId": "7f2a0877-0000-4000-8000-000000000001",
+        "runId": "7f2a0877-0605-4d98-92e8-7042306195d2",
         "scenarioId": "discharge-critical-pending-001",
+        "targetEnvironmentId": "epis2-local-sandbox",
         "category": "clinical_safety",
         "severity": "critical",
-        "confidence": 0.9,
-        "title": "clinical_safety finding 1",
-        "expectedResult": "Expected behavior for discharge-critical-pending-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "e0ff3dbea1b2c3d4",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
-        "reviewStatus": "open"
+        "confidence": 0.95,
+        "title": "discharge-critical-pending-001 — clinical_safety",
+        "expectedResult": "Evaluador clinical_safety debe pasar",
+        "actualResult": "Hallazgo: alta aprobada con resultado crítico sin acuse — regla clínica no aplicada en UI/API",
+        "fingerprint": "e0ff3dbe64c63ab8",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/clinical_safety",
+          "evolab:scenario/discharge-critical-pending-001",
+          "apps/api/clinical",
+          "packages/clinical-domain/cdr"
+        ],
+        "reviewStatus": "duplicate"
       },
       "goldenVerdict": "duplicate",
       "goldenRationale": "Labeled duplicate for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "3892a533-afa4-4704-9644-ba9b33173b26",
+      "fingerprintHistory": [
+        {
+          "findingId": "ccd3049c-5afc-4464-b9b0-378b864b6beb",
+          "runId": "aafd3e1d-687f-4ca0-a67f-98de404b4a7f",
+          "scenarioId": "discharge-critical-pending-001",
+          "severity": "critical",
+          "reviewStatus": "approved",
+          "createdAt": "2026-06-09T02:00:34.552Z"
+        },
+        {
+          "findingId": "ceac9c2a-1b83-4308-8cae-d60c57b45b6f",
+          "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+          "scenarioId": "discharge-critical-pending-001",
+          "severity": "critical",
+          "reviewStatus": "approved",
+          "createdAt": "2026-06-10T15:09:04.832Z"
+        }
+      ],
+      "evaluations": [
+        {
+          "evaluatorId": "audit",
+          "passed": true,
+          "severity": "info",
+          "message": "Auditoría capturada (80 eventos recientes)"
+        },
+        {
+          "evaluatorId": "clinical_safety",
+          "passed": false,
+          "severity": "critical",
+          "message": "Hallazgo: alta aprobada con resultado crítico sin acuse — regla clínica no aplicada en UI/API"
+        },
+        {
+          "evaluatorId": "critical_pending",
+          "passed": true,
+          "severity": "info",
+          "message": "Resultado crítico permanece pendiente de acuse"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": false,
+          "severity": "high",
+          "message": "HTTP 200 — se esperaba bloqueo (true)"
+        }
+      ]
     },
     {
       "id": "golden-007",
@@ -148,65 +452,120 @@
         "scenarioId": "role-nurse-approve-001",
         "category": "authorization",
         "severity": "high",
-        "confidence": 0.9,
-        "title": "authorization finding 0",
-        "expectedResult": "Expected behavior for role-nurse-approve-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-007",
-        "recommendedAction": "Review manually",
+        "confidence": 0.85,
+        "title": "role-nurse-approve-001 — functional",
+        "expectedResult": "HTTP 403 al aprobar borrador como enfermera (sin draft.approve)",
+        "actualResult": "POST /api/drafts/{id}/approve respondió 403 Forbidden",
+        "fingerprint": "nurse-approve-rbac-403",
+        "recommendedAction": "generate_test",
         "affectedComponents": ["apps/api"],
-        "reviewStatus": "open"
+        "reviewStatus": "open",
+        "targetEnvironmentId": "epis2-local-sandbox"
       },
       "goldenVerdict": "signal",
       "goldenRationale": "Labeled signal for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": null
     },
     {
       "id": "golden-008",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "7f2a0877-0605-4d98-92e8-7042306195d2",
       "findingSnapshot": {
         "id": "golden-008",
-        "runId": "7f2a0877-0000-4000-8000-000000000001",
+        "runId": "7f2a0877-0605-4d98-92e8-7042306195d2",
         "scenarioId": "role-nurse-approve-001",
         "category": "authorization",
         "severity": "high",
-        "confidence": 0.9,
-        "title": "authorization finding 1",
-        "expectedResult": "Expected behavior for role-nurse-approve-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-008",
-        "recommendedAction": "Review manually",
+        "confidence": 0.85,
+        "title": "role-nurse-approve-001 — functional (run previo)",
+        "expectedResult": "HTTP 403 al aprobar borrador como enfermera",
+        "actualResult": "POST /api/drafts/{id}/approve respondió 403 Forbidden",
+        "fingerprint": "nurse-approve-rbac-403",
+        "recommendedAction": "generate_test",
         "affectedComponents": ["apps/api"],
-        "reviewStatus": "open"
+        "reviewStatus": "open",
+        "targetEnvironmentId": "epis2-local-sandbox"
       },
       "goldenVerdict": "signal",
       "goldenRationale": "Labeled signal for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": null
     },
     {
       "id": "golden-009",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "478289a5-92d9-4880-8570-dce57e275e15",
       "findingSnapshot": {
         "id": "golden-009",
-        "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
-        "scenarioId": "role-nurse-approve-001",
+        "runId": "478289a5-92d9-4880-8570-dce57e275e15",
+        "scenarioId": "admission-discharge-001-m8rs-001",
+        "targetEnvironmentId": "epis2-local-sandbox",
         "category": "authorization",
         "severity": "high",
-        "confidence": 0.9,
-        "title": "authorization finding 2",
-        "expectedResult": "Expected behavior for role-nurse-approve-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-009",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
+        "confidence": 0.85,
+        "title": "admission-discharge-001-m8rs-001 — functional",
+        "expectedResult": "Evaluador functional debe pasar",
+        "actualResult": "HTTP 200 — se esperaba bloqueo (true)",
+        "fingerprint": "50df1d69aac96d12",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/functional",
+          "evolab:scenario/admission-discharge-001-m8rs-001"
+        ],
         "reviewStatus": "open"
       },
       "goldenVerdict": "signal",
       "goldenRationale": "Labeled signal for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "1c0b218b-ea61-4b39-9c88-93a2f22cc0fe",
+      "fingerprintHistory": [
+        {
+          "findingId": "93bd475d-21d7-42fe-9dab-dac6352845fd",
+          "runId": "139a47a9-81ef-4340-82a6-336bfa4ccdc3",
+          "scenarioId": "admission-discharge-001-m8rs-001",
+          "severity": "high",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-10T17:00:31.942Z"
+        },
+        {
+          "findingId": "9ba07368-9cf7-4c20-b339-c9b2e245fc9d",
+          "runId": "43134749-1075-479b-8121-030717873d03",
+          "scenarioId": "admission-discharge-001-m8rs-001",
+          "severity": "high",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-11T03:06:41.449Z"
+        },
+        {
+          "findingId": "6bd9d90e-16d1-47a3-91ee-3f51b7942f1d",
+          "runId": "49b18d1e-a496-4c27-b192-2f17220cb4dd",
+          "scenarioId": "admission-discharge-001-m8rs-001",
+          "severity": "high",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-11T03:08:48.748Z"
+        }
+      ],
+      "evaluations": [
+        {
+          "evaluatorId": "audit",
+          "passed": true,
+          "severity": "info",
+          "message": "Auditoría capturada (0 eventos recientes)"
+        },
+        {
+          "evaluatorId": "audit_completeness",
+          "passed": false,
+          "severity": "medium",
+          "message": "Sin eventos de auditoría capturados — completitud no verificable"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": false,
+          "severity": "high",
+          "message": "HTTP 200 — se esperaba bloqueo (true)"
+        }
+      ]
     },
     {
       "id": "golden-010",
@@ -215,274 +574,606 @@
         "id": "golden-010",
         "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
         "scenarioId": "role-nurse-approve-001",
-        "category": "authorization",
+        "category": "audit_trail",
         "severity": "medium",
-        "confidence": 0.9,
-        "title": "authorization finding 0",
-        "expectedResult": "Expected behavior for role-nurse-approve-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-010",
-        "recommendedAction": "Review manually",
+        "confidence": 0.85,
+        "title": "role-nurse-approve-001 — audit_completeness (expected desactualizado)",
+        "expectedResult": "auditEventCreated=true en intento bloqueado",
+        "actualResult": "EPIS2 no audita intentos RBAC bloqueados — sin evento de auditoría",
+        "fingerprint": "nurse-audit-false-positive",
+        "recommendedAction": "generate_test",
         "affectedComponents": ["apps/api"],
-        "reviewStatus": "open"
+        "reviewStatus": "open",
+        "targetEnvironmentId": "epis2-local-sandbox"
       },
       "goldenVerdict": "noise",
       "goldenRationale": "Labeled noise for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": null
     },
     {
       "id": "golden-011",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "7f2a0877-0605-4d98-92e8-7042306195d2",
       "findingSnapshot": {
         "id": "golden-011",
-        "runId": "7f2a0877-0000-4000-8000-000000000001",
+        "runId": "7f2a0877-0605-4d98-92e8-7042306195d2",
         "scenarioId": "role-nurse-approve-001",
-        "category": "authorization",
+        "category": "audit_trail",
         "severity": "medium",
-        "confidence": 0.9,
-        "title": "authorization finding 1",
-        "expectedResult": "Expected behavior for role-nurse-approve-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-011",
-        "recommendedAction": "Review manually",
+        "confidence": 0.85,
+        "title": "role-nurse-approve-001 — audit_completeness (run previo)",
+        "expectedResult": "auditEventCreated=true en intento bloqueado",
+        "actualResult": "Sin evento de auditoría en 403 RBAC — ruido de expected",
+        "fingerprint": "nurse-audit-false-positive",
+        "recommendedAction": "generate_test",
         "affectedComponents": ["apps/api"],
-        "reviewStatus": "open"
+        "reviewStatus": "open",
+        "targetEnvironmentId": "epis2-local-sandbox"
       },
       "goldenVerdict": "noise",
       "goldenRationale": "Labeled noise for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": null
     },
     {
       "id": "golden-012",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "49b18d1e-a496-4c27-b192-2f17220cb4dd",
       "findingSnapshot": {
         "id": "golden-012",
-        "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
-        "scenarioId": "admission-discharge-001",
-        "category": "journey",
-        "severity": "medium",
-        "confidence": 0.9,
-        "title": "journey finding 0",
-        "expectedResult": "Expected behavior for admission-discharge-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-012",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
+        "runId": "49b18d1e-a496-4c27-b192-2f17220cb4dd",
+        "scenarioId": "admission-discharge-001-m8rs-001",
+        "targetEnvironmentId": "epis2-local-sandbox",
+        "category": "authorization",
+        "severity": "high",
+        "confidence": 0.85,
+        "title": "admission-discharge-001-m8rs-001 — functional",
+        "expectedResult": "Evaluador functional debe pasar",
+        "actualResult": "HTTP 200 — se esperaba bloqueo (true)",
+        "fingerprint": "50df1d69aac96d12",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/functional",
+          "evolab:scenario/admission-discharge-001-m8rs-001"
+        ],
         "reviewStatus": "open"
       },
       "goldenVerdict": "signal",
       "goldenRationale": "Labeled signal for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "6bd9d90e-16d1-47a3-91ee-3f51b7942f1d",
+      "fingerprintHistory": [
+        {
+          "findingId": "93bd475d-21d7-42fe-9dab-dac6352845fd",
+          "runId": "139a47a9-81ef-4340-82a6-336bfa4ccdc3",
+          "scenarioId": "admission-discharge-001-m8rs-001",
+          "severity": "high",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-10T17:00:31.942Z"
+        },
+        {
+          "findingId": "1c0b218b-ea61-4b39-9c88-93a2f22cc0fe",
+          "runId": "478289a5-92d9-4880-8570-dce57e275e15",
+          "scenarioId": "admission-discharge-001-m8rs-001",
+          "severity": "high",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-11T02:53:03.036Z"
+        },
+        {
+          "findingId": "9ba07368-9cf7-4c20-b339-c9b2e245fc9d",
+          "runId": "43134749-1075-479b-8121-030717873d03",
+          "scenarioId": "admission-discharge-001-m8rs-001",
+          "severity": "high",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-11T03:06:41.449Z"
+        }
+      ],
+      "evaluations": [
+        {
+          "evaluatorId": "audit",
+          "passed": true,
+          "severity": "info",
+          "message": "Auditoría capturada (0 eventos recientes)"
+        },
+        {
+          "evaluatorId": "audit_completeness",
+          "passed": false,
+          "severity": "medium",
+          "message": "Sin eventos de auditoría capturados — completitud no verificable"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": false,
+          "severity": "high",
+          "message": "HTTP 200 — se esperaba bloqueo (true)"
+        }
+      ]
     },
     {
       "id": "golden-013",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "139a47a9-81ef-4340-82a6-336bfa4ccdc3",
       "findingSnapshot": {
         "id": "golden-013",
-        "runId": "7f2a0877-0000-4000-8000-000000000001",
-        "scenarioId": "admission-discharge-001",
-        "category": "journey",
-        "severity": "medium",
-        "confidence": 0.9,
-        "title": "journey finding 1",
-        "expectedResult": "Expected behavior for admission-discharge-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-013",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
+        "runId": "139a47a9-81ef-4340-82a6-336bfa4ccdc3",
+        "scenarioId": "admission-discharge-001-m8rs-001",
+        "targetEnvironmentId": "epis2-local-sandbox",
+        "category": "authorization",
+        "severity": "high",
+        "confidence": 0.85,
+        "title": "admission-discharge-001-m8rs-001 — functional",
+        "expectedResult": "Evaluador functional debe pasar",
+        "actualResult": "HTTP 200 — se esperaba bloqueo (true)",
+        "fingerprint": "50df1d69aac96d12",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/functional",
+          "evolab:scenario/admission-discharge-001-m8rs-001"
+        ],
         "reviewStatus": "open"
       },
       "goldenVerdict": "signal",
       "goldenRationale": "Labeled signal for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "93bd475d-21d7-42fe-9dab-dac6352845fd",
+      "fingerprintHistory": [
+        {
+          "findingId": "1c0b218b-ea61-4b39-9c88-93a2f22cc0fe",
+          "runId": "478289a5-92d9-4880-8570-dce57e275e15",
+          "scenarioId": "admission-discharge-001-m8rs-001",
+          "severity": "high",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-11T02:53:03.036Z"
+        },
+        {
+          "findingId": "9ba07368-9cf7-4c20-b339-c9b2e245fc9d",
+          "runId": "43134749-1075-479b-8121-030717873d03",
+          "scenarioId": "admission-discharge-001-m8rs-001",
+          "severity": "high",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-11T03:06:41.449Z"
+        },
+        {
+          "findingId": "6bd9d90e-16d1-47a3-91ee-3f51b7942f1d",
+          "runId": "49b18d1e-a496-4c27-b192-2f17220cb4dd",
+          "scenarioId": "admission-discharge-001-m8rs-001",
+          "severity": "high",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-11T03:08:48.748Z"
+        }
+      ],
+      "evaluations": [
+        {
+          "evaluatorId": "audit",
+          "passed": true,
+          "severity": "info",
+          "message": "Auditoría capturada (0 eventos recientes)"
+        },
+        {
+          "evaluatorId": "audit_completeness",
+          "passed": false,
+          "severity": "medium",
+          "message": "Sin eventos de auditoría capturados — completitud no verificable"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": false,
+          "severity": "high",
+          "message": "HTTP 200 — se esperaba bloqueo (true)"
+        }
+      ]
     },
     {
       "id": "golden-014",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "df88c218-ee35-4f6d-8153-bc34f512eb78",
       "findingSnapshot": {
         "id": "golden-014",
-        "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
-        "scenarioId": "suspended-medication-mar-001",
-        "category": "mar_safety",
-        "severity": "high",
-        "confidence": 0.9,
-        "title": "mar_safety finding 0",
-        "expectedResult": "Expected behavior for suspended-medication-mar-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-014",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
+        "runId": "df88c218-ee35-4f6d-8153-bc34f512eb78",
+        "scenarioId": "admission-discharge-001-m8cx-008",
+        "targetEnvironmentId": "epis2-local-sandbox",
+        "category": "audit_trail",
+        "severity": "medium",
+        "confidence": 0.7,
+        "title": "admission-discharge-001-m8cx-008 — audit_completeness",
+        "expectedResult": "Evaluador audit_completeness debe pasar",
+        "actualResult": "Sin eventos de auditoría capturados — completitud no verificable",
+        "fingerprint": "39cf42cbd4461e5e",
+        "recommendedAction": "human_review",
+        "affectedComponents": [
+          "evolab:evaluator/audit_completeness",
+          "evolab:scenario/admission-discharge-001-m8cx-008",
+          "apps/api/audit"
+        ],
         "reviewStatus": "open"
       },
       "goldenVerdict": "noise",
       "goldenRationale": "Expected desactualizado en censo",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "bb80842f-6f29-4997-ae59-28a4aee83a19",
+      "fingerprintHistory": [],
+      "evaluations": [
+        {
+          "evaluatorId": "audit",
+          "passed": true,
+          "severity": "info",
+          "message": "Auditoría capturada (0 eventos recientes)"
+        },
+        {
+          "evaluatorId": "audit_completeness",
+          "passed": false,
+          "severity": "medium",
+          "message": "Sin eventos de auditoría capturados — completitud no verificable"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": false,
+          "severity": "high",
+          "message": "HTTP 200 — se esperaba bloqueo (true)"
+        }
+      ]
     },
     {
       "id": "golden-015",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "518b0f66-f281-460e-ad24-e073a18aa4f2",
       "findingSnapshot": {
         "id": "golden-015",
-        "runId": "7f2a0877-0000-4000-8000-000000000001",
-        "scenarioId": "suspended-medication-mar-001",
-        "category": "mar_safety",
-        "severity": "high",
-        "confidence": 0.9,
-        "title": "mar_safety finding 1",
-        "expectedResult": "Expected behavior for suspended-medication-mar-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-015",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
+        "runId": "518b0f66-f281-460e-ad24-e073a18aa4f2",
+        "scenarioId": "admission-double-booking-001-m8cx-004",
+        "targetEnvironmentId": "epis2-local-sandbox",
+        "category": "clinical_safety",
+        "severity": "critical",
+        "confidence": 0.95,
+        "title": "admission-double-booking-001-m8cx-004 — clinical_safety",
+        "expectedResult": "Evaluador clinical_safety debe pasar",
+        "actualResult": "Hallazgo: alta aprobada con resultado crítico sin acuse — regla clínica no aplicada en UI/API",
+        "fingerprint": "25cfbfe37b34dcd3",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/clinical_safety",
+          "evolab:scenario/admission-double-booking-001-m8cx-004"
+        ],
         "reviewStatus": "open"
       },
       "goldenVerdict": "signal",
       "goldenRationale": "Labeled signal for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "06f2e304-3b23-4eb7-ab53-c8bf6be5b370",
+      "fingerprintHistory": [],
+      "evaluations": [
+        {
+          "evaluatorId": "audit",
+          "passed": true,
+          "severity": "info",
+          "message": "Auditoría capturada (80 eventos recientes)"
+        },
+        {
+          "evaluatorId": "audit_completeness",
+          "passed": false,
+          "severity": "high",
+          "message": "Hallazgo: auditoría registra evento prohibido para la acción bloqueada (clinical.draft.approved)"
+        },
+        {
+          "evaluatorId": "cdr_consistency",
+          "passed": false,
+          "severity": "high",
+          "message": "Hallazgo: clinical_critical_results tiene críticos sin acuse pero el CDR no emite alerta crítica en clinical-alerts — fuentes desincronizadas"
+        },
+        {
+          "evaluatorId": "clinical_safety",
+          "passed": false,
+          "severity": "critical",
+          "message": "Hallazgo: alta aprobada con resultado crítico sin acuse — regla clínica no aplicada en UI/API"
+        },
+        {
+          "evaluatorId": "critical_pending",
+          "passed": true,
+          "severity": "info",
+          "message": "Resultado crítico permanece pendiente de acuse"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": false,
+          "severity": "high",
+          "message": "HTTP 200 — se esperaba bloqueo (true)"
+        }
+      ]
     },
     {
       "id": "golden-016",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "df88c218-ee35-4f6d-8153-bc34f512eb78",
       "findingSnapshot": {
         "id": "golden-016",
-        "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
-        "scenarioId": "mutated-scenario",
-        "category": "regression",
+        "runId": "df88c218-ee35-4f6d-8153-bc34f512eb78",
+        "scenarioId": "admission-discharge-001-m8cx-008",
+        "targetEnvironmentId": "epis2-local-sandbox",
+        "category": "authorization",
         "severity": "high",
-        "confidence": 0.9,
-        "title": "regression finding 0",
-        "expectedResult": "Expected behavior for mutated-scenario",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-016",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
+        "confidence": 0.85,
+        "title": "admission-discharge-001-m8cx-008 — functional",
+        "expectedResult": "Evaluador functional debe pasar",
+        "actualResult": "HTTP 200 — se esperaba bloqueo (true)",
+        "fingerprint": "36f99e24a9f862a5",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/functional",
+          "evolab:scenario/admission-discharge-001-m8cx-008"
+        ],
         "reviewStatus": "open"
       },
       "goldenVerdict": "noise",
       "goldenRationale": "Labeled noise for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "4d8be5a5-2b64-4307-8709-c4f4af157982",
+      "fingerprintHistory": [],
+      "evaluations": [
+        {
+          "evaluatorId": "audit",
+          "passed": true,
+          "severity": "info",
+          "message": "Auditoría capturada (0 eventos recientes)"
+        },
+        {
+          "evaluatorId": "audit_completeness",
+          "passed": false,
+          "severity": "medium",
+          "message": "Sin eventos de auditoría capturados — completitud no verificable"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": false,
+          "severity": "high",
+          "message": "HTTP 200 — se esperaba bloqueo (true)"
+        }
+      ]
     },
     {
       "id": "golden-017",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "49b18d1e-a496-4c27-b192-2f17220cb4dd",
       "findingSnapshot": {
         "id": "golden-017",
-        "runId": "7f2a0877-0000-4000-8000-000000000001",
-        "scenarioId": "mutated-scenario",
-        "category": "regression",
-        "severity": "high",
-        "confidence": 0.9,
-        "title": "regression finding 1",
-        "expectedResult": "Expected behavior for mutated-scenario",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-017",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
+        "runId": "49b18d1e-a496-4c27-b192-2f17220cb4dd",
+        "scenarioId": "admission-discharge-001-m8rs-001",
+        "targetEnvironmentId": "epis2-local-sandbox",
+        "category": "audit_trail",
+        "severity": "medium",
+        "confidence": 0.7,
+        "title": "admission-discharge-001-m8rs-001 — audit_completeness",
+        "expectedResult": "Evaluador audit_completeness debe pasar",
+        "actualResult": "Sin eventos de auditoría capturados — completitud no verificable",
+        "fingerprint": "68c457a21613e462",
+        "recommendedAction": "human_review",
+        "affectedComponents": [
+          "evolab:evaluator/audit_completeness",
+          "evolab:scenario/admission-discharge-001-m8rs-001",
+          "apps/api/audit"
+        ],
         "reviewStatus": "open"
       },
       "goldenVerdict": "noise",
       "goldenRationale": "Labeled noise for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "fb0241fd-aaac-42de-bd29-834f8c6f71c1",
+      "fingerprintHistory": [
+        {
+          "findingId": "a4b6d8ca-094e-4df7-bfdc-7b8f71ee72d7",
+          "runId": "139a47a9-81ef-4340-82a6-336bfa4ccdc3",
+          "scenarioId": "admission-discharge-001-m8rs-001",
+          "severity": "medium",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-10T17:00:31.942Z"
+        },
+        {
+          "findingId": "53a3091d-2c84-4688-bea3-12a6e781788a",
+          "runId": "478289a5-92d9-4880-8570-dce57e275e15",
+          "scenarioId": "admission-discharge-001-m8rs-001",
+          "severity": "medium",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-11T02:53:03.036Z"
+        },
+        {
+          "findingId": "af46931e-f535-4a0f-a818-b2f6dd59cb18",
+          "runId": "43134749-1075-479b-8121-030717873d03",
+          "scenarioId": "admission-discharge-001-m8rs-001",
+          "severity": "medium",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-11T03:06:41.449Z"
+        }
+      ],
+      "evaluations": [
+        {
+          "evaluatorId": "audit",
+          "passed": true,
+          "severity": "info",
+          "message": "Auditoría capturada (0 eventos recientes)"
+        },
+        {
+          "evaluatorId": "audit_completeness",
+          "passed": false,
+          "severity": "medium",
+          "message": "Sin eventos de auditoría capturados — completitud no verificable"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": false,
+          "severity": "high",
+          "message": "HTTP 200 — se esperaba bloqueo (true)"
+        }
+      ]
     },
     {
       "id": "golden-018",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "b7984d8c-f0a8-49ca-8bf5-025c7ccd2e73",
       "findingSnapshot": {
         "id": "golden-018",
-        "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
-        "scenarioId": "mutated-scenario",
+        "runId": "b7984d8c-f0a8-49ca-8bf5-025c7ccd2e73",
+        "scenarioId": "llm-command-evolution-001",
+        "targetEnvironmentId": "epis2-local-sandbox",
         "category": "regression",
         "severity": "high",
-        "confidence": 0.9,
-        "title": "regression finding 2",
-        "expectedResult": "Expected behavior for mutated-scenario",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-018",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
+        "confidence": 0.85,
+        "title": "llm-command-evolution-001 — plan_fidelity",
+        "expectedResult": "Evaluador plan_fidelity debe pasar",
+        "actualResult": "Sin ejecución de plan registrada",
+        "fingerprint": "c8a26389121b941c",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/plan_fidelity",
+          "evolab:scenario/llm-command-evolution-001"
+        ],
         "reviewStatus": "open"
       },
       "goldenVerdict": "noise",
       "goldenRationale": "Labeled noise for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "b69cf6ba-8ce3-4cba-b0ca-ded012621138",
+      "fingerprintHistory": [],
+      "evaluations": [
+        {
+          "evaluatorId": "command_resolve",
+          "passed": false,
+          "severity": "high",
+          "message": "Sin respuesta de command resolve"
+        },
+        {
+          "evaluatorId": "plan_fidelity",
+          "passed": false,
+          "severity": "high",
+          "message": "Sin ejecución de plan registrada"
+        }
+      ]
     },
     {
       "id": "golden-019",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "b7984d8c-f0a8-49ca-8bf5-025c7ccd2e73",
       "findingSnapshot": {
         "id": "golden-019",
-        "runId": "7f2a0877-0000-4000-8000-000000000001",
-        "scenarioId": "mutated-scenario",
+        "runId": "b7984d8c-f0a8-49ca-8bf5-025c7ccd2e73",
+        "scenarioId": "llm-command-evolution-001",
+        "targetEnvironmentId": "epis2-local-sandbox",
         "category": "regression",
         "severity": "high",
-        "confidence": 0.9,
-        "title": "regression finding 3",
-        "expectedResult": "Expected behavior for mutated-scenario",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-019",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
+        "confidence": 0.85,
+        "title": "llm-command-evolution-001 — command_resolve",
+        "expectedResult": "Evaluador command_resolve debe pasar",
+        "actualResult": "Sin respuesta de command resolve",
+        "fingerprint": "bd1390f420e6a892",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/command_resolve",
+          "evolab:scenario/llm-command-evolution-001"
+        ],
         "reviewStatus": "open"
       },
       "goldenVerdict": "noise",
       "goldenRationale": "Labeled noise for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "4ee8e0fb-8d0e-4564-a457-768b82192613",
+      "fingerprintHistory": [],
+      "evaluations": [
+        {
+          "evaluatorId": "command_resolve",
+          "passed": false,
+          "severity": "high",
+          "message": "Sin respuesta de command resolve"
+        },
+        {
+          "evaluatorId": "plan_fidelity",
+          "passed": false,
+          "severity": "high",
+          "message": "Sin ejecución de plan registrada"
+        }
+      ]
     },
     {
       "id": "golden-020",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "7d389618-94dc-4ade-990a-0ab3377acd52",
       "findingSnapshot": {
         "id": "golden-020",
-        "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
-        "scenarioId": "llm-command-evolution-001",
-        "category": "plan_fidelity",
-        "severity": "high",
-        "confidence": 0.9,
-        "title": "plan_fidelity finding 0",
-        "expectedResult": "Expected behavior for llm-command-evolution-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-020",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
+        "runId": "7d389618-94dc-4ade-990a-0ab3377acd52",
+        "scenarioId": "discharge-critical-pending-001",
+        "targetEnvironmentId": "epis2-local-sandbox",
+        "category": "regression",
+        "severity": "critical",
+        "confidence": 0.95,
+        "title": "discharge-critical-pending-001 — orchestrator",
+        "expectedResult": "Evaluador orchestrator debe pasar",
+        "actualResult": "Sesión web demo no inicializada (/comando)",
+        "fingerprint": "cb7471b16b549859",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/orchestrator",
+          "evolab:scenario/discharge-critical-pending-001"
+        ],
         "reviewStatus": "open"
       },
       "goldenVerdict": "noise",
       "goldenRationale": "Labeled noise for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "9df618b2-baa4-4d98-bf45-57f86510a21c",
+      "fingerprintHistory": [
+        {
+          "findingId": "ca7a9f0a-8d74-4698-85eb-bf0ccb7ff814",
+          "runId": "b3d8da88-0576-49dd-bed0-7ea09b870291",
+          "scenarioId": "discharge-critical-pending-001",
+          "severity": "critical",
+          "reviewStatus": "rejected",
+          "createdAt": "2026-06-09T02:00:34.564Z"
+        }
+      ],
+      "evaluations": [
+        {
+          "evaluatorId": "orchestrator",
+          "passed": false,
+          "severity": "critical",
+          "message": "Sesión web demo no inicializada (/comando)"
+        }
+      ]
     },
     {
       "id": "golden-021",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "f1fc62bd-f846-4665-8b7c-465e69fb4d28",
       "findingSnapshot": {
         "id": "golden-021",
-        "runId": "7f2a0877-0000-4000-8000-000000000001",
-        "scenarioId": "llm-command-evolution-001",
-        "category": "plan_fidelity",
-        "severity": "high",
-        "confidence": 0.9,
-        "title": "plan_fidelity finding 1",
-        "expectedResult": "Expected behavior for llm-command-evolution-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-021",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
-        "reviewStatus": "open"
+        "runId": "f1fc62bd-f846-4665-8b7c-465e69fb4d28",
+        "scenarioId": "discharge-critical-pending-001",
+        "targetEnvironmentId": "epis2-local-sandbox",
+        "category": "regression",
+        "severity": "critical",
+        "confidence": 0.95,
+        "title": "discharge-critical-pending-001 — orchestrator",
+        "expectedResult": "Evaluador orchestrator debe pasar",
+        "actualResult": "Formulario epicrisis no visible",
+        "fingerprint": "44108d4695913de9",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/orchestrator",
+          "evolab:scenario/discharge-critical-pending-001"
+        ],
+        "reviewStatus": "rejected"
       },
       "goldenVerdict": "noise",
       "goldenRationale": "Labeled noise for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "675f6e31-5acc-415e-821b-93f91b8ec685",
+      "fingerprintHistory": [],
+      "evaluations": [
+        {
+          "evaluatorId": "orchestrator",
+          "passed": false,
+          "severity": "critical",
+          "message": "Formulario epicrisis no visible"
+        }
+      ]
     },
     {
       "id": "golden-022",
@@ -491,90 +1182,270 @@
         "id": "golden-022",
         "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
         "scenarioId": "discharge-critical-pending-001",
-        "category": "audit_completeness",
+        "targetEnvironmentId": "epis2-local-sandbox",
+        "category": "audit_trail",
         "severity": "high",
-        "confidence": 0.9,
-        "title": "audit_completeness finding 0",
-        "expectedResult": "Expected behavior for discharge-critical-pending-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-022",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
-        "reviewStatus": "open"
+        "confidence": 0.85,
+        "title": "discharge-critical-pending-001 — audit_completeness",
+        "expectedResult": "Evaluador audit_completeness debe pasar",
+        "actualResult": "Hallazgo: auditoría registra evento prohibido para la acción bloqueada (clinical.draft.approved)",
+        "fingerprint": "6a78fec726b9e7f8",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/audit_completeness",
+          "evolab:scenario/discharge-critical-pending-001",
+          "apps/api/audit"
+        ],
+        "reviewStatus": "approved"
       },
       "goldenVerdict": "signal",
       "goldenRationale": "Labeled signal for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "0dcf40ae-c4d9-4259-97c4-ad5b4633b0b8",
+      "fingerprintHistory": [],
+      "evaluations": [
+        {
+          "evaluatorId": "audit",
+          "passed": true,
+          "severity": "info",
+          "message": "Auditoría capturada (80 eventos recientes)"
+        },
+        {
+          "evaluatorId": "audit_completeness",
+          "passed": false,
+          "severity": "high",
+          "message": "Hallazgo: auditoría registra evento prohibido para la acción bloqueada (clinical.draft.approved)"
+        },
+        {
+          "evaluatorId": "cdr_consistency",
+          "passed": false,
+          "severity": "high",
+          "message": "Hallazgo: clinical_critical_results tiene críticos sin acuse pero el CDR no emite alerta crítica en clinical-alerts — fuentes desincronizadas"
+        },
+        {
+          "evaluatorId": "clinical_safety",
+          "passed": false,
+          "severity": "critical",
+          "message": "Hallazgo: alta aprobada con resultado crítico sin acuse — regla clínica no aplicada en UI/API"
+        },
+        {
+          "evaluatorId": "critical_pending",
+          "passed": true,
+          "severity": "info",
+          "message": "Resultado crítico permanece pendiente de acuse"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": false,
+          "severity": "high",
+          "message": "HTTP 200 — se esperaba bloqueo (true)"
+        }
+      ]
     },
     {
       "id": "golden-023",
       "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
       "findingSnapshot": {
         "id": "golden-023",
-        "runId": "7f2a0877-0000-4000-8000-000000000001",
+        "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
         "scenarioId": "discharge-critical-pending-001",
-        "category": "audit_completeness",
+        "targetEnvironmentId": "epis2-local-sandbox",
+        "category": "clinical_safety",
         "severity": "high",
-        "confidence": 0.9,
-        "title": "audit_completeness finding 1",
-        "expectedResult": "Expected behavior for discharge-critical-pending-001",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-023",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
-        "reviewStatus": "open"
+        "confidence": 0.85,
+        "title": "discharge-critical-pending-001 — cdr_consistency",
+        "expectedResult": "Evaluador cdr_consistency debe pasar",
+        "actualResult": "Hallazgo: clinical_critical_results tiene críticos sin acuse pero el CDR no emite alerta crítica en clinical-alerts — fuentes desincronizadas",
+        "fingerprint": "47934da9328984b6",
+        "recommendedAction": "generate_test",
+        "affectedComponents": [
+          "evolab:evaluator/cdr_consistency",
+          "evolab:scenario/discharge-critical-pending-001",
+          "apps/api/clinical",
+          "packages/clinical-domain/cdr"
+        ],
+        "reviewStatus": "approved"
       },
       "goldenVerdict": "signal",
       "goldenRationale": "Labeled signal for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "4273db7a-5257-4e13-8772-b2a228e39323",
+      "fingerprintHistory": [
+        {
+          "findingId": "e9e72053-67d3-49f6-bcfe-f4066a706233",
+          "runId": "ccc706d2-5350-4770-8d54-2c1d63c62afe",
+          "scenarioId": "discharge-critical-pending-001",
+          "severity": "high",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-10T17:11:59.493Z"
+        },
+        {
+          "findingId": "66cd8a89-bbe9-4a5a-bbc6-b255af5f0ced",
+          "runId": "9afec774-836d-4f67-b26d-b0130e60180a",
+          "scenarioId": "discharge-critical-pending-001",
+          "severity": "high",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-10T18:02:51.959Z"
+        }
+      ],
+      "evaluations": [
+        {
+          "evaluatorId": "audit",
+          "passed": true,
+          "severity": "info",
+          "message": "Auditoría capturada (80 eventos recientes)"
+        },
+        {
+          "evaluatorId": "audit_completeness",
+          "passed": false,
+          "severity": "high",
+          "message": "Hallazgo: auditoría registra evento prohibido para la acción bloqueada (clinical.draft.approved)"
+        },
+        {
+          "evaluatorId": "cdr_consistency",
+          "passed": false,
+          "severity": "high",
+          "message": "Hallazgo: clinical_critical_results tiene críticos sin acuse pero el CDR no emite alerta crítica en clinical-alerts — fuentes desincronizadas"
+        },
+        {
+          "evaluatorId": "clinical_safety",
+          "passed": false,
+          "severity": "critical",
+          "message": "Hallazgo: alta aprobada con resultado crítico sin acuse — regla clínica no aplicada en UI/API"
+        },
+        {
+          "evaluatorId": "critical_pending",
+          "passed": true,
+          "severity": "info",
+          "message": "Resultado crítico permanece pendiente de acuse"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": false,
+          "severity": "high",
+          "message": "HTTP 200 — se esperaba bloqueo (true)"
+        }
+      ]
     },
     {
       "id": "golden-024",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "f760130e-d6c0-4625-b35a-d073f125382b",
       "findingSnapshot": {
         "id": "golden-024",
-        "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
-        "scenarioId": "ui-dom-state",
-        "category": "dom_state",
-        "severity": "low",
-        "confidence": 0.9,
-        "title": "dom_state finding 0",
-        "expectedResult": "Expected behavior for ui-dom-state",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-024",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
+        "runId": "f760130e-d6c0-4625-b35a-d073f125382b",
+        "scenarioId": "role-evolution-sign-001",
+        "targetEnvironmentId": "epis2-local-sandbox",
+        "category": "ui_consistency",
+        "severity": "medium",
+        "confidence": 0.7,
+        "title": "role-evolution-sign-001 — dom_state",
+        "expectedResult": "Evaluador dom_state debe pasar",
+        "actualResult": "UI inesperada — botón aprobar visible o revisión ausente",
+        "fingerprint": "dd399ef1fab7dc52",
+        "recommendedAction": "human_review",
+        "affectedComponents": [
+          "evolab:evaluator/dom_state",
+          "evolab:scenario/role-evolution-sign-001"
+        ],
         "reviewStatus": "open"
       },
       "goldenVerdict": "noise",
       "goldenRationale": "Labeled noise for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "4aa4c8a5-fdd2-4a12-ac76-0ec0bfc47dec",
+      "fingerprintHistory": [
+        {
+          "findingId": "d929bc46-86bf-4246-a8af-628a4e238483",
+          "runId": "df1e1f50-2a3b-4683-85cf-571840c975d6",
+          "scenarioId": "role-evolution-sign-001",
+          "severity": "medium",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-09T02:00:34.572Z"
+        }
+      ],
+      "evaluations": [
+        {
+          "evaluatorId": "dom_state",
+          "passed": false,
+          "severity": "medium",
+          "message": "UI inesperada — botón aprobar visible o revisión ausente"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": true,
+          "severity": "info",
+          "message": "HTTP 403 — acción bloqueada como se esperaba"
+        },
+        {
+          "evaluatorId": "role_permission",
+          "passed": true,
+          "severity": "info",
+          "message": "Admin recibió 403 al intentar aprobar borrador clínico"
+        }
+      ]
     },
     {
       "id": "golden-025",
-      "sourceRunId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+      "sourceRunId": "df1e1f50-2a3b-4683-85cf-571840c975d6",
       "findingSnapshot": {
         "id": "golden-025",
-        "runId": "7f2a0877-0000-4000-8000-000000000001",
-        "scenarioId": "ui-dom-state",
-        "category": "dom_state",
-        "severity": "low",
-        "confidence": 0.9,
-        "title": "dom_state finding 1",
-        "expectedResult": "Expected behavior for ui-dom-state",
-        "actualResult": "Observed mismatch in sandbox",
-        "fingerprint": "fpgolden-025",
-        "recommendedAction": "Review manually",
-        "affectedComponents": ["apps/api"],
+        "runId": "df1e1f50-2a3b-4683-85cf-571840c975d6",
+        "scenarioId": "role-evolution-sign-001",
+        "targetEnvironmentId": "epis2-local-sandbox",
+        "category": "ui_consistency",
+        "severity": "medium",
+        "confidence": 0.7,
+        "title": "role-evolution-sign-001 — dom_state",
+        "expectedResult": "Evaluador dom_state debe pasar",
+        "actualResult": "UI inesperada — botón aprobar visible o revisión ausente",
+        "fingerprint": "dd399ef1fab7dc52",
+        "recommendedAction": "human_review",
+        "affectedComponents": [
+          "evolab:evaluator/dom_state",
+          "evolab:scenario/role-evolution-sign-001"
+        ],
         "reviewStatus": "open"
       },
       "goldenVerdict": "noise",
       "goldenRationale": "Labeled noise for gate S11",
-      "labeledBy": "human-reviewer",
-      "labeledAt": "2026-06-10"
+      "labeledBy": "export-judge-golden",
+      "labeledAt": "2026-06-11",
+      "sourceFindingId": "d929bc46-86bf-4246-a8af-628a4e238483",
+      "fingerprintHistory": [
+        {
+          "findingId": "4aa4c8a5-fdd2-4a12-ac76-0ec0bfc47dec",
+          "runId": "f760130e-d6c0-4625-b35a-d073f125382b",
+          "scenarioId": "role-evolution-sign-001",
+          "severity": "medium",
+          "reviewStatus": "open",
+          "createdAt": "2026-06-09T02:00:34.597Z"
+        }
+      ],
+      "evaluations": [
+        {
+          "evaluatorId": "dom_state",
+          "passed": false,
+          "severity": "medium",
+          "message": "UI inesperada — botón aprobar visible o revisión ausente"
+        },
+        {
+          "evaluatorId": "functional",
+          "passed": true,
+          "severity": "info",
+          "message": "HTTP 403 — acción bloqueada como se esperaba"
+        },
+        {
+          "evaluatorId": "role_permission",
+          "passed": true,
+          "severity": "info",
+          "message": "Admin recibió 403 al intentar aprobar borrador clínico"
+        }
+      ]
     }
-  ]
+  ],
+  "exportedAt": "2026-06-11T23:53:36.651Z",
+  "sourceRuns": ["4d1553d6-9eab-4458-9c62-825d683049e8", "7f2a0877-0605-4d98-92e8-7042306195d2"]
 }

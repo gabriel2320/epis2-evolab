@@ -10,6 +10,7 @@ import {
   type FindingListRow,
   type RunListRow,
 } from '../persistence/repository.js';
+import { listJudgeQueueFromDb, type JudgeQueueRow } from '../persistence/judge-repository.js';
 import { listScenarios } from '../scenarios/loader.js';
 
 export type ConsoleHealth = {
@@ -66,9 +67,16 @@ export async function getRuns(databaseUrl: string, limit = 20): Promise<RunListR
 
 export async function getFindings(
   databaseUrl: string,
-  opts: { limit?: number; reviewStatus?: string } = {},
-): Promise<FindingListRow[]> {
+  opts: { limit?: number; reviewStatus?: string; judgeQueue?: boolean } = {},
+): Promise<FindingListRow[] | JudgeQueueRow[]> {
+  if (opts.judgeQueue) {
+    return listJudgeQueueFromDb(databaseUrl, opts.limit ?? 50);
+  }
   return listFindingsFromDb(databaseUrl, opts);
+}
+
+export async function getJudgeQueue(databaseUrl: string, limit = 50): Promise<JudgeQueueRow[]> {
+  return listJudgeQueueFromDb(databaseUrl, limit);
 }
 
 export async function getQueue(databaseUrl: string, limit = 20) {

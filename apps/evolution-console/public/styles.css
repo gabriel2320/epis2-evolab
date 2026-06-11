@@ -208,6 +208,23 @@ a.link:hover {
   color: #7eb8ff;
 }
 
+.badge-judge-signal {
+  background: #1a3d2e;
+  color: var(--ok);
+}
+.badge-judge-duplicate {
+  background: #2a1a3d;
+  color: #c4b5fd;
+}
+.badge-judge-noise {
+  background: #2a2a2a;
+  color: var(--muted);
+}
+.badge-PENDING {
+  background: #3d321a;
+  color: var(--warn);
+}
+
 .sev-critical {
   color: var(--danger);
 }

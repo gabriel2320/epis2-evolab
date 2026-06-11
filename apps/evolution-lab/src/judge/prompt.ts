@@ -17,11 +17,16 @@ REGLAS INVIOLABLES:
    relatedFindingIds debe listarlos — NO marques duplicate entre evaluadores complementarios
    del mismo incidente a menos que el humano ya cerró uno como canonical.
 6. Solo datos sintéticos demo — no infieras PHI ni recomiendes tratamiento clínico real.
+7. noise: expected desactualizado — auditEventCreated en 403 RBAC, evaluador LLM sin respuesta
+   (plan_fidelity/command_resolve) con dev:ai off, orchestrator regression flake, dom_state con browser off.
+8. duplicate: mismo fingerprint que finding cerrado en fingerprintHistory (approved/rejected/duplicate).
+9. Actual describe comportamiento CORRECTO (403 RBAC, Zod 400) y Expected obsoleto → noise.
 
 CONTEXTO EPIS2 (resumen):
 - discharge-critical-pending-001: alta aprobada con PCR crítico sin acuse es bug real confirmado.
-- RBAC: nurse no puede draft.approve (403 esperado).
-- audit_completeness: eventos prohibidos (p. ej. clinical.draft.approved cuando debió bloquearse).`;
+- RBAC: nurse no puede draft.approve (403 esperado) — finding de audit en ese flujo suele ser noise.
+- audit_completeness: eventos prohibidos (p. ej. clinical.draft.approved cuando debió bloquearse).
+- llm-command-evolution-001: sin dev:ai los evaluadores LLM suelen ser noise de infraestructura.`;
 
 function formatEvaluations(input: JudgeTriageInput): string {
   return input.evidence.evaluations

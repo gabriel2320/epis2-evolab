@@ -6,6 +6,7 @@ import {
   getConsoleHealth,
   getDashboard,
   getFindings,
+  getJudgeQueue,
   getQueue,
   getRunDetail,
   getRuns,
@@ -74,12 +75,19 @@ async function handleApi(
   }
 
   if (pathname === '/api/findings') {
+    const judgeQueue = url.searchParams.get('judgeQueue') === '1';
     sendJson(res, 200, {
       findings: await getFindings(config.databaseUrl, {
         limit,
         ...(status ? { reviewStatus: status } : {}),
+        ...(judgeQueue ? { judgeQueue: true } : {}),
       }),
     });
+    return;
+  }
+
+  if (pathname === '/api/judge-queue') {
+    sendJson(res, 200, { findings: await getJudgeQueue(config.databaseUrl, limit) });
     return;
   }
 
