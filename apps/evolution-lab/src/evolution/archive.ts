@@ -17,6 +17,8 @@ export type CandidateFitness = {
   newEndpoints: number;
   newAuditEvents: number;
   findingsCount: number;
+  /** Subconjunto high + critical (peso mayor en scoreFitness). */
+  highFindingsCount: number;
   durationMs: number;
   novelty: number | null;
   /** Escalar multiobjetivo (ver scoreFitness). */
@@ -50,16 +52,20 @@ export function scoreFitness(input: {
   newEndpoints: number;
   newAuditEvents: number;
   findingsCount: number;
+  highFindingsCount?: number;
   novelty: number | null;
   durationMs: number;
   executionOk: boolean;
 }): number {
   if (!input.executionOk) return -1;
   const costPenalty = (Math.min(input.durationMs, 120_000) / 60_000) * 0.25;
+  const highFindings = input.highFindingsCount ?? 0;
+  const routineFindings = Math.max(0, input.findingsCount - highFindings);
   return (
-    2 * input.newEndpoints +
-    input.newAuditEvents +
-    1.5 * input.findingsCount +
+    2.5 * input.newEndpoints +
+    1.25 * input.newAuditEvents +
+    4 * highFindings +
+    1.25 * routineFindings +
     3 * (input.novelty ?? 0) -
     costPenalty
   );
@@ -73,6 +79,7 @@ export function minimalFitness(failureReason: string): CandidateFitness {
     newEndpoints: 0,
     newAuditEvents: 0,
     findingsCount: 0,
+    highFindingsCount: 0,
     durationMs: 0,
     novelty: null,
     score: -1,

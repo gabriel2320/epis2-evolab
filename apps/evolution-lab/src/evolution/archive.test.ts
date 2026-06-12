@@ -52,6 +52,7 @@ function baseEntry(overrides: Partial<ArchiveEntry> = {}): ArchiveEntry {
     newEndpoints: 1,
     newAuditEvents: 0,
     findingsCount: 0,
+    highFindingsCount: 0,
     durationMs: 5000,
     novelty: 0.1,
     score: 2,
@@ -83,6 +84,28 @@ describe('scoreFitness', () => {
         executionOk: false,
       }),
     ).toBe(-1);
+  });
+
+  it('prioriza hallazgos high/critical sobre conteo total', () => {
+    const withHigh = scoreFitness({
+      newEndpoints: 0,
+      newAuditEvents: 0,
+      findingsCount: 2,
+      highFindingsCount: 2,
+      novelty: null,
+      durationMs: 1000,
+      executionOk: true,
+    });
+    const routineOnly = scoreFitness({
+      newEndpoints: 0,
+      newAuditEvents: 0,
+      findingsCount: 2,
+      highFindingsCount: 0,
+      novelty: null,
+      durationMs: 1000,
+      executionOk: true,
+    });
+    expect(withHigh).toBeGreaterThan(routineOnly);
   });
 
   it('prioriza cobertura nueva sobre duración', () => {

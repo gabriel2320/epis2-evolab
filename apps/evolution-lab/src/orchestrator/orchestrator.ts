@@ -33,6 +33,7 @@ export type OrchestratorResult = {
   evidenceDir?: string;
   finalStatus?: RunStatus;
   findingsCount?: number;
+  findingsHighCount?: number;
   observations?: ScenarioObservation[];
 };
 
@@ -280,6 +281,9 @@ export class EvolutionOrchestrator {
         evidenceDir: bundle.runDir,
         finalStatus: status,
         findingsCount: findings.length,
+        findingsHighCount: findings.filter(
+          (f) => f.severity === 'high' || f.severity === 'critical',
+        ).length,
         observations,
         message: passed
           ? `Run ${run.id} PASSED — escenario ${scenario.id}`

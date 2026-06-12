@@ -55,6 +55,7 @@ describe('selectParents', () => {
         newEndpoints: 0,
         newAuditEvents: 0,
         findingsCount: 0,
+        highFindingsCount: 0,
         durationMs: 0,
         novelty: null,
         score: 1,

@@ -87,6 +87,7 @@ npm run evolab:plan -- --scenario llm-command-evolution-001
 $env:EPIS2_EVOLAB_LLM_SIM="execute"
 npm run evolab:run -- --scenario llm-command-evolution-001
 npm run evolab:validate
+npm run evolab:archive:promote -- --dry-run   # preview top-3 élites → scenarios/
 npm run evolab:housekeeping -- --days 7 --dry-run
 ```
 

@@ -58,6 +58,7 @@ function computeFitnessFromRun(input: {
   scenario: ScenarioDefinition;
   observations: ScenarioObservation[];
   findingsCount: number;
+  highFindingsCount: number;
   durationMs: number;
   baseline: BaselineCoverage;
   novelty: number | null;
@@ -80,6 +81,7 @@ function computeFitnessFromRun(input: {
     newEndpoints,
     newAuditEvents,
     findingsCount: input.findingsCount,
+    highFindingsCount: input.highFindingsCount,
     durationMs: input.durationMs,
     novelty: input.novelty,
     score: 0,
@@ -129,6 +131,7 @@ export async function evaluateCandidate(
       scenario: input.scenario,
       observations,
       findingsCount: result.findingsCount ?? 0,
+      highFindingsCount: result.findingsHighCount ?? 0,
       durationMs,
       baseline: input.baseline,
       novelty,

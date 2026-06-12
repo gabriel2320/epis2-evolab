@@ -69,6 +69,7 @@ export const JudgeTriageInputSchema = z.object({
       severity: z.string(),
       reviewStatus: z.string(),
       createdAt: z.string(),
+      fingerprint: z.string().optional(),
       humanDecision: z.string().optional(),
     }),
   ),

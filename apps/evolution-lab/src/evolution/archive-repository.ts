@@ -48,6 +48,7 @@ function rowFitness(row: ArchiveRow): CandidateFitness {
     newEndpoints: raw.newEndpoints ?? 0,
     newAuditEvents: raw.newAuditEvents ?? 0,
     findingsCount: raw.findingsCount ?? 0,
+    highFindingsCount: raw.highFindingsCount ?? 0,
     durationMs: raw.durationMs ?? 0,
     novelty: typeof raw.novelty === 'number' ? raw.novelty : null,
     score: raw.score,

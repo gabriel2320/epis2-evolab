@@ -7,7 +7,8 @@ import { ScenarioDefinitionSchema, type ScenarioDefinition } from '../contracts/
 import { createLogger } from '../logger.js';
 import { runMutationPipeline, type MutationPipelineResult } from '../mutation/pipeline.js';
 import { createOllamaScenarioMutationClient } from '../mutation/ollama-mutator.js';
-import { createOperators, DEFAULT_ENSEMBLE } from '../mutation/operators.js';
+import { createOperators } from '../mutation/operators.js';
+import { recordMutationBanditRewards, resolveMutationEnsemble } from '../mutation/ensemble.js';
 import { createFileEmbeddingCache, createOllamaEmbeddingsClient } from '../fitness/novelty.js';
 import { EvolutionOrchestrator } from '../orchestrator/orchestrator.js';
 import { loadScenarioFromFile, listScenarios, scenariosDirectory } from '../scenarios/loader.js';
@@ -133,7 +134,8 @@ export async function runEvolutionLoop(
 
   const corpus = listScenarios().filter((s) => (s.flow ?? []).length > 0);
   const outputDir = join(scenariosDirectory(), 'candidates');
-  const operators = createOperators();
+  const ensemble = await resolveMutationEnsemble(config.databaseUrl);
+  const operators = createOperators(ensemble);
   const mutateClient = createOllamaScenarioMutationClient({ baseUrl: config.ollamaUrl });
   const embeddings = createOllamaEmbeddingsClient({
     baseUrl: config.ollamaUrl,
@@ -167,7 +169,7 @@ export async function runEvolutionLoop(
       corpus: input.corpus,
       client: mutateClient,
       outputDir: input.outputDir,
-      repairModel: DEFAULT_ENSEMBLE.repair,
+      repairModel: ensemble.repair,
       embeddings,
       embeddingCache,
       runSeed,
@@ -230,6 +232,12 @@ export async function runEvolutionLoop(
       globalMutationIndex += population;
       genSummary.mutationsAttempted = mutationResult.records.length;
       genSummary.mutationsValid = mutationResult.records.filter((r) => r.validFinal).length;
+
+      if (config.databaseUrl) {
+        await recordMutationBanditRewards(config.databaseUrl, mutationResult.records, {
+          generation: gen,
+        });
+      }
 
       const accepted = mutationResult.records.filter(
         (r) => r.status === 'accepted' && r.candidatePath,

@@ -21,6 +21,7 @@ import { runMetamorphic } from './cli/metamorphic-command.js';
 import { runJudgeTriage } from './cli/judge-command.js';
 import { runJudgeEval } from './cli/judge-eval-command.js';
 import { runBanditReport, runBanditSeed } from './cli/bandit-command.js';
+import { runArchivePromote } from './cli/archive-promote-command.js';
 import { EvolutionOrchestrator } from './orchestrator/orchestrator.js';
 import { replayRun } from './replay/replay.js';
 import { regenerateRun, type RegenerateStrategy } from './replay/regenerate.js';
@@ -363,6 +364,22 @@ async function main(): Promise<number> {
       console.error('Uso: evolab bandit seed');
       return 1;
     }
+    case 'archive': {
+      const sub = positionals[0] ?? 'promote';
+      if (sub !== 'promote') {
+        console.error(
+          'Uso: evolab archive promote [--candidate-id <id>] [--top N] [--dry-run] [--force]',
+        );
+        return 1;
+      }
+      const top = flags.top ? Number.parseInt(flags.top, 10) : undefined;
+      return runArchivePromote({
+        ...(flags['candidate-id'] ? { candidateIds: [flags['candidate-id']] } : {}),
+        ...(top !== undefined && Number.isFinite(top) ? { top } : {}),
+        ...(booleans.dryRun ? { dryRun: true } : {}),
+        ...(booleans.force ? { force: true } : {}),
+      });
+    }
     case 'plan': {
       const scenarioId = flags.scenario;
       if (!scenarioId) {
@@ -395,6 +412,7 @@ Comandos:
   judge        Gate eval (judge eval [--golden path] [--mock] [--json])
   models       Inventario Ollama (--bandit [--seed] [--json])
   bandit       Warm-start UCB (bandit seed)
+  archive      Promover élites al corpus (archive promote [--top N] [--candidate-id id])
   run          Ejecutar escenario (--scenario <id> | --all | --tag <tag>) [--skip-preflight] [--reset-fixtures] [--evidence minimal|full]
   plan         Plan LLM simulated user (--scenario <id>) sin ejecutar target
   replay       Reproducir run (--run <id>) con mismo seed [filesystem o DB]

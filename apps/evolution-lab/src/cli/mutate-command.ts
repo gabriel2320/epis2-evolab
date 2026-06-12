@@ -2,8 +2,6 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { loadEvolabConfig } from '../config/env.js';
 import { pingEvolabDatabase } from '../persistence/client.js';
-import { recordBanditReward, selectBanditModel } from '../bandit/repository.js';
-import { rewardFromValidRate } from '../bandit/ucb.js';
 import { createFileEmbeddingCache, createOllamaEmbeddingsClient } from '../fitness/novelty.js';
 import {
   runMutationPipeline,
@@ -14,11 +12,10 @@ import {
 import { createOllamaScenarioMutationClient } from '../mutation/ollama-mutator.js';
 import {
   createOperators,
-  DEFAULT_ENSEMBLE,
   MUTATION_OPERATOR_NAMES,
-  type MutationEnsemble,
   type MutationOperatorName,
 } from '../mutation/operators.js';
+import { recordMutationBanditRewards, resolveMutationEnsemble } from '../mutation/ensemble.js';
 import { listScenarios, scenariosDirectory } from '../scenarios/loader.js';
 
 export type MutateCommandOptions = {
@@ -157,17 +154,7 @@ export async function runMutate(opts: MutateCommandOptions): Promise<number> {
     return 1;
   }
 
-  let ensemble: MutationEnsemble = DEFAULT_ENSEMBLE;
-  if (config.databaseUrl && (await pingEvolabDatabase(config.databaseUrl))) {
-    const amplitude = await selectBanditModel(config.databaseUrl, 'mutate_amplitude');
-    const depth = await selectBanditModel(config.databaseUrl, 'mutate_depth');
-    const repair = await selectBanditModel(config.databaseUrl, 'mutate_repair');
-    ensemble = {
-      amplitude: amplitude ?? DEFAULT_ENSEMBLE.amplitude,
-      depth: depth ?? DEFAULT_ENSEMBLE.depth,
-      repair: repair ?? DEFAULT_ENSEMBLE.repair,
-    };
-  }
+  let ensemble = await resolveMutationEnsemble(config.databaseUrl);
 
   const operators = createOperators(ensemble).filter(
     (op) => !opts.operator || op.name === (opts.operator as MutationOperatorName),
@@ -193,22 +180,8 @@ export async function runMutate(opts: MutateCommandOptions): Promise<number> {
 
   const telemetryPath = writeTelemetry(result, opts);
 
-  if (config.databaseUrl && (await pingEvolabDatabase(config.databaseUrl))) {
-    const summaries = summarizeByOperator(result.records);
-    for (const s of summaries) {
-      const taskType =
-        s.operator === 'role_swap' || s.operator === 'step_injection'
-          ? 'mutate_amplitude'
-          : 'mutate_depth';
-      const modelRow = result.records.find((r) => r.operator === s.operator);
-      if (!modelRow) continue;
-      await recordBanditReward(config.databaseUrl, {
-        taskType,
-        modelName: modelRow.model,
-        reward: rewardFromValidRate(s.validFinal, s.generated),
-        context: { operator: s.operator, telemetryPath },
-      });
-    }
+  if (config.databaseUrl) {
+    await recordMutationBanditRewards(config.databaseUrl, result.records, { telemetryPath });
   }
 
   if (opts.json) {

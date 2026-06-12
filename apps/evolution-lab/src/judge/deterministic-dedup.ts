@@ -16,7 +16,8 @@ export function tryDeterministicDuplicate(input: JudgeTriageInput): JudgeTriageO
     (h) =>
       h.findingId !== input.finding.id &&
       h.reviewStatus !== 'open' &&
-      CLOSED_STATUSES.has(h.reviewStatus),
+      CLOSED_STATUSES.has(h.reviewStatus) &&
+      (h.fingerprint == null || h.fingerprint === input.finding.fingerprint),
   );
 
   if (!priorClosed) return null;
