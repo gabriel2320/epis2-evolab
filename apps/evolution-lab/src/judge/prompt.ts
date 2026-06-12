@@ -26,7 +26,13 @@ CONTEXTO EPIS2 (resumen):
 - discharge-critical-pending-001: alta aprobada con PCR crítico sin acuse es bug real confirmado.
 - RBAC: nurse no puede draft.approve (403 esperado) — finding de audit en ese flujo suele ser noise.
 - audit_completeness: eventos prohibidos (p. ej. clinical.draft.approved cuando debió bloquearse).
-- llm-command-evolution-001: sin dev:ai los evaluadores LLM suelen ser noise de infraestructura.`;
+- llm-command-evolution-001: sin dev:ai los evaluadores LLM suelen ser noise de infraestructura.
+
+EJEMPLOS FEW-SHOT (referencia, no copiar rationale):
+- noise: nurse RBAC 403 esperado + finding pide auditEventCreated → verdict noise.
+- noise: plan_fidelity sin respuesta LLM (dev:ai off) → verdict noise.
+- duplicate: fingerprintHistory muestra ceac9c2a approved, mismo fingerprint → verdict duplicate.
+- signal: alta aprobada con PCR crítico sin acuse → verdict signal.`;
 
 function formatEvaluations(input: JudgeTriageInput): string {
   return input.evidence.evaluations

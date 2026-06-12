@@ -1,0 +1,46 @@
+id: critical-ack-snapshot-001
+version: 1
+name: Crítico pendiente — snapshot pre-acuse
+description: Cuenta críticos sin acuse antes de acknowledge (DEMO-004)
+risk: medium
+
+target:
+  capabilities:
+    - critical-results
+    - inpatient
+
+persona:
+  role: physician
+  experience: intermediate
+
+fixture:
+  type: synthetic-adult-hospitalized
+  demoCaseCode: DEMO-004
+  criticalResultId: f0000004-0000-4000-8000-000000000002
+  criticalResultPendingAcknowledgement: true
+
+goal:
+  action: verify_critical_count
+
+steps:
+  - login
+  - snapshot_criticals
+
+flow:
+  - login:
+      label: login_physician
+  - custom:
+      name: service_criticals
+      args: { label: critical_count }
+
+expected:
+  hasUnacknowledgedCritical: true
+
+evaluators:
+  - functional
+
+timeoutMs: 60000
+maxAttempts: 2
+tags:
+  - critical
+  - inpatient

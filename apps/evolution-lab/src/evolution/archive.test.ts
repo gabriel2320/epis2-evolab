@@ -7,7 +7,14 @@ import {
   type ArchiveEntry,
   type CandidateFitness,
 } from './archive.js';
-import { assignNiche, emptyNiches, enumerateNiches, nicheKey } from './niches.js';
+import {
+  assignNiche,
+  assignNicheForRelation,
+  emptyNiches,
+  enumerateNiches,
+  nicheKey,
+} from './niches.js';
+import { loadRelation } from '../scenarios/relation-loader.js';
 
 function makeScenario(id: string, overrides: Partial<ScenarioDefinition> = {}): ScenarioDefinition {
   return ScenarioDefinitionSchema.parse({
@@ -164,8 +171,15 @@ describe('minimalFitness', () => {
 });
 
 describe('niches', () => {
-  it('enumera 45 celdas', () => {
-    expect(enumerateNiches()).toHaveLength(45);
+  it('enumera 60 celdas', () => {
+    expect(enumerateNiches()).toHaveLength(60);
+  });
+
+  it('assignNicheForRelation usa outcome metamorphic', () => {
+    const relation = loadRelation('mr-critical-ack-delta-001');
+    const niche = assignNicheForRelation(relation);
+    expect(niche.outcome).toBe('metamorphic');
+    expect(nicheKey(niche)).toMatch(/\|metamorphic$/);
   });
 
   it('emptyNiches excluye corpus ocupado', () => {
@@ -173,7 +187,7 @@ describe('niches', () => {
       makeScenario('s1', { persona: { role: 'nurse' }, expected: { actionBlocked: true } }),
     ];
     const empty = emptyNiches(corpus);
-    expect(empty.length).toBeLessThan(45);
+    expect(empty.length).toBeLessThan(60);
     expect(empty.some((n) => nicheKey(n) === nicheKey(assignNiche(corpus[0]!)))).toBe(false);
   });
 });

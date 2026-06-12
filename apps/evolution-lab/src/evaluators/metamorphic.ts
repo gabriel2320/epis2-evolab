@@ -190,6 +190,14 @@ function compareInvariantRepeat(
   };
 }
 
+function auditEventKeys(side: PairSide): Set<string> {
+  const trail = side.observations.find((o) => o.kind === 'audit_trail');
+  const events = Array.isArray(trail?.payload.events)
+    ? (trail.payload.events as Array<{ eventType?: string; entityId?: string }>)
+    : [];
+  return new Set(events.map((e) => `${e.eventType ?? ''}|${e.entityId ?? ''}`));
+}
+
 function compareAuditDelta(
   ctx: MetamorphicEvaluatorContext,
   clause: VerifyClause,
@@ -197,6 +205,7 @@ function compareAuditDelta(
 ): EvaluationResult {
   const correlateBy = clause.correlateBy;
   const forbidden = clause.forbidden ?? [];
+  const required = clause.required ?? [];
   const allSides = [ctx.source, ...ctx.followUps];
 
   let entityId: string | undefined;
@@ -213,6 +222,22 @@ function compareAuditDelta(
   }
 
   const violations: string[] = [];
+
+  if (required.length > 0 && ctx.followUps[0]) {
+    const sourceKeys = auditEventKeys(ctx.source);
+    const followTrail = ctx.followUps[0].observations.find((o) => o.kind === 'audit_trail');
+    const followEvents = Array.isArray(followTrail?.payload.events)
+      ? (followTrail.payload.events as Array<{ eventType?: string; entityId?: string }>)
+      : [];
+    const newEvents = followEvents.filter(
+      (e) => !sourceKeys.has(`${e.eventType ?? ''}|${e.entityId ?? ''}`),
+    );
+    for (const pattern of required) {
+      const hit = newEvents.some((e) => e.eventType?.includes(pattern));
+      if (!hit) violations.push(`falta evento requerido: ${pattern}`);
+    }
+  }
+
   for (const side of allSides) {
     const trail = side.observations.find((o) => o.kind === 'audit_trail');
     const events = Array.isArray(trail?.payload.events)
@@ -236,9 +261,13 @@ function compareAuditDelta(
     passed,
     severity: passed ? 'info' : severity,
     message: passed
-      ? 'audit_delta OK — sin eventos prohibidos'
-      : `Auditoría prohibida detectada: ${violations.join(', ')}`,
-    details: { clause: 'audit_delta', violations, entityId, forbidden },
+      ? required.length > 0
+        ? 'audit_delta OK — eventos requeridos presentes'
+        : 'audit_delta OK — sin eventos prohibidos'
+      : violations.some((v) => v.startsWith('falta evento'))
+        ? `Auditoría incompleta: ${violations.join(', ')}`
+        : `Auditoría prohibida detectada: ${violations.join(', ')}`,
+    details: { clause: 'audit_delta', violations, entityId, forbidden, required },
   };
 }
 

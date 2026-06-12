@@ -1,0 +1,28 @@
+id: mr-mar-hold-monotonicity-001
+version: 1
+kind: metamorphic
+relation: permission_monotonicity
+name: MAR — hold suspendida bloquea approve que pasaba con dosis activa
+risk: high
+
+source:
+  scenario: suspended-medication-mar-001
+  overrides:
+    fixture:
+      marDoseHeld: false
+      medicationStatus: scheduled
+
+followUp:
+  scenario: suspended-medication-mar-001
+  resetFixturesBetween: true
+
+verify:
+  - compare: outcome_implication
+    premise: { run: source, observation: mar_approve_attempt, outcome: allowed }
+    conclusion: { run: followUp, observation: mar_approve_attempt, outcome: blocked }
+
+onViolation:
+  severity: high
+  category: metamorphic_mar_safety
+requiresHumanReview: true
+tags: [metamorphic, mar, smoke]

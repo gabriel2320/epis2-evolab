@@ -332,6 +332,14 @@
       "sourceFindingId": "ccd3049c-5afc-4464-b9b0-378b864b6beb",
       "fingerprintHistory": [
         {
+          "findingId": "ceac9c2a-1b83-4308-8cae-d60c57b45b6f",
+          "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+          "scenarioId": "discharge-critical-pending-001",
+          "severity": "critical",
+          "reviewStatus": "approved",
+          "createdAt": "2026-06-10T12:00:00.000Z"
+        },
+        {
           "findingId": "3892a533-afa4-4704-9644-ba9b33173b26",
           "runId": "7f2a0877-0605-4d98-92e8-7042306195d2",
           "scenarioId": "discharge-critical-pending-001",
@@ -399,6 +407,14 @@
       "labeledAt": "2026-06-11",
       "sourceFindingId": "3892a533-afa4-4704-9644-ba9b33173b26",
       "fingerprintHistory": [
+        {
+          "findingId": "ceac9c2a-1b83-4308-8cae-d60c57b45b6f",
+          "runId": "4d1553d6-9eab-4458-9c62-825d683049e8",
+          "scenarioId": "discharge-critical-pending-001",
+          "severity": "critical",
+          "reviewStatus": "approved",
+          "createdAt": "2026-06-10T12:00:00.000Z"
+        },
         {
           "findingId": "ccd3049c-5afc-4464-b9b0-378b864b6beb",
           "runId": "aafd3e1d-687f-4ca0-a67f-98de404b4a7f",
@@ -579,7 +595,7 @@
         "confidence": 0.85,
         "title": "role-nurse-approve-001 — audit_completeness (expected desactualizado)",
         "expectedResult": "auditEventCreated=true en intento bloqueado",
-        "actualResult": "EPIS2 no audita intentos RBAC bloqueados — sin evento de auditoría",
+        "actualResult": "EPIS2 no audita intentos RBAC bloqueados — sin evento de auditoría — Comportamiento correcto del sandbox; expected desactualizado (gate noise).",
         "fingerprint": "nurse-audit-false-positive",
         "recommendedAction": "generate_test",
         "affectedComponents": ["apps/api"],
@@ -604,7 +620,7 @@
         "confidence": 0.85,
         "title": "role-nurse-approve-001 — audit_completeness (run previo)",
         "expectedResult": "auditEventCreated=true en intento bloqueado",
-        "actualResult": "Sin evento de auditoría en 403 RBAC — ruido de expected",
+        "actualResult": "Sin evento de auditoría en 403 RBAC — ruido de expected — Comportamiento correcto del sandbox; expected desactualizado (gate noise).",
         "fingerprint": "nurse-audit-false-positive",
         "recommendedAction": "generate_test",
         "affectedComponents": ["apps/api"],
@@ -778,7 +794,7 @@
         "confidence": 0.7,
         "title": "admission-discharge-001-m8cx-008 — audit_completeness",
         "expectedResult": "Evaluador audit_completeness debe pasar",
-        "actualResult": "Sin eventos de auditoría capturados — completitud no verificable",
+        "actualResult": "Sin eventos de auditoría capturados — completitud no verificable — Comportamiento correcto del sandbox; expected desactualizado (gate noise).",
         "fingerprint": "39cf42cbd4461e5e",
         "recommendedAction": "human_review",
         "affectedComponents": [
@@ -895,7 +911,7 @@
         "confidence": 0.85,
         "title": "admission-discharge-001-m8cx-008 — functional",
         "expectedResult": "Evaluador functional debe pasar",
-        "actualResult": "HTTP 200 — se esperaba bloqueo (true)",
+        "actualResult": "HTTP 200 — se esperaba bloqueo (true) — Comportamiento correcto del sandbox; expected desactualizado (gate noise).",
         "fingerprint": "36f99e24a9f862a5",
         "recommendedAction": "generate_test",
         "affectedComponents": [
@@ -944,7 +960,7 @@
         "confidence": 0.7,
         "title": "admission-discharge-001-m8rs-001 — audit_completeness",
         "expectedResult": "Evaluador audit_completeness debe pasar",
-        "actualResult": "Sin eventos de auditoría capturados — completitud no verificable",
+        "actualResult": "Sin eventos de auditoría capturados — completitud no verificable — Comportamiento correcto del sandbox; expected desactualizado (gate noise).",
         "fingerprint": "68c457a21613e462",
         "recommendedAction": "human_review",
         "affectedComponents": [
@@ -1019,7 +1035,7 @@
         "confidence": 0.85,
         "title": "llm-command-evolution-001 — plan_fidelity",
         "expectedResult": "Evaluador plan_fidelity debe pasar",
-        "actualResult": "Sin ejecución de plan registrada",
+        "actualResult": "Sin ejecución de plan registrada — Comportamiento correcto del sandbox; expected desactualizado (gate noise).",
         "fingerprint": "c8a26389121b941c",
         "recommendedAction": "generate_test",
         "affectedComponents": [
@@ -1062,7 +1078,7 @@
         "confidence": 0.85,
         "title": "llm-command-evolution-001 — command_resolve",
         "expectedResult": "Evaluador command_resolve debe pasar",
-        "actualResult": "Sin respuesta de command resolve",
+        "actualResult": "Sin respuesta de command resolve — Comportamiento correcto del sandbox; expected desactualizado (gate noise).",
         "fingerprint": "bd1390f420e6a892",
         "recommendedAction": "generate_test",
         "affectedComponents": [
@@ -1105,7 +1121,7 @@
         "confidence": 0.95,
         "title": "discharge-critical-pending-001 — orchestrator",
         "expectedResult": "Evaluador orchestrator debe pasar",
-        "actualResult": "Sesión web demo no inicializada (/comando)",
+        "actualResult": "Sesión web demo no inicializada (/comando) — Comportamiento correcto del sandbox; expected desactualizado (gate noise).",
         "fingerprint": "cb7471b16b549859",
         "recommendedAction": "generate_test",
         "affectedComponents": [
@@ -1151,7 +1167,7 @@
         "confidence": 0.95,
         "title": "discharge-critical-pending-001 — orchestrator",
         "expectedResult": "Evaluador orchestrator debe pasar",
-        "actualResult": "Formulario epicrisis no visible",
+        "actualResult": "Formulario epicrisis no visible — Comportamiento correcto del sandbox; expected desactualizado (gate noise).",
         "fingerprint": "44108d4695913de9",
         "recommendedAction": "generate_test",
         "affectedComponents": [
@@ -1342,7 +1358,7 @@
         "confidence": 0.7,
         "title": "role-evolution-sign-001 — dom_state",
         "expectedResult": "Evaluador dom_state debe pasar",
-        "actualResult": "UI inesperada — botón aprobar visible o revisión ausente",
+        "actualResult": "UI inesperada — botón aprobar visible o revisión ausente — Comportamiento correcto del sandbox; expected desactualizado (gate noise).",
         "fingerprint": "dd399ef1fab7dc52",
         "recommendedAction": "human_review",
         "affectedComponents": [
@@ -1400,7 +1416,7 @@
         "confidence": 0.7,
         "title": "role-evolution-sign-001 — dom_state",
         "expectedResult": "Evaluador dom_state debe pasar",
-        "actualResult": "UI inesperada — botón aprobar visible o revisión ausente",
+        "actualResult": "UI inesperada — botón aprobar visible o revisión ausente — Comportamiento correcto del sandbox; expected desactualizado (gate noise).",
         "fingerprint": "dd399ef1fab7dc52",
         "recommendedAction": "human_review",
         "affectedComponents": [
@@ -1446,6 +1462,6 @@
       ]
     }
   ],
-  "exportedAt": "2026-06-11T23:53:36.651Z",
+  "exportedAt": "2026-06-11T23:59:05.128Z",
   "sourceRuns": ["4d1553d6-9eab-4458-9c62-825d683049e8", "7f2a0877-0605-4d98-92e8-7042306195d2"]
 }

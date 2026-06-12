@@ -49,6 +49,14 @@ export function prepareScenarioFixture(
     return resetCriticalPendingAcknowledgement(criticalResultId);
   }
 
+  if (fixture?.marDoseHeld === false) {
+    const marDoseId = fixture.marDoseId;
+    if (typeof marDoseId !== 'string' || !marDoseId) {
+      return { ok: false, message: 'fixture.marDoseId requerido para release MAR' };
+    }
+    return releaseMarScheduledDose(marDoseId);
+  }
+
   if (fixture?.medicationStatus === 'suspended' || fixture?.marDoseHeld === true) {
     const marDoseId = fixture.marDoseId;
     if (typeof marDoseId !== 'string' || !marDoseId) {
@@ -85,4 +93,31 @@ export function holdMarScheduledDose(marDoseId: string): SandboxPrepResult {
 
   log.info('Dosis MAR demo marcada held', { marDoseId });
   return { ok: true, message: `Dosis ${marDoseId} en estado held` };
+}
+
+/** Restaura dosis MAR demo a scheduled (activa). */
+export function releaseMarScheduledDose(marDoseId: string): SandboxPrepResult {
+  if (!UUID_RE.test(marDoseId)) {
+    return { ok: false, message: `marDoseId inválido: ${marDoseId}` };
+  }
+
+  const sql = `UPDATE mar_scheduled_doses SET status = 'scheduled' WHERE id = '${marDoseId}';`;
+  const result = spawnSync(
+    'docker',
+    ['exec', 'epis2-postgres', 'psql', '-U', 'epis2', '-d', 'epis2', '-c', sql],
+    { encoding: 'utf8' },
+  );
+
+  if (result.status !== 0) {
+    const detail = (result.stderr || result.stdout || '').trim();
+    log.warn('Release MAR omitido', { marDoseId, detail });
+    return {
+      ok: false,
+      skipped: true,
+      message: `No se pudo marcar dosis scheduled: ${detail || 'error desconocido'}`,
+    };
+  }
+
+  log.info('Dosis MAR demo marcada scheduled', { marDoseId });
+  return { ok: true, message: `Dosis ${marDoseId} en estado scheduled` };
 }

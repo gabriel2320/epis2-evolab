@@ -78,6 +78,7 @@ export function validateRelationDryRun(relation: MetamorphicRelation): string[] 
 
   const collectLabels = (scenario: ScenarioDefinition): Set<string> => {
     const labels = new Set<string>();
+    if (scenario.actionObservation) labels.add(scenario.actionObservation);
     for (const step of scenario.flow ?? []) {
       if (isApiStep(step) && step.api.label) labels.add(step.api.label);
       if ('custom' in step && step.custom?.args?.label) {
@@ -96,6 +97,9 @@ export function validateRelationDryRun(relation: MetamorphicRelation): string[] 
   }
 
   if (relation.followUp?.reuseContext) {
+    if (sourceScenario.actionObservation === 'mar_approve_attempt') {
+      captureKeys.add('draftId');
+    }
     for (const key of relation.followUp.reuseContext) {
       if (!captureKeys.has(key)) {
         issues.push(`reuseContext "${key}" no es capture del escenario source`);

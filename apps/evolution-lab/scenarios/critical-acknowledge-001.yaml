@@ -1,0 +1,57 @@
+id: critical-acknowledge-001
+version: 1
+name: Acuse de resultado crítico
+description: POST acknowledge decrementa contador de críticos pendientes
+risk: medium
+
+target:
+  capabilities:
+    - critical-results
+    - inpatient
+
+persona:
+  role: physician
+  experience: intermediate
+
+fixture:
+  type: synthetic-adult-hospitalized
+  demoCaseCode: DEMO-004
+  criticalResultId: f0000004-0000-4000-8000-000000000002
+  criticalResultPendingAcknowledgement: true
+
+goal:
+  action: acknowledge_critical
+
+steps:
+  - login
+  - acknowledge_critical
+  - snapshot_criticals
+
+flow:
+  - login:
+      label: login_physician
+  - api:
+      label: critical_ack_attempt
+      evidenceLabel: critical-acknowledge
+      method: POST
+      path: '/api/inpatient/critical-results/{criticalResultId}/acknowledge'
+      body: {}
+      observe:
+        payload: [status, ok]
+  - custom:
+      name: service_criticals
+      args: { label: critical_count }
+
+expected:
+  acknowledgeSucceeded: true
+
+evaluators:
+  - functional
+  - audit_completeness
+
+timeoutMs: 90000
+maxAttempts: 2
+tags:
+  - critical
+  - inpatient
+  - metamorphic

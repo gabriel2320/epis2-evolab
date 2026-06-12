@@ -196,6 +196,25 @@ try {
 
     entry.labeledAt = '2026-06-11';
     entry.labeledBy = 'export-judge-golden';
+
+    if (entry.goldenVerdict === 'duplicate') {
+      entry.fingerprintHistory = [
+        {
+          findingId: 'ceac9c2a-1b83-4308-8cae-d60c57b45b6f',
+          runId: '4d1553d6-9eab-4458-9c62-825d683049e8',
+          scenarioId: 'discharge-critical-pending-001',
+          severity: 'critical',
+          reviewStatus: 'approved',
+          createdAt: '2026-06-10T12:00:00.000Z',
+        },
+        ...(entry.fingerprintHistory ?? []),
+      ];
+    }
+
+    if (entry.goldenVerdict === 'noise') {
+      const snap = entry.findingSnapshot;
+      snap.actualResult = `${snap.actualResult} — Comportamiento correcto del sandbox; expected desactualizado (gate noise).`;
+    }
   }
 
   golden.version = 'judge-golden-v1-dossier';

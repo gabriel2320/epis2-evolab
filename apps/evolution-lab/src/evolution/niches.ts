@@ -1,4 +1,6 @@
 import type { ScenarioDefinition } from '../contracts/schemas.js';
+import type { MetamorphicRelation } from '../contracts/metamorphic-schema.js';
+import { loadScenario } from '../scenarios/loader.js';
 import {
   CUSTOM_STEP_COVERAGE,
   ENDPOINT_CATALOG,
@@ -22,7 +24,7 @@ export type NicheRole = (typeof NICHE_ROLES)[number];
 export const NICHE_MODULES = ['auth', 'clinical', 'inpatient', 'dashboard', 'audit'] as const;
 export type NicheModule = (typeof NICHE_MODULES)[number];
 
-export const NICHE_OUTCOMES = ['allowed', 'blocked', 'journey'] as const;
+export const NICHE_OUTCOMES = ['allowed', 'blocked', 'journey', 'metamorphic'] as const;
 export type NicheOutcome = (typeof NICHE_OUTCOMES)[number];
 
 export type Niche = {
@@ -157,7 +159,13 @@ export function assignNiche(scenario: ScenarioDefinition): Niche {
   };
 }
 
-/** Enumera las 45 celdas del espacio (3 roles × 5 módulos × 3 resultados). */
+/** Asigna nicho MAP-Elites para una relación metamórfica (outcome = metamorphic). */
+export function assignNicheForRelation(relation: MetamorphicRelation): Niche {
+  const base = assignNiche(loadScenario(relation.source.scenario));
+  return { ...base, outcome: 'metamorphic' };
+}
+
+/** Enumera las 60 celdas del espacio (3 roles × 5 módulos × 4 resultados). */
 export function enumerateNiches(): Niche[] {
   const niches: Niche[] = [];
   for (const role of NICHE_ROLES) {

@@ -1,0 +1,27 @@
+id: mr-critical-ack-delta-001
+version: 1
+kind: metamorphic
+relation: conservation
+name: Delta acuse crítico — contador k → k−1 tras acknowledge
+risk: high
+
+source:
+  scenario: critical-ack-snapshot-001
+
+followUp:
+  scenario: critical-acknowledge-001
+  resetFixturesBetween: true
+
+verify:
+  - compare: delta
+    observation: critical_count
+    field: count
+    expected: -1
+  - compare: audit_delta
+    required: [critical.acknowledged]
+
+onViolation:
+  severity: high
+  category: metamorphic_critical_ack
+requiresHumanReview: true
+tags: [metamorphic, critical, smoke]

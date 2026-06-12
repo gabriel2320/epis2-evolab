@@ -1,0 +1,25 @@
+id: mr-audit-conservation-001
+version: 1
+kind: metamorphic
+relation: conservation
+name: Conservación — crear borrador deja evento clinical.draft.created
+risk: medium
+
+source:
+  scenario: census-service-integrity-001
+
+followUp:
+  scenario: role-nurse-approve-001
+
+verify:
+  - compare: audit_delta
+    required: [clinical.draft.created]
+  - compare: audit_delta
+    forbidden: [clinical.draft.approved]
+    correlateBy: draftId
+
+onViolation:
+  severity: high
+  category: metamorphic_conservation
+requiresHumanReview: true
+tags: [metamorphic, audit, smoke]

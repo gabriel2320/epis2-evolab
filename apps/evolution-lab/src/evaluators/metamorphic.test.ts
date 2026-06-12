@@ -231,6 +231,85 @@ describe('metamorphic evaluator', () => {
     expect(fail.evaluations.some((e) => e.details?.clause === 'delta' && !e.passed)).toBe(true);
   });
 
+  it('audit_delta required detecta evento nuevo en follow-up (MR-04)', () => {
+    const relation = loadRelation('mr-audit-conservation-001');
+    const result = evaluateMetamorphicRelation({
+      relation,
+      correlationId: 'corr-audit-req',
+      source: {
+        runId: 'run-src',
+        scenarioId: 'census-service-integrity-001',
+        observations: [
+          {
+            kind: 'audit_trail',
+            label: 'audit',
+            payload: { events: [{ eventType: 'auth.login.success', entityId: 'u1' }] },
+          },
+        ],
+        finalStatus: 'completed',
+      },
+      followUps: [
+        {
+          runId: 'run-fu',
+          scenarioId: 'role-nurse-approve-001',
+          observations: [
+            apiObs('nurse_approve_attempt', 403, { draftId: 'draft-1' }),
+            {
+              kind: 'audit_trail',
+              label: 'audit',
+              payload: {
+                events: [
+                  { eventType: 'auth.login.success', entityId: 'u1' },
+                  { eventType: 'clinical.draft.created', entityId: 'draft-1' },
+                ],
+              },
+            },
+          ],
+          finalStatus: 'completed',
+        },
+      ],
+    });
+    expect(result.evaluations.some((e) => e.details?.clause === 'audit_delta' && e.passed)).toBe(
+      true,
+    );
+  });
+
+  it('delta critical_count −1 tras acknowledge (MR-07)', () => {
+    const relation = loadRelation('mr-critical-ack-delta-001');
+    const critObs = (count: number): ScenarioObservation => ({
+      kind: 'sandbox_critical',
+      label: 'critical_count',
+      payload: { count, hasUnacknowledgedCritical: count > 0, criticalIds: [], labels: [] },
+    });
+    const result = evaluateMetamorphicRelation({
+      relation,
+      correlationId: 'corr-crit',
+      source: {
+        runId: 'run-src',
+        scenarioId: 'critical-ack-snapshot-001',
+        observations: [critObs(1)],
+        finalStatus: 'completed',
+      },
+      followUps: [
+        {
+          runId: 'run-fu',
+          scenarioId: 'critical-acknowledge-001',
+          observations: [
+            apiObs('critical_ack_attempt', 200),
+            critObs(0),
+            {
+              kind: 'audit_trail',
+              label: 'audit',
+              payload: { events: [{ eventType: 'critical.acknowledged', entityId: 'crit-1' }] },
+            },
+          ],
+          finalStatus: 'completed',
+        },
+      ],
+    });
+    expect(result.passed).toBe(true);
+  });
+
   it('par no evaluable ante fallo de infraestructura', () => {
     const relation = loadRelation('mr-census-inversion-001');
     const result = evaluateMetamorphicRelation({

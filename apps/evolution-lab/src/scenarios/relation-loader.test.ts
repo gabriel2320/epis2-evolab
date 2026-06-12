@@ -11,10 +11,14 @@ const GATE_RELATIONS = [
   'mr-census-inversion-001',
   'mr-permission-monotonicity-001',
   'mr-blocked-idempotence-001',
+  'mr-audit-conservation-001',
+  'mr-mar-hold-monotonicity-001',
+  'mr-mar-blocked-idempotence-001',
+  'mr-critical-ack-delta-001',
 ] as const;
 
 describe('relation-loader', () => {
-  it('lista las 3 relaciones gate S10', () => {
+  it('lista las 7 relaciones metamórficas (S10 gate + F3 P1)', () => {
     const ids = listRelations()
       .map((r) => r.id)
       .sort();

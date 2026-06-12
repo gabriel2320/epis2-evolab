@@ -110,8 +110,8 @@ export async function runMetamorphicPair(
   const reuseKeys = followSpec?.reuseContext ?? [];
 
   for (let i = 0; i < repeat; i += 1) {
-    if (followSpec?.resetFixturesBetween) {
-      // reset vía flag en executeRun — best-effort
+    if (followSpec?.resetFixturesBetween || followSpec?.overrides?.fixture) {
+      // re-aplica fixture sandbox entre mitades del par (p. ej. MAR held vs scheduled)
     }
 
     const inheritedContext =
@@ -130,6 +130,9 @@ export async function runMetamorphicPair(
         pairIndex: i,
       },
       ...(inheritedContext ? { inheritedContext } : {}),
+      ...(followSpec?.resetFixturesBetween || followSpec?.overrides?.fixture
+        ? { resetFixtures: true }
+        : {}),
     });
 
     followUps.push(

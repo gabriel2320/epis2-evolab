@@ -1,0 +1,29 @@
+id: mr-mar-blocked-idempotence-001
+version: 1
+kind: metamorphic
+relation: idempotence
+name: Idempotencia MAR — repetir approve bloqueado no aprueba
+risk: high
+
+source:
+  scenario: suspended-medication-mar-001
+
+followUp:
+  scenario: suspended-medication-mar-001
+  repeat: 2
+  reuseContext: [draftId]
+  resetFixturesBetween: false
+
+verify:
+  - compare: invariant_repeat
+    observation: mar_approve_attempt
+    field: status
+  - compare: audit_delta
+    forbidden: [clinical.draft.approved]
+    correlateBy: draftId
+
+onViolation:
+  severity: high
+  category: metamorphic_mar_idempotence
+requiresHumanReview: true
+tags: [metamorphic, mar, smoke]
