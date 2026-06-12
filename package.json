@@ -44,7 +44,7 @@
     "evolab:boundary:validate": "node scripts/evolution/boundary-validate.mjs",
     "evolab:db:migrate": "node scripts/evolution/db-migrate.mjs",
     "evolab:db:reset": "node scripts/evolution/db-reset.mjs",
-    "evolab:stack": "node scripts/evolution/stack.mjs",
+    "evolab:housekeeping": "node scripts/evolution/housekeeping.mjs",
     "evolab:console": "tsx apps/evolution-console/src/server.ts"
   },
   "devDependencies": {

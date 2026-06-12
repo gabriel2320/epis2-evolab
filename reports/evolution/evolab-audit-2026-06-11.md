@@ -8,16 +8,16 @@
 
 | Área | Estado | Severidad |
 |------|--------|-----------|
-| Calidad código (typecheck/lint/format) | OK en WIP S10 staged | — |
-| Tests unitarios | **497/497** OK (`vitest` directo) | — |
-| `npm run quality` wrapper | Fallo intermitente Windows (`exit -1073741819`) | media |
-| Sprint 7–9 (fitness, mutación, evolve) | Implementado · gate S9 **parcial** (1/5 nichos) | media |
-| Sprint 10 (metamórfico) | **~60%** — core sin CLI/YAML/tests | alta |
-| Sprint 11 (judge + bandit) | Solo spec | planificada |
+| Calidad código (typecheck/lint/format) | OK | — |
+| Tests unitarios | **543/543** OK | — |
+| `npm run quality` wrapper | Fallo intermitente Windows — ver README F4.2 | media |
+| Sprint 7–9 (fitness, mutación, evolve) | Implementado · gate S9 parcial | media |
+| Sprint 10 (metamórfico) | **✓** MR-01…07 · smoke vivo 7/7 | — |
+| Sprint 11 (judge + bandit) | **✓** 84% live · consola · G1 | — |
 | Sprint 12 (DGM-lite) | Roadmap | futura |
-| WIP sin commit | 9 archivos staged (S10 foundation) | media |
-| Telemetría evolve huérfana | ~50 JSON locales (gitignored) | baja |
-| Dependencia EPIS2 | API/DB compartidos — no reparar desde Evolab hoy | externa |
+| CI smoke vivo | `EPIS2_CHECKOUT_TOKEN` + metamorphic en job smoke | media |
+| Telemetría evolve huérfana | `npm run evolab:housekeeping` (F4.3) | baja |
+| Dependencia EPIS2 | API/DB compartidos — CDR DEMO-004 upstream | externa |
 
 ---
 
@@ -29,9 +29,9 @@
 | **SimulatedUserAgent** | Plan LLM híbrido (FASE 8) | Activo con fallback; replan **diferido** | router Ollama |
 | **Mutation pipeline** | Operadores LLM sobre YAML | S8 ✓ gate 92% | 7b amplitud / 14b reparación |
 | **Evolve MAP-Elites** | Loop generacional + archivo | S9 ✓ gate parcial | reusa mutación |
-| **Metamorphic pair-runner** | Oráculos par (A,B) | **WIP** sin CLI | — |
-| **Judge triage** | Clasifica señal/ruido/duplicado | **No implementado** (S11 spec) | qwen3:8b planificado |
-| **Bandit UCB** | Selección modelo por tarea | **No implementado** (S11 spec) | stats Postgres planificado |
+| **Metamorphic pair-runner** | Oráculos par (A,B) | **✓ S10/F3** MR-01…07 | — |
+| **Judge triage** | Clasifica señal/ruido/duplicado | **✓ S11** 84% live qwen3:8b | qwen3:8b |
+| **Bandit UCB** | Selección modelo por tarea | **✓ S11** seed + judge_triage | stats Postgres |
 | **Plan executor LLM** | Ejecución planes (FASE 9) | Código presente; uso condicionado | — |
 
 ---

@@ -3,7 +3,7 @@ import { ENDPOINT_CATALOG } from '../fitness/coverage-catalog.js';
 import { listCustomSteps } from '../step-engine/custom-steps.js';
 
 /** Versión de prompts registrada por variante (R6: deriva de prompts). */
-export const PROMPT_VERSION = 's8-v2';
+export const PROMPT_VERSION = 's8-v3';
 
 /** Ensemble validado empíricamente (benchmark Sprint 8 §1.4). */
 export type MutationEnsemble = {

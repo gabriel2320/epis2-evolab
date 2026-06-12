@@ -12,6 +12,7 @@ import {
 import { createLogger } from '../logger.js';
 import { isApiStep, isBrowserStep, isCustomStep, isLoginStep } from '../step-engine/schema.js';
 import { availablePlaceholdersAfter, stepLabel } from './flow-context.js';
+import { buildEliteFewShotBlock } from './elite-examples.js';
 import type { ScenarioMutationClient } from './ollama-mutator.js';
 import {
   buildRepairPrompt,
@@ -340,10 +341,12 @@ export async function runMutationPipeline(
   for (const { operator, task } of tasks) {
     const seed = fnvSeed(`${options.runSeed ?? 'evolab'}:${task.index}:${operator.name}`);
     const prompt = operator.buildPrompt(task);
+    const fewShot = buildEliteFewShotBlock(task.parent);
+    const user = fewShot ? `${prompt.user}\n\n${fewShot}` : prompt.user;
     const generation = await options.client.generate({
       model: operator.model,
       system: prompt.system,
-      user: prompt.user,
+      user,
       temperature: operator.temperature,
       seed,
     });

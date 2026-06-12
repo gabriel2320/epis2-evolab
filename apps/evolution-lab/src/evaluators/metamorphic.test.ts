@@ -231,6 +231,51 @@ describe('metamorphic evaluator', () => {
     expect(fail.evaluations.some((e) => e.details?.clause === 'delta' && !e.passed)).toBe(true);
   });
 
+  it('audit_delta required tolera historial previo con mismo entityId (MR-07 live)', () => {
+    const relation = loadRelation('mr-critical-ack-delta-001');
+    const critId = 'f0000004-0000-4000-8000-000000000002';
+    const result = evaluateMetamorphicRelation({
+      relation,
+      correlationId: 'corr-audit-dup',
+      source: {
+        runId: 'run-src',
+        scenarioId: 'critical-ack-snapshot-001',
+        observations: [
+          {
+            kind: 'audit_trail',
+            label: 'audit',
+            payload: {
+              events: [{ eventType: 'critical.acknowledged', entityId: critId }],
+            },
+          },
+        ],
+        finalStatus: 'completed',
+      },
+      followUps: [
+        {
+          runId: 'run-fu',
+          scenarioId: 'critical-acknowledge-001',
+          observations: [
+            {
+              kind: 'audit_trail',
+              label: 'audit',
+              payload: {
+                events: [
+                  { eventType: 'critical.acknowledged', entityId: critId },
+                  { eventType: 'critical.acknowledged', entityId: critId },
+                ],
+              },
+            },
+          ],
+          finalStatus: 'completed',
+        },
+      ],
+    });
+    expect(result.evaluations.some((e) => e.details?.clause === 'audit_delta' && e.passed)).toBe(
+      true,
+    );
+  });
+
   it('audit_delta required detecta evento nuevo en follow-up (MR-04)', () => {
     const relation = loadRelation('mr-audit-conservation-001');
     const result = evaluateMetamorphicRelation({

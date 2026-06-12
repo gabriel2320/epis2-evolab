@@ -49,7 +49,7 @@
 |------|-----------|
 | `npm run quality` | **539/539** tests ✓ |
 | Metamorphic dry-run `--tag smoke` | **7/7** ✓ |
-| Smoke vivo (API `:3001`) | — no ejecutado (requiere `npm run dev:api` en EPIS2) |
+| Smoke vivo (API `:3001`) | **7/7** ✓ |
 
 ---
 

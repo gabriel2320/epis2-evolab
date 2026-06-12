@@ -47,7 +47,7 @@ jobs:
   # continue-on-error mientras se observa estabilidad — promover a gate al estar verde.
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     needs: quality
     continue-on-error: true
     env:
@@ -136,3 +136,13 @@ jobs:
           EPIS2_EVOLAB_OLLAMA_REQUIRED: 'false'
           EPIS2_EVOLAB_LLM_SIM: 'off'
         run: npm run evolab:smoke
+
+      - name: Metamorphic smoke (--tag smoke, 7 relations)
+        if: steps.token.outputs.available == 'true'
+        working-directory: evolab
+        env:
+          EPIS2_EVOLAB_ENABLED: 'true'
+          EPIS2_EVOLAB_BROWSER: 'false'
+          EPIS2_EVOLAB_OLLAMA_REQUIRED: 'false'
+          EPIS2_EVOLAB_LLM_SIM: 'off'
+        run: npm run evolab:metamorphic -- run --tag smoke

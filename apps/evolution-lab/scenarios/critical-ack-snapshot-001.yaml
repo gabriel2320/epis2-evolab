@@ -35,6 +35,7 @@ flow:
 
 expected:
   hasUnacknowledgedCritical: true
+  auditEventCreated: true
 
 evaluators:
   - functional

@@ -190,12 +190,21 @@ function compareInvariantRepeat(
   };
 }
 
-function auditEventKeys(side: PairSide): Set<string> {
+function auditTrailEvents(side: PairSide): Array<{ eventType?: string; entityId?: string }> {
   const trail = side.observations.find((o) => o.kind === 'audit_trail');
-  const events = Array.isArray(trail?.payload.events)
+  return Array.isArray(trail?.payload.events)
     ? (trail.payload.events as Array<{ eventType?: string; entityId?: string }>)
     : [];
-  return new Set(events.map((e) => `${e.eventType ?? ''}|${e.entityId ?? ''}`));
+}
+
+function countAuditPattern(
+  events: Array<{ eventType?: string; entityId?: string }>,
+  pattern: string,
+  entityId?: string,
+): number {
+  return events.filter(
+    (e) => e.eventType?.includes(pattern) && (!entityId || e.entityId === entityId),
+  ).length;
 }
 
 function compareAuditDelta(
@@ -224,17 +233,14 @@ function compareAuditDelta(
   const violations: string[] = [];
 
   if (required.length > 0 && ctx.followUps[0]) {
-    const sourceKeys = auditEventKeys(ctx.source);
-    const followTrail = ctx.followUps[0].observations.find((o) => o.kind === 'audit_trail');
-    const followEvents = Array.isArray(followTrail?.payload.events)
-      ? (followTrail.payload.events as Array<{ eventType?: string; entityId?: string }>)
-      : [];
-    const newEvents = followEvents.filter(
-      (e) => !sourceKeys.has(`${e.eventType ?? ''}|${e.entityId ?? ''}`),
-    );
+    const sourceEvents = auditTrailEvents(ctx.source);
+    const followEvents = auditTrailEvents(ctx.followUps[0]);
     for (const pattern of required) {
-      const hit = newEvents.some((e) => e.eventType?.includes(pattern));
-      if (!hit) violations.push(`falta evento requerido: ${pattern}`);
+      const sourceCount = countAuditPattern(sourceEvents, pattern, entityId);
+      const followCount = countAuditPattern(followEvents, pattern, entityId);
+      if (followCount <= sourceCount) {
+        violations.push(`falta evento requerido: ${pattern}`);
+      }
     }
   }
 

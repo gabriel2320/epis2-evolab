@@ -1,0 +1,26 @@
+{
+  "version": "mutation-elite-v1",
+  "maxPerNiche": 2,
+  "entries": [
+    {
+      "nicheKey": "physician|clinical|allowed",
+      "scenarioIds": ["role-evolution-sign-001", "draft-lifecycle-cancelled-001"]
+    },
+    {
+      "nicheKey": "nurse|clinical|blocked",
+      "scenarioIds": ["role-nurse-approve-001"]
+    },
+    {
+      "nicheKey": "physician|inpatient|journey",
+      "scenarioIds": ["admission-discharge-001", "discharge-critical-pending-001"]
+    },
+    {
+      "nicheKey": "physician|inpatient|allowed",
+      "scenarioIds": ["census-service-integrity-001"]
+    },
+    {
+      "nicheKey": "physician|inpatient|metamorphic",
+      "scenarioIds": ["critical-acknowledge-001", "critical-ack-snapshot-001"]
+    }
+  ]
+}

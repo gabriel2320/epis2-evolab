@@ -11,6 +11,19 @@ Evolab opera **externamente** al sistema clínico: orquesta escenarios contra un
 - **EPIS2** en otro checkout, con sandbox levantado (`npm run stack:dev` en ese repo)
 - Ollama (opcional, para escenarios LLM)
 
+### Windows — `npm run quality`
+
+Si `npm run quality` aborta con código `-1073741819` pero `npm run test` pasa, ejecuta los gates por separado:
+
+```powershell
+npm run typecheck
+npm run lint
+npm run format:check
+npm run test
+```
+
+Alternativa: `npx vitest run` directamente. Es un problema conocido del wrapper npm + vitest en algunas estaciones Windows (ver `reports/evolution/evolab-repair-plan-2026-06-11.md` R0.5).
+
 ## Inicio rápido
 
 ```powershell
@@ -74,7 +87,14 @@ npm run evolab:plan -- --scenario llm-command-evolution-001
 $env:EPIS2_EVOLAB_LLM_SIM="execute"
 npm run evolab:run -- --scenario llm-command-evolution-001
 npm run evolab:validate
+npm run evolab:housekeeping -- --days 7 --dry-run
 ```
+
+## CI smoke (GitHub Actions)
+
+El job `smoke` requiere el secret **`EPIS2_CHECKOUT_TOKEN`**: PAT con lectura sobre `gabriel2320/epis2`. Sin el secret, el job se omite. Mientras se observa estabilidad, el job usa `continue-on-error: true`; promover a gate bloqueante tras 3 corridas verdes consecutivas.
+
+Configurar en: repositorio → Settings → Secrets and variables → Actions → New repository secret.
 
 ## Documentación
 

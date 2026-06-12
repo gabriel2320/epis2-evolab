@@ -44,6 +44,7 @@ flow:
 
 expected:
   acknowledgeSucceeded: true
+  auditEventCreated: true
 
 evaluators:
   - functional
