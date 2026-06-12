@@ -23,6 +23,7 @@ import { createPostgresArchiveStore } from './archive-repository.js';
 import { buildBaselineCoverage, evaluateCandidate } from './evaluate-candidate.js';
 import { assignNiche, emptyNiches, nicheKey } from './niches.js';
 import { selectParents } from './select-parents.js';
+import { buildF5Progress, readF5RunState, writeF5Progress } from './f5-progress.js';
 
 const log = createLogger('evolve');
 
@@ -179,6 +180,26 @@ export async function runEvolutionLoop(
   };
 
   const mutateFn = deps.mutate ?? defaultMutate;
+
+  const publishF5 = (generation: number, message?: string) => {
+    if (process.env.EPIS2_EVOLAB_F5_WATCHDOG !== '1') return;
+    const state = readF5RunState();
+    const snapshot = buildF5Progress({
+      runState: state,
+      overrides: {
+        phase: 'evolve',
+        status: 'running',
+        budgetMinutes: options.budgetMinutes,
+        generationsTotal: options.generations,
+        generationsCompleted: generation,
+        currentGeneration: generation,
+        elapsedMinutes: (Date.now() - started) / 60_000,
+        newElitesInEmpty: newElitesInPreviouslyEmpty,
+        ...(message ? { message } : {}),
+      },
+    });
+    if (snapshot) writeF5Progress(snapshot);
+  };
 
   for (let gen = 1; gen <= options.generations; gen += 1) {
     if (Date.now() >= deadline) {
@@ -340,6 +361,7 @@ export async function runEvolutionLoop(
     genSummary.durationMs = Date.now() - genStarted;
     summaries.push(genSummary);
     generationsCompleted = gen;
+    publishF5(gen, `Gen ${gen}: ${genSummary.newElites} élite(s) nueva(s)`);
     if (budgetExceeded) break;
   }
 

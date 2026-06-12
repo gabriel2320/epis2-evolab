@@ -87,9 +87,10 @@ npm run evolab:f5:extended -- --budget-minutes 360 --generations 36 --population
 
 | Archivo | Contenido |
 |---------|-----------|
+| `reports/evolution/f5-extended/progress.json` | barras de progreso + **recursos** (RAM/VRAM evolab+ollama) |
+| `reports/evolution/f5-extended/resources.jsonl` | muestreos cada 45 s durante evolve |
 | `reports/evolution/f5-extended/run-state.json` | estado vivo, intentos, minutos consumidos |
 | `reports/evolution/f5-extended/incidents.jsonl` | fallos con motivo y stderr |
-| `reports/evolution/f5-extended/heartbeat.jsonl` | preflight / fin |
 | `reports/evolution/f5-extended/evolve-run.log` | stdout evolve acumulado |
 | `reports/evolution/evolve/evolve-*.json` | telemetría por intento |
 | `reports/evolution/f5-extended/subagent-watchdog-prompt.md` | prompt Cursor tras crash |
@@ -103,7 +104,11 @@ Tras un incidente, el watchdog genera prompt actualizado. En Cursor:
 3. Pedir recuperación según checklist del prompt
 4. Relanzar `npm run evolab:f5:extended` (retoma presupuesto)
 
-**Nota:** el reinicio de Cursor es manual; el watchdog preserva estado en disco.
+**Alcance recursos:** solo procesos **evolab** (node/tsx) + **ollama** · modelos vía `Ollama /api/ps` · GPU opcional (`nvidia-smi`). No monitoriza EPIS2 web/api ni otros procesos.
+
+**Protección:** si RAM/VRAM supera umbral crítico → pausa 120 s antes de evolve · detiene evolve en curso si persiste · log en `resources.jsonl`.
+
+Umbrales default: RAM sistema ≥92%, libre <2 GB, RSS evolab+ollama ≥14 GB, VRAM ≥92%.
 
 ---
 

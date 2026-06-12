@@ -11,6 +11,8 @@ reports/evolution/fitness/
 reports/evolution/mutation/
 reports/evolution/evolve/
 reports/evolution/f5-extended/run-state.json
+reports/evolution/f5-extended/progress.json
+reports/evolution/f5-extended/resources.jsonl
 reports/evolution/f5-extended/incidents.jsonl
 reports/evolution/f5-extended/heartbeat.jsonl
 reports/evolution/f5-extended/evolve-run.log

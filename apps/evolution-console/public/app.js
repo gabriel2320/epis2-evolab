@@ -1,5 +1,111 @@
 const main = document.getElementById('main');
 const dbStatus = document.getElementById('db-status');
+let f5PollTimer;
+
+function stopF5Poll() {
+  if (f5PollTimer) {
+    clearInterval(f5PollTimer);
+    f5PollTimer = undefined;
+  }
+}
+
+function isF5Active(p) {
+  return p && (p.status === 'running' || p.status === 'pending' || p.phase === 'evolve' || p.phase === 'preflight');
+}
+
+function progressFillClass(kind, percent, status) {
+  if (status === 'failed') return 'warn';
+  if (kind === 'gate' && percent >= 100) return 'done';
+  if (kind === 'gate') return 'gate';
+  if (percent >= 100) return 'done';
+  return '';
+}
+
+function progressBarBlock(label, percent, detail, kind = 'default') {
+  const p = Math.min(100, Math.max(0, Number(percent) || 0));
+  const cls = progressFillClass(kind, p, '');
+  return `<div class="progress-block">
+    <div class="progress-label"><span>${esc(label)}</span><strong>${p.toFixed(1)}% · ${esc(detail)}</strong></div>
+    <div class="progress-track" role="progressbar" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress-fill ${cls}" style="width:${p}%"></div>
+    </div>
+  </div>`;
+}
+
+function f5StatusBadge(status) {
+  const map = {
+    running: 'human_review',
+    pending: 'pending',
+    completed: 'passed',
+    completed_under_gate: 'human_review',
+    budget_exhausted: 'failed',
+    failed: 'failed',
+    idle: 'PENDING',
+  };
+  return badge(map[status] ?? status);
+}
+
+function renderF5Panel(p, { compact = false } = {}) {
+  if (!p) {
+    return `<div class="f5-panel"><p class="empty">Sin corrida F5 activa. Lanza <code>npm run evolab:f5:extended</code>.</p></div>`;
+  }
+  const live = isF5Active(p);
+  const title = compact ? 'F5 en curso' : 'Corrida F5 extendida';
+  return `<div class="f5-panel">
+    <div class="f5-panel-head">
+      <h2 style="margin:0;font-size:${compact ? '1rem' : '1.25rem'}">${live ? '<span class="f5-live-dot"></span>' : ''}${title}</h2>
+      ${f5StatusBadge(p.status)}
+    </div>
+    ${progressBarBlock('Presupuesto tiempo', p.budgetPercent, `${p.elapsedMinutes.toFixed(1)} / ${p.budgetMinutes} min`)}
+    ${progressBarBlock('Generaciones MAP-Elites', p.generationsPercent, `${p.generationsCompleted} / ${p.generationsTotal}${p.currentGeneration != null ? ` · gen ${p.currentGeneration}` : ''}`)}
+    ${progressBarBlock('Gate élites (nichos vacíos)', p.gatePercent, `${p.newElitesInEmpty} / ${p.gateTarget}`, 'gate')}
+    <div class="f5-meta">
+      <span>Run <code>${esc(p.runId ?? '—')}</code></span>
+      <span>Fase ${esc(p.phase)}</span>
+      <span>Intento ${p.attempt}/${p.maxAttempts}</span>
+      <span>Población ${p.population}</span>
+      ${p.dryRun ? '<span>DRY-RUN</span>' : ''}
+      <span>Actualizado ${fmtDate(p.updatedAt)}</span>
+    </div>
+    ${p.message ? `<p class="hint" style="margin-top:1rem;margin-bottom:0">${esc(p.message)}</p>` : ''}
+    ${p.resources ? `<div class="f5-meta" style="margin-top:1rem">
+      <span>Recursos: <strong class="sev-${esc(p.resources.level === 'critical' ? 'critical' : p.resources.level === 'warn' ? 'high' : 'low')}">${esc(p.resources.level)}</strong></span>
+      <span>RAM ${p.resources.systemUsedPercent.toFixed(1)}%</span>
+      <span>Libre ${p.resources.freeMemMb.toFixed(0)} MB</span>
+      <span>evolab ${p.resources.evolabRssMb.toFixed(0)} MB</span>
+      <span>ollama ${p.resources.ollamaRssMb.toFixed(0)} MB</span>
+      ${p.resources.gpuUsedPercent != null ? `<span>VRAM ${p.resources.gpuUsedPercent.toFixed(1)}%</span>` : ''}
+      ${p.resources.ollamaModelCount != null ? `<span>modelos ${p.resources.ollamaModelCount}</span>` : ''}
+    </div>
+    ${p.resources.reasons?.length ? `<p class="hint" style="margin-top:0.5rem">${esc(p.resources.reasons.join(' · '))}</p>` : ''}` : ''}
+    ${compact ? '<p style="margin:0.75rem 0 0"><a class="link" href="#/f5">Ver detalle F5 →</a></p>' : ''}
+  </div>`;
+}
+
+async function fetchF5Progress() {
+  const { progress } = await api('/api/f5-progress');
+  return progress;
+}
+
+async function pageF5Progress() {
+  stopF5Poll();
+  const paint = async () => {
+    try {
+      const p = await fetchF5Progress();
+      main.innerHTML = `<h1>F5 Evolve</h1>
+        <p class="hint">Indicador en vivo de <code>npm run evolab:f5:extended</code> · refresco cada 5 s</p>
+        ${renderF5Panel(p)}
+        <p class="hint">Consola: <code>npm run evolab:console</code> · logs en <code>reports/evolution/f5-extended/</code></p>`;
+      if (isF5Active(p)) {
+        stopF5Poll();
+        f5PollTimer = setInterval(paint, 5000);
+      }
+    } catch (err) {
+      main.innerHTML = `<p class="empty">Error: ${esc(err.message)}</p>`;
+    }
+  };
+  await paint();
+}
 
 async function api(path) {
   const res = await fetch(path);
@@ -70,9 +176,12 @@ function findingsTable(findings, opts = {}) {
 }
 
 async function pageDashboard() {
-  const data = await api('/api/dashboard');
+  stopF5Poll();
+  const [data, f5] = await Promise.all([api('/api/dashboard'), fetchF5Progress().catch(() => null)]);
+  const f5Block = isF5Active(f5) ? renderF5Panel(f5, { compact: true }) : '';
   main.innerHTML = `
     <h1>Dashboard</h1>
+    ${f5Block}
     <div class="grid-2">
       <div class="card"><div class="stat">${data.runs?.length ?? 0}</div><div class="stat-label">Runs recientes</div></div>
       <div class="card"><div class="stat">${data.openFindings?.length ?? 0}</div><div class="stat-label">Hallazgos abiertos</div></div>
@@ -135,12 +244,26 @@ async function router() {
 
   try {
     if (hash === '/' || hash === '') await pageDashboard();
-    else if (hash === '/runs') await pageRuns();
-    else if (hash === '/findings') await pageFindings();
-    else if (hash === '/judge-queue') await pageJudgeQueue();
-    else if (hash === '/queue') await pageQueue();
-    else if (hash.startsWith('/run/')) await pageRunDetail(hash.slice('/run/'.length));
-    else main.innerHTML = '<p class="empty">Ruta desconocida</p>';
+    else if (hash === '/runs') {
+      stopF5Poll();
+      await pageRuns();
+    } else if (hash === '/findings') {
+      stopF5Poll();
+      await pageFindings();
+    } else if (hash === '/judge-queue') {
+      stopF5Poll();
+      await pageJudgeQueue();
+    } else if (hash === '/queue') {
+      stopF5Poll();
+      await pageQueue();
+    } else if (hash === '/f5') await pageF5Progress();
+    else if (hash.startsWith('/run/')) {
+      stopF5Poll();
+      await pageRunDetail(hash.slice('/run/'.length));
+    } else {
+      stopF5Poll();
+      main.innerHTML = '<p class="empty">Ruta desconocida</p>';
+    }
   } catch (err) {
     main.innerHTML = `<p class="empty">Error: ${esc(err.message)}</p>`;
   }

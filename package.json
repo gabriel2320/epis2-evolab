@@ -29,7 +29,7 @@
     "evolab:fitness": "tsx apps/evolution-lab/src/cli.ts fitness report",
     "evolab:mutate": "tsx apps/evolution-lab/src/cli.ts mutate",
     "evolab:evolve": "tsx apps/evolution-lab/src/cli.ts evolve",
-    "evolab:f5:extended": "node scripts/evolution/f5-extended-watchdog.mjs",
+    "evolab:f5:extended": "tsx scripts/evolution/f5-extended-watchdog.ts",
     "evolab:smoke:visual": "tsx apps/evolution-lab/src/cli.ts run --tag smoke-visual --evidence minimal",
     "evolab:replay": "tsx apps/evolution-lab/src/cli.ts replay",
     "evolab:plan": "tsx apps/evolution-lab/src/cli.ts plan",

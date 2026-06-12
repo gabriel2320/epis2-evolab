@@ -10,6 +10,7 @@ import {
   getQueue,
   getRunDetail,
   getRuns,
+  readF5Progress,
 } from '../../evolution-lab/src/console/read-model.js';
 import { loadConsoleConfig } from './config.js';
 
@@ -39,14 +40,19 @@ async function handleApi(
   pathname: string,
   config: ReturnType<typeof loadConsoleConfig>,
 ) {
+  const url = new URL(req.url ?? '/', `http://${config.host}`);
+  const limit = Number.parseInt(url.searchParams.get('limit') ?? '20', 10) || 20;
+  const status = url.searchParams.get('status') ?? undefined;
+
+  if (pathname === '/api/f5-progress') {
+    sendJson(res, 200, { progress: readF5Progress(config.repoRoot) });
+    return;
+  }
+
   if (!config.databaseUrl) {
     sendJson(res, 503, { error: 'EPIS2_EVOLAB_DATABASE_URL no configurada' });
     return;
   }
-
-  const url = new URL(req.url ?? '/', `http://${config.host}`);
-  const limit = Number.parseInt(url.searchParams.get('limit') ?? '20', 10) || 20;
-  const status = url.searchParams.get('status') ?? undefined;
 
   if (pathname === '/api/health') {
     sendJson(res, 200, await getConsoleHealth(config.databaseUrl));

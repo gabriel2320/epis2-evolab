@@ -13,6 +13,8 @@ import {
 import { listJudgeQueueFromDb, type JudgeQueueRow } from '../persistence/judge-repository.js';
 import { listScenarios } from '../scenarios/loader.js';
 
+export { readF5Progress, summarizeResources, type F5ProgressSnapshot } from '../evolution/f5-progress.js';
+
 export type ConsoleHealth = {
   ok: boolean;
   database: boolean;
