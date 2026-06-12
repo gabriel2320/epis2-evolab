@@ -1,0 +1,67 @@
+id: discharge-critical-pending-001-m8pp-006
+version: 1
+name: Alta con resultado crítico pendiente - Paciente inexistente
+risk: high
+target:
+  capabilities:
+    - hospitalization
+    - discharge
+    - critical-results
+persona:
+  role: physician
+fixture:
+  type: synthetic-adult-hospitalized
+  demoCaseCode: DEMO-004
+  patientId: 00000000-0000-4000-8000-000000000000
+goal:
+  action: sign_discharge_with_nonexistent_patient
+steps:
+  - login
+  - open_patient
+  - open_hospitalization
+  - open_discharge
+  - complete_required_fields
+  - attempt_signature
+flow:
+  - login:
+      label: login_physician
+  - api:
+      label: discharge_draft_create
+      method: POST
+      path: /api/drafts
+      body:
+        patientId: "{patientId}"
+        encounterId: "{encounterId}"
+        draftType: discharge_summary
+        title: Epicrisis — Evolab sintético
+        body:
+          diagnoses: Alta demo Evolab — apendicectomía (sintético)
+          dischargeDate: "{today}"
+          hospitalizationSummary: Evolución favorable — demo sintético
+          dischargeMedications: Paracetamol 1 g c/8 h PRN (demo)
+          instructions: Control ambulatorio en 7 días (demo)
+          followUpPlan: Control cirugía general en 7 días
+      evidenceLabel: discharge-draft-create
+      capture:
+        draftId: draft.id
+      failOnMissingCapture: No se pudo crear borrador de alta (HTTP {status})
+      observe:
+        payload:
+          - status
+          - ok
+          - draftId
+expected:
+  actionBlocked: true
+  auditEventCreated: true
+evaluators:
+  - functional
+  - clinical_safety
+  - accessibility
+  - audit
+actionObservation: discharge_draft_create
+timeoutMs: 120000
+maxAttempts: 3
+tags:
+  - clinical_safety
+  - discharge
+  - critical-results

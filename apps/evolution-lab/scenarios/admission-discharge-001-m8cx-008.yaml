@@ -1,0 +1,153 @@
+id: admission-discharge-001-m8cx-008
+version: 1
+name: Journey — admisión a alta hospitalaria completa con resultado crítico pendiente
+risk: high
+target:
+  capabilities:
+    - inpatient
+    - admission
+    - discharge
+    - census
+    - critical-results
+persona:
+  role: physician
+fixture:
+  type: synthetic-journey
+  demoCaseCode: DEMO-001
+  unitCode: CIRUGIA-DEMO
+  bedId: f0000002-0000-4000-8000-000000000001
+  criticalResultId: f0000004-0000-4000-8000-000000000002
+  criticalResultPendingAcknowledgement: true
+goal:
+  action: attempt_discharge_with_pending_critical
+steps:
+  - login
+  - ensure_patient_not_admitted
+  - census_baseline
+  - find_available_bed
+  - admit_patient
+  - census_after_admission
+  - service_criticals_unacknowledged
+  - discharge_alerts
+  - discharge_draft_create
+  - discharge_ui_probe
+  - discharge_approve_attempt
+  - service_criticals_after_discharge_attempt
+flow:
+  - login:
+      label: login_physician
+  - custom:
+      name: ensure_patient_not_admitted
+      args:
+        label: ensure_not_admitted
+        unit: CIRUGIA-DEMO
+  - custom:
+      name: census_snapshot
+      args:
+        label: census_baseline
+        unit: CIRUGIA-DEMO
+  - custom:
+      name: find_available_bed
+      args:
+        label: available_bed
+        unit: CIRUGIA-DEMO
+  - api:
+      label: admission_create
+      method: POST
+      path: /api/inpatient/admissions
+      body:
+        patientId: "{patientId}"
+        bedId: "{bedId}"
+        unitCode: CIRUGIA-DEMO
+      evidenceLabel: admission-create
+      capture:
+        admissionId: admission.id
+      failOnMissingCapture: No se pudo admitir al paciente (HTTP {status})
+      observe:
+        payload:
+          - status
+          - ok
+          - admissionId
+  - custom:
+      name: census_snapshot
+      args:
+        label: census_after_admission
+        unit: CIRUGIA-DEMO
+  - custom:
+      name: service_criticals
+      args:
+        label: unacknowledged_criticals
+  - custom:
+      name: discharge_alerts
+      args:
+        label: discharge_alerts
+  - api:
+      label: discharge_draft_create
+      method: POST
+      path: /api/drafts
+      body:
+        patientId: "{patientId}"
+        encounterId: "{encounterId}"
+        draftType: discharge_summary
+        title: Epicrisis — Evolab sintético
+        body:
+          diagnoses: Alta demo Evolab — apendicectomía (sintético)
+          dischargeDate: "{today}"
+          hospitalizationSummary: Evolución favorable — demo sintético
+          dischargeMedications: Paracetamol 1 g c/8 h PRN (demo)
+          instructions: Control ambulatorio en 7 días (demo)
+          followUpPlan: Control cirugía general en 7 días
+      capture:
+        draftId: draft.id
+      failOnMissingCapture: No se pudo crear borrador de alta (HTTP {status})
+      observe:
+        payload:
+          - status
+          - ok
+          - draftId
+  - custom:
+      name: discharge_ui_probe
+  - api:
+      label: discharge_approve_attempt
+      method: POST
+      path: /api/drafts/{draftId}/approve
+      evidenceLabel: discharge-approve-attempt
+      observe:
+        payload:
+          - status
+          - ok
+          - draftId
+  - custom:
+      name: service_criticals
+      args:
+        label: after_discharge_attempt
+expected:
+  dischargeBlocked: true
+  warningVisible: true
+  auditEventCreated: true
+  criticalResultRemainsPending: true
+  cdrConsistent: true
+  auditMustInclude:
+    - auth.login.success
+    - inpatient.admitted
+    - clinical.draft.created
+  auditMustNotInclude:
+    - clinical.draft.approved
+evaluators:
+  - functional
+  - clinical_safety
+  - accessibility
+  - audit
+  - cdr_consistency
+  - audit_completeness
+actionObservation: discharge_approve_attempt
+timeoutMs: 120000
+maxAttempts: 3
+tags:
+  - journey
+  - admission
+  - inpatient
+  - integrity
+  - clinical_safety
+  - discharge
+  - critical-results
