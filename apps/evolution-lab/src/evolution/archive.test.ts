@@ -15,6 +15,7 @@ import {
   nicheKey,
 } from './niches.js';
 import { loadRelation } from '../scenarios/relation-loader.js';
+import { loadScenario } from '../scenarios/loader.js';
 
 function makeScenario(id: string, overrides: Partial<ScenarioDefinition> = {}): ScenarioDefinition {
   return ScenarioDefinitionSchema.parse({
@@ -194,8 +195,8 @@ describe('minimalFitness', () => {
 });
 
 describe('niches', () => {
-  it('enumera 60 celdas', () => {
-    expect(enumerateNiches()).toHaveLength(60);
+  it('enumera 84 celdas', () => {
+    expect(enumerateNiches()).toHaveLength(84);
   });
 
   it('assignNicheForRelation usa outcome metamorphic', () => {
@@ -205,12 +206,20 @@ describe('niches', () => {
     expect(nicheKey(niche)).toMatch(/\|metamorphic$/);
   });
 
+  it('assignNiche detecta módulos visuales paper y classic', () => {
+    const paper = loadScenario('visual-paper-chart-001');
+    const classic = loadScenario('visual-classic-traditional-001');
+    expect(assignNiche(paper).module).toBe('paper');
+    expect(assignNiche(classic).module).toBe('classic');
+    expect(nicheKey(assignNiche(paper))).toBe('physician|paper|allowed');
+  });
+
   it('emptyNiches excluye corpus ocupado', () => {
     const corpus = [
       makeScenario('s1', { persona: { role: 'nurse' }, expected: { actionBlocked: true } }),
     ];
     const empty = emptyNiches(corpus);
-    expect(empty.length).toBeLessThan(60);
+    expect(empty.length).toBeLessThan(84);
     expect(empty.some((n) => nicheKey(n) === nicheKey(assignNiche(corpus[0]!)))).toBe(false);
   });
 });

@@ -1,0 +1,55 @@
+id: visual-classic-traditional-001
+version: 1
+name: Modo clásico — ficha dual traditional visible
+description: Verifica ficha dual chartMode=traditional (Classic EMR / MF-DUAL-CHART)
+risk: low
+
+target:
+  capabilities:
+    - browser
+    - dual_chart
+
+persona:
+  role: physician
+  experience: routine
+
+fixture:
+  demoCaseCode: DEMO-001
+
+goal:
+  action: open_traditional_chart
+
+steps:
+  - login_physician
+  - open_comando
+  - open_traditional_ficha
+
+flow:
+  - login: null
+  - browser:
+      open: /comando
+  - browser:
+      open: '/espacio/ficha?patientId={patientId}&chartMode=traditional'
+      waitTestId: epis2-traditional-ehr-mode
+      waitTimeoutMs: 25000
+      visible:
+        traditionalShellVisible: epis2-traditional-ehr-mode
+        traditionalModeSwitchActive: epis2-chart-mode-traditional
+      screenshot: visual-traditional-shell
+      label: traditional_shell_dom
+
+expected:
+  traditionalShellVisible: true
+  chartModeSwitchVisible: true
+
+evaluators:
+  - visual_shell
+
+actionObservation: traditional_shell_dom
+timeoutMs: 120000
+maxAttempts: 2
+tags:
+  - visual
+  - visual-traditional
+  - visual-classic
+  - smoke-visual

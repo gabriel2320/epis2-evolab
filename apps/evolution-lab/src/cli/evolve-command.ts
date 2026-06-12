@@ -3,7 +3,7 @@ import { join, resolve } from 'node:path';
 import { loadEvolabConfig } from '../config/env.js';
 import { pingEvolabDatabase } from '../persistence/client.js';
 import { preflightTarget } from './commands.js';
-import { nicheKey } from '../evolution/niches.js';
+import { nicheKey, enumerateNiches } from '../evolution/niches.js';
 import {
   createArchiveStoreForEvolve,
   runEvolutionLoop,
@@ -52,7 +52,8 @@ function printEvolveReport(result: EvolveResult): void {
     );
   }
 
-  console.log(`\nCeldas vacías (${result.archive.emptyNiches.length}/45):`);
+  const totalNiches = enumerateNiches().length;
+  console.log(`\nCeldas vacías (${result.archive.emptyNiches.length}/${totalNiches}):`);
   const sample = result.archive.emptyNiches.slice(0, 12);
   for (const n of sample) {
     console.log(`  · ${formatNiche(n)}`);
@@ -124,6 +125,7 @@ export async function runEvolve(opts: EvolveCommandOptions): Promise<number> {
         2,
       ),
     );
+    if (opts.dryRun) return 0;
     return result.archive.newElitesInPreviouslyEmpty >= 5 ? 0 : 1;
   }
 

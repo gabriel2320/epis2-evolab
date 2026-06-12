@@ -106,6 +106,75 @@ export class DomStateEvaluator implements DeterministicEvaluator {
   }
 }
 
+/** Evalúa shell visual EPIS2 (modo papel / clásico dual) vía observaciones dom_state. */
+export class VisualShellEvaluator implements DeterministicEvaluator {
+  id = 'visual_shell';
+
+  evaluate(ctx: EvaluatorContext): EvaluationResult {
+    const obs = ctx.observations.find((o) => o.kind === 'dom_state');
+    if (!obs) {
+      return {
+        runId: ctx.runId,
+        evaluatorId: this.id,
+        passed: false,
+        severity: 'medium',
+        message: 'Sin observación DOM para shell visual',
+      };
+    }
+
+    const payload = obs.payload;
+    const checks: Array<{ key: string; ok: boolean }> = [];
+
+    if (ctx.expected.paperShellVisible === true) {
+      checks.push({
+        key: 'paperShellVisible',
+        ok: payload.paperTemplateVisible === true,
+      });
+    }
+    if (ctx.expected.traditionalShellVisible === true) {
+      checks.push({
+        key: 'traditionalShellVisible',
+        ok: payload.traditionalShellVisible === true,
+      });
+    }
+    if (ctx.expected.classicMd3ShellVisible === true) {
+      checks.push({
+        key: 'classicMd3ShellVisible',
+        ok: payload.classicMd3ShellVisible === true,
+      });
+    }
+    if (ctx.expected.chartModeSwitchVisible === true) {
+      const switchOk =
+        payload.paperModeSwitchActive === true || payload.traditionalModeSwitchActive === true;
+      checks.push({ key: 'chartModeSwitchVisible', ok: switchOk });
+    }
+
+    if (checks.length === 0) {
+      return {
+        runId: ctx.runId,
+        evaluatorId: this.id,
+        passed: true,
+        severity: 'info',
+        message: 'Sin expectativas visuales declaradas',
+      };
+    }
+
+    const passed = checks.every((c) => c.ok);
+    const failed = checks.filter((c) => !c.ok).map((c) => c.key);
+
+    return {
+      runId: ctx.runId,
+      evaluatorId: this.id,
+      passed,
+      severity: passed ? 'info' : 'medium',
+      message: passed
+        ? 'Shell visual EPIS2 coherente con el modo esperado'
+        : `Shell visual incompleto: ${failed.join(', ')}`,
+      details: { checks, url: payload.url },
+    };
+  }
+}
+
 export class RolePermissionEvaluator implements DeterministicEvaluator {
   id = 'role_permission';
 
@@ -163,6 +232,15 @@ export function buildEvaluatorsForScenario(scenario: {
   ) {
     ids.push('audit_completeness');
   }
+  if (
+    (scenario.expected.paperShellVisible === true ||
+      scenario.expected.traditionalShellVisible === true ||
+      scenario.expected.classicMd3ShellVisible === true ||
+      scenario.expected.chartModeSwitchVisible === true) &&
+    !ids.includes('visual_shell')
+  ) {
+    ids.push('visual_shell');
+  }
   const functional = new HttpResultEvaluator();
   functional.id = 'functional';
   const map: Record<string, DeterministicEvaluator> = {
@@ -179,6 +257,7 @@ export function buildEvaluatorsForScenario(scenario: {
     census_integrity: new CensusIntegrityEvaluator(),
     cdr_consistency: new CdrConsistencyEvaluator(),
     audit_completeness: new AuditCompletenessEvaluator(),
+    visual_shell: new VisualShellEvaluator(),
   };
   return ids.map((id) => map[id]).filter((e): e is DeterministicEvaluator => e !== undefined);
 }

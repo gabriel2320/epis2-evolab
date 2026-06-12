@@ -84,7 +84,11 @@ REGLAS DE FORMATO (obligatorias):
 - Paso api: requiere label (snake_case único), method (GET|POST|PATCH|PUT|DELETE) y path; opcionales body, capture (claveContexto -> ruta.punteada de la respuesta), failOnMissingCapture y observe.
 - Placeholders {x}: solo puedes usar {x} si x existe en el contexto base (claves de fixture, patientId, encounterId, today) o fue capturado con capture en un paso ANTERIOR del flow.
 - REGLA CRÍTICA: si eliminas o invalidas un capture, ningún paso posterior puede seguir usando ese placeholder — elimina esos pasos dependientes y reapunta actionObservation.
-- actionObservation debe ser el label de un paso api existente del flow.
+- actionObservation debe ser el label de un paso api existente del flow, o label de un paso browser con observación dom_state.
+- MODOS VISUALES EPIS2 (browser.open en flow):
+  - Modo papel: /espacio/ficha?patientId={patientId}&chartMode=paper — testIds epis2-paper-chart-template, epis2-chart-mode-paper; evaluators visual_shell; tags visual-paper.
+  - Modo clásico dual: chartMode=traditional — testIds epis2-traditional-ehr-mode, epis2-chart-mode-traditional; tags visual-traditional.
+  - expected: paperShellVisible / traditionalShellVisible / chartModeSwitchVisible según modo.
 - Paths permitidos (allowlist del sandbox EPIS2 — NO uses ningún otro):
 ${allowedPathsText()}
 - Custom steps permitidos: ${listCustomSteps().join(', ')}.

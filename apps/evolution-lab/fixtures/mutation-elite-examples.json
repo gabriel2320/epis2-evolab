@@ -21,6 +21,14 @@
     {
       "nicheKey": "physician|inpatient|metamorphic",
       "scenarioIds": ["critical-acknowledge-001", "critical-ack-snapshot-001"]
+    },
+    {
+      "nicheKey": "physician|paper|allowed",
+      "scenarioIds": ["visual-paper-chart-001"]
+    },
+    {
+      "nicheKey": "physician|classic|allowed",
+      "scenarioIds": ["visual-classic-traditional-001"]
     }
   ]
 }

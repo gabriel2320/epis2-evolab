@@ -3,6 +3,7 @@ import {
   DomStateEvaluator,
   HttpResultEvaluator,
   RolePermissionEvaluator,
+  VisualShellEvaluator,
 } from './deterministic.js';
 
 const runId = '00000000-0000-4000-8000-000000000099';
@@ -102,6 +103,27 @@ describe('deterministic evaluators', () => {
       observations: [
         { kind: 'session', label: 'x', payload: { role: 'admin' } },
         { kind: 'api_response', label: 'x', payload: { status: 403 } },
+      ],
+    });
+    expect(result.passed).toBe(true);
+  });
+
+  it('VisualShellEvaluator valida shell papel', () => {
+    const ev = new VisualShellEvaluator();
+    const result = ev.evaluate({
+      runId,
+      scenarioId: 'visual-paper-chart-001',
+      expected: { paperShellVisible: true, chartModeSwitchVisible: true },
+      observations: [
+        {
+          kind: 'dom_state',
+          label: 'paper_shell_dom',
+          payload: {
+            paperTemplateVisible: true,
+            paperModeSwitchActive: true,
+            url: 'http://localhost:5173/espacio/ficha?chartMode=paper',
+          },
+        },
       ],
     });
     expect(result.passed).toBe(true);

@@ -1,0 +1,54 @@
+id: visual-paper-chart-001
+version: 1
+name: Modo papel — shell Carta/A5 visible
+description: Verifica ficha dual chartMode=paper (PROG-PAPER-MODE) sin apariencia dashboard
+risk: low
+
+target:
+  capabilities:
+    - browser
+    - dual_chart
+
+persona:
+  role: physician
+  experience: routine
+
+fixture:
+  demoCaseCode: DEMO-001
+
+goal:
+  action: open_paper_chart
+
+steps:
+  - login_physician
+  - open_comando
+  - open_paper_ficha
+
+flow:
+  - login: null
+  - browser:
+      open: /comando
+  - browser:
+      open: '/espacio/ficha?patientId={patientId}&chartMode=paper'
+      waitTestId: epis2-paper-chart-template
+      waitTimeoutMs: 25000
+      visible:
+        paperTemplateVisible: epis2-paper-chart-template
+        paperModeSwitchActive: epis2-chart-mode-paper
+      screenshot: visual-paper-shell
+      label: paper_shell_dom
+
+expected:
+  paperShellVisible: true
+  chartModeSwitchVisible: true
+
+evaluators:
+  - visual_shell
+
+actionObservation: paper_shell_dom
+timeoutMs: 120000
+maxAttempts: 2
+tags:
+  - visual
+  - visual-paper
+  - smoke-visual

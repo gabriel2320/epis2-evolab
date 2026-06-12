@@ -9,7 +9,7 @@ import {
   type HttpMethod,
 } from '../fitness/coverage-catalog.js';
 import { ROLE_CATALOG } from '../mutation/operators.js';
-import { isApiStep, isCustomStep } from '../step-engine/schema.js';
+import { isApiStep, isBrowserStep, isCustomStep } from '../step-engine/schema.js';
 
 /**
  * Espacio MAP-Elites (S9.1): nichos por (rol actor × módulo clínico × tipo de
@@ -21,7 +21,17 @@ import { isApiStep, isCustomStep } from '../step-engine/schema.js';
 export const NICHE_ROLES = ROLE_CATALOG;
 export type NicheRole = (typeof NICHE_ROLES)[number];
 
-export const NICHE_MODULES = ['auth', 'clinical', 'inpatient', 'dashboard', 'audit'] as const;
+export const NICHE_MODULES = [
+  'auth',
+  'clinical',
+  'inpatient',
+  'dashboard',
+  'audit',
+  /** Ficha dual chartMode=paper (PROG-PAPER-MODE). */
+  'paper',
+  /** Ficha dual chartMode=traditional / legacy mode=classic (MF-DUAL-CHART). */
+  'classic',
+] as const;
 export type NicheModule = (typeof NICHE_MODULES)[number];
 
 export const NICHE_OUTCOMES = ['allowed', 'blocked', 'journey', 'metamorphic'] as const;
@@ -67,10 +77,24 @@ type StepModuleInfo = {
   mutating: boolean;
 };
 
+function moduleFromVisualRoute(route: string): NicheModule | undefined {
+  if (route.includes('chartMode=paper')) return 'paper';
+  if (route.includes('chartMode=traditional') || route.includes('mode=classic')) return 'classic';
+  return undefined;
+}
+
 function stepModules(scenario: ScenarioDefinition): StepModuleInfo[] {
   const infos: StepModuleInfo[] = [];
   for (const step of scenario.flow ?? []) {
-    if (isApiStep(step)) {
+    if (isBrowserStep(step)) {
+      const open = step.browser.open ?? '';
+      const visualModule = moduleFromVisualRoute(open);
+      infos.push({
+        labels: [step.browser.label ?? 'browser'],
+        module: visualModule,
+        mutating: false,
+      });
+    } else if (isApiStep(step)) {
       infos.push({
         labels: [step.api.observe?.label ?? step.api.label, step.api.label],
         module: endpointModule(step.api.method as HttpMethod, step.api.path),
@@ -100,6 +124,14 @@ function stepModules(scenario: ScenarioDefinition): StepModuleInfo[] {
  * tampoco, el módulo no-auth más tocado. Determinista.
  */
 export function scenarioPrimaryModule(scenario: ScenarioDefinition): NicheModule {
+  if (scenario.tags?.includes('visual-paper')) return 'paper';
+  if (
+    scenario.tags?.includes('visual-classic') ||
+    scenario.tags?.includes('visual-traditional')
+  ) {
+    return 'classic';
+  }
+
   const infos = stepModules(scenario);
 
   if (scenario.actionObservation) {
@@ -165,7 +197,7 @@ export function assignNicheForRelation(relation: MetamorphicRelation): Niche {
   return { ...base, outcome: 'metamorphic' };
 }
 
-/** Enumera las 60 celdas del espacio (3 roles × 5 módulos × 4 resultados). */
+/** Enumera las 84 celdas del espacio (3 roles × 7 módulos × 4 resultados). */
 export function enumerateNiches(): Niche[] {
   const niches: Niche[] = [];
   for (const role of NICHE_ROLES) {
