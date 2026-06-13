@@ -18,6 +18,8 @@ export type ParentSelectionOptions = {
   seed: number;
   /** Cuántos padres devolver (default 1). */
   count?: number;
+  /** S14.2 — restringe selección a nichos vacíos/frontera en este subconjunto */
+  focusNicheKeys?: Set<string>;
 };
 
 /** xorshift32 — PRNG ligero y determinista para selección sesgada. */
@@ -84,9 +86,17 @@ export function selectParents(options: ParentSelectionOptions): ScenarioDefiniti
     occupiedKeys.add(e.nicheKey);
   }
 
-  const empty = emptyNiches(options.corpus, occupiedKeys);
+  let empty = emptyNiches(options.corpus, occupiedKeys);
+  if (options.focusNicheKeys && options.focusNicheKeys.size > 0) {
+    empty = empty.filter((n) => options.focusNicheKeys!.has(nicheKey(n)));
+  }
   const emptyKeys = new Set(empty.map(nicheKey));
-  const frontierKeys = computeFrontierKeys(occupiedKeys, emptyKeys);
+  let frontierKeys = computeFrontierKeys(occupiedKeys, emptyKeys);
+  if (options.focusNicheKeys && options.focusNicheKeys.size > 0) {
+    frontierKeys = new Set(
+      [...frontierKeys].filter((key) => options.focusNicheKeys!.has(key)),
+    );
+  }
 
   const pool: ScenarioDefinition[] = [...options.corpus];
   for (const elite of options.elites) {

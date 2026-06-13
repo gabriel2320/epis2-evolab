@@ -6,6 +6,11 @@ import type { EvolabConfig } from '../config/env.js';
 import { ScenarioDefinitionSchema, type ScenarioDefinition } from '../contracts/schemas.js';
 import { createLogger } from '../logger.js';
 import { runMutationPipeline, type MutationPipelineResult } from '../mutation/pipeline.js';
+import {
+  wrapEmbeddingsClientWithGpuOrchestrator,
+  wrapMutationClientWithGpuOrchestrator,
+} from '../gpu/wrap-clients.js';
+import { applyRunProfile } from '../gpu/run-profile.js';
 import { createOllamaScenarioMutationClient } from '../mutation/ollama-mutator.js';
 import { createOperators } from '../mutation/operators.js';
 import { recordMutationBanditRewards, resolveMutationEnsemble } from '../mutation/ensemble.js';
@@ -23,7 +28,14 @@ import { createPostgresArchiveStore } from './archive-repository.js';
 import { buildBaselineCoverage, evaluateCandidate } from './evaluate-candidate.js';
 import { assignNiche, emptyNiches, nicheKey } from './niches.js';
 import { selectParents } from './select-parents.js';
-import { buildF5Progress, readF5RunState, writeF5Progress } from './f5-progress.js';
+import { buildF5Progress, readF5RunState, writeF5Progress, writeF5RunState } from './f5-progress.js';
+import {
+  countOpenSignalHits,
+  loadFingerprintLedger,
+  shouldSkipSandboxRun,
+  type FingerprintLedger,
+} from '../findings/fingerprint-ledger.js';
+import { buildCheckpointReport, writeCheckpointReport } from './evolve-checkpoint.js';
 
 const log = createLogger('evolve');
 
@@ -37,6 +49,11 @@ export type EvolveOptions = {
   dryRun?: boolean;
   candidateTimeoutMs?: number;
   mutationIndexOffset?: number;
+  /** S14.2 — claves niche `rol|modulo|outcome` */
+  focusNicheKeys?: string[];
+  /** S14.3 — parar si tras N min no hay progreso mínimo */
+  checkpointMinutes?: number;
+  checkpointMinElites?: number;
 };
 
 export type GenerationSummary = {
@@ -44,6 +61,7 @@ export type GenerationSummary = {
   mutationsAttempted: number;
   mutationsValid: number;
   evaluated: number;
+  skippedLedger: number;
   newElites: number;
   replacedElites: number;
   keptCandidates: number;
@@ -55,6 +73,10 @@ export type EvolveResult = {
   generationsCompleted: number;
   budgetMinutes: number;
   budgetExceeded: boolean;
+  checkpointStopEarly?: boolean;
+  checkpointMinElites?: number;
+  checkpointReportPath?: string;
+  skippedSandboxRuns?: number;
   summaries: GenerationSummary[];
   archive: {
     elites: ArchiveEntry[];
@@ -133,21 +155,47 @@ export async function runEvolutionLoop(
   const candidateTimeoutMs = options.candidateTimeoutMs ?? DEFAULT_CANDIDATE_TIMEOUT_MS;
   const mutationOffset = options.mutationIndexOffset ?? 0;
 
+  applyRunProfile(config.runProfile);
+
   const corpus = listScenarios().filter((s) => (s.flow ?? []).length > 0);
   const outputDir = join(scenariosDirectory(), 'candidates');
   const ensemble = await resolveMutationEnsemble(config.databaseUrl);
   const operators = createOperators(ensemble);
-  const mutateClient = createOllamaScenarioMutationClient({ baseUrl: config.ollamaUrl });
-  const embeddings = createOllamaEmbeddingsClient({
-    baseUrl: config.ollamaUrl,
-    ...(config.embeddingModel ? { model: config.embeddingModel } : {}),
-  });
+  const mutateClient = wrapMutationClientWithGpuOrchestrator(
+    config.ollamaUrl,
+    createOllamaScenarioMutationClient({ baseUrl: config.ollamaUrl }),
+  );
+  const embeddings = wrapEmbeddingsClientWithGpuOrchestrator(
+    config.ollamaUrl,
+    createOllamaEmbeddingsClient({
+      baseUrl: config.ollamaUrl,
+      ...(config.embeddingModel ? { model: config.embeddingModel } : {}),
+    }),
+  );
   const embeddingCache = createFileEmbeddingCache();
   const orchestrator = new EvolutionOrchestrator(config);
   const evaluateFn = deps.evaluate ?? evaluateCandidate;
+  const focusNicheSet = options.focusNicheKeys?.length
+    ? new Set(options.focusNicheKeys)
+    : undefined;
+  let fingerprintLedger: FingerprintLedger | null = null;
+  if (!options.dryRun && config.databaseUrl) {
+    fingerprintLedger = await loadFingerprintLedger(config.databaseUrl);
+  }
+  const checkpointMs =
+    options.checkpointMinutes && options.checkpointMinutes > 0
+      ? options.checkpointMinutes * 60_000
+      : 0;
+  const checkpointMinElites = options.checkpointMinElites ?? 2;
+  let lastCheckpointAt = started;
+  let checkpointStopEarly = false;
+  let checkpointReportPath: string | undefined;
+  let skippedSandboxRuns = 0;
 
   const emptyAtStart = new Set(
-    emptyNiches(corpus, new Set((await store.listElites()).map((e) => e.nicheKey))).map(nicheKey),
+    emptyNiches(corpus, new Set((await store.listElites()).map((e) => e.nicheKey)))
+      .filter((n) => !focusNicheSet || focusNicheSet.has(nicheKey(n)))
+      .map(nicheKey),
   );
 
   const summaries: GenerationSummary[] = [];
@@ -184,6 +232,16 @@ export async function runEvolutionLoop(
   const publishF5 = (generation: number, message?: string) => {
     if (process.env.EPIS2_EVOLAB_F5_WATCHDOG !== '1') return;
     const state = readF5RunState();
+    const elapsedMinutes = (Date.now() - started) / 60_000;
+    if (state) {
+      writeF5RunState({
+        ...state,
+        lastGenerationsCompleted: generation,
+        newElitesInEmpty: newElitesInPreviouslyEmpty,
+        elapsedMinutes,
+        status: 'running',
+      });
+    }
     const snapshot = buildF5Progress({
       runState: state,
       overrides: {
@@ -193,7 +251,7 @@ export async function runEvolutionLoop(
         generationsTotal: options.generations,
         generationsCompleted: generation,
         currentGeneration: generation,
-        elapsedMinutes: (Date.now() - started) / 60_000,
+        elapsedMinutes,
         newElitesInEmpty: newElitesInPreviouslyEmpty,
         ...(message ? { message } : {}),
       },
@@ -213,6 +271,7 @@ export async function runEvolutionLoop(
       mutationsAttempted: 0,
       mutationsValid: 0,
       evaluated: 0,
+      skippedLedger: 0,
       newElites: 0,
       replacedElites: 0,
       keptCandidates: 0,
@@ -232,6 +291,7 @@ export async function runEvolutionLoop(
         elites,
         seed: gen + mutationOffset,
         count: Math.min(population, Math.max(corpus.length, 1)),
+        ...(focusNicheSet ? { focusNicheKeys: focusNicheSet } : {}),
       });
       const parentPool = parents.length > 0 ? parents : corpus.slice(0, population);
 
@@ -295,8 +355,36 @@ export async function runEvolutionLoop(
           continue;
         }
 
+        const niche = assignNiche(scenario);
+        const nKey = nicheKey(niche);
+
+        if (fingerprintLedger) {
+          const skip = shouldSkipSandboxRun(scenario, fingerprintLedger);
+          if (skip.skip) {
+            genSummary.skippedLedger += 1;
+            skippedSandboxRuns += 1;
+            genSummary.discarded += 1;
+            await store.insert({
+              candidateId: randomUUID(),
+              scenarioYaml: stringifyYaml(scenario),
+              niche,
+              nicheKey: nKey,
+              fitness: minimalFitness(skip.reason ?? 'ledger_skip'),
+              status: 'discarded',
+              discardReason: skip.reason?.slice(0, 500) ?? 'ledger_skip',
+              parentIds: record.parentIds,
+              operator: record.operator,
+              generation: gen,
+            });
+            continue;
+          }
+        }
+
         genSummary.evaluated += 1;
         const remainingMs = deadline - Date.now();
+        const signalHits = fingerprintLedger
+          ? countOpenSignalHits(scenario, fingerprintLedger)
+          : 0;
         const evalResult = await evaluateFn(orchestrator, {
           scenario,
           candidatePath: path,
@@ -305,10 +393,8 @@ export async function runEvolutionLoop(
           corpusForNovelty,
           embeddings,
           embeddingCache,
+          ...(signalHits > 0 ? { openSignalFingerprintHits: signalHits } : {}),
         });
-
-        const niche = assignNiche(scenario);
-        const nKey = nicheKey(niche);
 
         const entry: ArchiveEntry = {
           candidateId: scenario.id,
@@ -362,19 +448,40 @@ export async function runEvolutionLoop(
     summaries.push(genSummary);
     generationsCompleted = gen;
     publishF5(gen, `Gen ${gen}: ${genSummary.newElites} élite(s) nueva(s)`);
+
+    if (checkpointMs > 0 && Date.now() - lastCheckpointAt >= checkpointMs) {
+      if (newElitesInPreviouslyEmpty < checkpointMinElites) {
+        checkpointStopEarly = true;
+        log.info('Checkpoint stop early', {
+          newElitesInPreviouslyEmpty,
+          checkpointMinElites,
+          generation: gen,
+        });
+        break;
+      }
+      lastCheckpointAt = Date.now();
+    }
+
     if (budgetExceeded) break;
   }
 
   const elites = await store.listElites();
   const occupied = new Set(elites.map((e) => e.nicheKey));
   for (const s of corpus) occupied.add(nicheKey(assignNiche(s)));
-  const empty = emptyNiches(corpus, occupied);
+  let empty = emptyNiches(corpus, occupied);
+  if (focusNicheSet) {
+    empty = empty.filter((n) => focusNicheSet.has(nicheKey(n)));
+  }
   const candidatesPending = (await store.listByStatus('candidate')).length;
+  const totalDurationMs = Date.now() - started;
 
-  return {
+  const partialResult: EvolveResult = {
     generationsCompleted,
     budgetMinutes: options.budgetMinutes,
     budgetExceeded,
+    checkpointStopEarly,
+    ...(checkpointMs > 0 ? { checkpointMinElites } : {}),
+    skippedSandboxRuns,
     summaries,
     archive: {
       elites,
@@ -382,7 +489,16 @@ export async function runEvolutionLoop(
       candidatesPending,
       newElitesInPreviouslyEmpty,
     },
-    totalDurationMs: Date.now() - started,
+    totalDurationMs,
+  };
+
+  if (checkpointStopEarly) {
+    checkpointReportPath = writeCheckpointReport(buildCheckpointReport(partialResult));
+  }
+
+  return {
+    ...partialResult,
+    ...(checkpointReportPath ? { checkpointReportPath } : {}),
   };
 }
 

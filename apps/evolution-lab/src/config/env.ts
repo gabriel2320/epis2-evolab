@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { z } from 'zod';
+import { applyRunProfile, resolveRunProfile, type RunProfile } from '../gpu/run-profile.js';
 
 const EvolabEnvSchema = z.object({
   enabled: z.boolean(),
@@ -29,6 +30,8 @@ const EvolabEnvSchema = z.object({
   llmSimMode: z.enum(['off', 'plan', 'execute']),
   /** minimal: solo metadata/result/evaluation/findings; sin api/, model/, logs/ por run. */
   evidenceMode: z.enum(['full', 'minimal']),
+  /** S13 — política browser/GPU: api-only | hybrid | visual-smoke */
+  runProfile: z.enum(['api-only', 'hybrid', 'visual-smoke']),
 });
 
 export type EvolabConfig = z.infer<typeof EvolabEnvSchema>;
@@ -88,6 +91,7 @@ function parseLlmSimMode(): 'off' | 'plan' | 'execute' {
 
 export function loadEvolabConfig(): EvolabConfig {
   loadDotEnv();
+  const runProfile: RunProfile = applyRunProfile(resolveRunProfile());
   const config = {
     enabled: envBool('EPIS2_EVOLAB_ENABLED', false),
     ollamaUrl: process.env.EPIS2_EVOLAB_OLLAMA_URL ?? 'http://127.0.0.1:11434',
@@ -114,6 +118,7 @@ export function loadEvolabConfig(): EvolabConfig {
     ollamaRequired: envBool('EPIS2_EVOLAB_OLLAMA_REQUIRED', false),
     llmSimMode: parseLlmSimMode(),
     evidenceMode: parseEvidenceMode(),
+    runProfile,
   };
   return EvolabEnvSchema.parse(config);
 }

@@ -6,6 +6,8 @@ import {
   type ScenarioFitnessRow,
 } from '../persistence/fitness-repository.js';
 import { buildFitnessReport, type FitnessReportData } from '../fitness/report.js';
+import { buildProcessTreeCoverageGaps } from '../process-tree/coverage-gaps.js';
+import { loadProcessTreeSnapshot } from '../process-tree/catalog.js';
 import {
   computeCorpusNovelty,
   createFileEmbeddingCache,
@@ -22,7 +24,34 @@ function printCoverageBar(covered: number, total: number): string {
   return `[${'█'.repeat(filled)}${'·'.repeat(width - filled)}] ${covered}/${total}`;
 }
 
-function printTextReport(data: FitnessReportData, dbRows: ScenarioFitnessRow[] | null): void {
+function printProcessTreeGaps(scenarios: ReturnType<typeof listScenarios>): void {
+  const tree = loadProcessTreeSnapshot();
+  const gaps = buildProcessTreeCoverageGaps(scenarios);
+  console.log('\nÁrbol de procesos EPIS2 (S15.3):');
+  console.log(
+    `  Snapshot: ${tree.nodeCount} nodos · visitados ${gaps.visitedNodeIds.length} · huecos ${gaps.unvisitedNodes.length}`,
+  );
+  console.log('\n  Top nodos no visitados (prioridad mutate):');
+  for (const g of gaps.unvisitedNodes.slice(0, 12)) {
+    console.log(
+      `    · [P${g.priority}] ${g.nodeId} (${g.workspace}) ${g.routeBase} — ${g.labelEs}`,
+    );
+  }
+  if (gaps.unvisitedNodes.length > 12) {
+    console.log(`    … y ${gaps.unvisitedNodes.length - 12} más`);
+  }
+  console.log('\n  Top nichos workspace vacíos:');
+  for (const w of gaps.workspaceGaps.slice(0, 8)) {
+    console.log(`    · [P${w.priority}] ${w.nicheKey}`);
+  }
+}
+
+function printTextReport(
+  data: FitnessReportData,
+  dbRows: ScenarioFitnessRow[] | null,
+  showGaps: boolean,
+  scenarios: ReturnType<typeof listScenarios>,
+): void {
   console.log('EPIS2 Evolab — fitness report (corpus de escenarios)\n');
 
   console.log('Cobertura por módulo (endpoints del catálogo):');
@@ -65,15 +94,20 @@ function printTextReport(data: FitnessReportData, dbRows: ScenarioFitnessRow[] |
   if (dbRows === null) {
     console.log('⚠ Sin DB epis2_evolab — métricas por run omitidas (solo corpus YAML estático)');
   }
+  if (showGaps) {
+    printProcessTreeGaps(scenarios);
+  }
 }
 
 /**
- * `evolab fitness report [--json]` (S7.5): mapa de cobertura del corpus YAML
+ * `evolab fitness report [--json] [--gaps]` (S7.5 + S15.3)
  * contra el catálogo EPIS2 + novedad por embeddings si Ollama está disponible
  * + métricas persistidas si la DB responde. Degrada con gracia sin sandbox,
  * sin Ollama y sin DB.
  */
-export async function runFitnessReport(opts: { json?: boolean } = {}): Promise<number> {
+export async function runFitnessReport(
+  opts: { json?: boolean; gaps?: boolean } = {},
+): Promise<number> {
   const config = loadEvolabConfig();
   const scenarios = listScenarios();
   if (scenarios.length === 0) {
@@ -88,6 +122,7 @@ export async function runFitnessReport(opts: { json?: boolean } = {}): Promise<n
   const novelty = await computeCorpusNovelty(scenarios, client, createFileEmbeddingCache());
 
   const data = buildFitnessReport(scenarios, novelty);
+  const processTreeGaps = opts.gaps ? buildProcessTreeCoverageGaps(scenarios) : undefined;
 
   let dbRows: ScenarioFitnessRow[] | null = null;
   if (config.databaseUrl && (await pingEvolabDatabase(config.databaseUrl))) {
@@ -99,10 +134,16 @@ export async function runFitnessReport(opts: { json?: boolean } = {}): Promise<n
   }
 
   if (opts.json) {
-    console.log(JSON.stringify({ ...data, persisted: dbRows ?? [] }, null, 2));
+    console.log(
+      JSON.stringify(
+        { ...data, persisted: dbRows ?? [], ...(processTreeGaps ? { processTreeGaps } : {}) },
+        null,
+        2,
+      ),
+    );
     return 0;
   }
 
-  printTextReport(data, dbRows);
+  printTextReport(data, dbRows, opts.gaps === true, scenarios);
   return 0;
 }

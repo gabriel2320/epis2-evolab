@@ -9,6 +9,10 @@ import {
   type CandidateRecord,
   type MutationPipelineResult,
 } from '../mutation/pipeline.js';
+import {
+  wrapEmbeddingsClientWithGpuOrchestrator,
+  wrapMutationClientWithGpuOrchestrator,
+} from '../gpu/wrap-clients.js';
 import { createOllamaScenarioMutationClient } from '../mutation/ollama-mutator.js';
 import {
   createOperators,
@@ -159,11 +163,17 @@ export async function runMutate(opts: MutateCommandOptions): Promise<number> {
   const operators = createOperators(ensemble).filter(
     (op) => !opts.operator || op.name === (opts.operator as MutationOperatorName),
   );
-  const client = createOllamaScenarioMutationClient({ baseUrl: config.ollamaUrl });
-  const embeddings = createOllamaEmbeddingsClient({
-    baseUrl: config.ollamaUrl,
-    ...(config.embeddingModel ? { model: config.embeddingModel } : {}),
-  });
+  const client = wrapMutationClientWithGpuOrchestrator(
+    config.ollamaUrl,
+    createOllamaScenarioMutationClient({ baseUrl: config.ollamaUrl }),
+  );
+  const embeddings = wrapEmbeddingsClientWithGpuOrchestrator(
+    config.ollamaUrl,
+    createOllamaEmbeddingsClient({
+      baseUrl: config.ollamaUrl,
+      ...(config.embeddingModel ? { model: config.embeddingModel } : {}),
+    }),
+  );
 
   const result = await runMutationPipeline({
     count: opts.count,

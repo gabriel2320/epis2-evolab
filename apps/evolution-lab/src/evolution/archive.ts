@@ -56,18 +56,24 @@ export function scoreFitness(input: {
   novelty: number | null;
   durationMs: number;
   executionOk: boolean;
+  /** S14.5 — hallazgos signal open ya conocidos en ledger para este cluster */
+  openSignalFingerprintHits?: number;
 }): number {
   if (!input.executionOk) return -1;
   const costPenalty = (Math.min(input.durationMs, 120_000) / 60_000) * 0.25;
   const highFindings = input.highFindingsCount ?? 0;
   const routineFindings = Math.max(0, input.findingsCount - highFindings);
+  const signalHits = input.openSignalFingerprintHits ?? 0;
+  const actionabilityPenalty =
+    signalHits >= 3 ? 6 : signalHits > 0 ? 2 * signalHits : 0;
   return (
     2.5 * input.newEndpoints +
     1.25 * input.newAuditEvents +
     4 * highFindings +
     1.25 * routineFindings +
     3 * (input.novelty ?? 0) -
-    costPenalty
+    costPenalty -
+    actionabilityPenalty
   );
 }
 

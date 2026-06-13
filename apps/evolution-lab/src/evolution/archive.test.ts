@@ -128,6 +128,22 @@ describe('scoreFitness', () => {
     });
     expect(high).toBeGreaterThan(low);
   });
+
+  it('penaliza accionabilidad con signal hits saturados (S14.5)', () => {
+    const base = {
+      newEndpoints: 2,
+      newAuditEvents: 1,
+      findingsCount: 3,
+      highFindingsCount: 2,
+      novelty: 0.1,
+      durationMs: 30_000,
+      executionOk: true,
+    };
+    const plain = scoreFitness(base);
+    const penalized = scoreFitness({ ...base, openSignalFingerprintHits: 3 });
+    expect(penalized).toBeLessThan(plain);
+    expect(plain - penalized).toBe(6);
+  });
 });
 
 describe('decideElite', () => {

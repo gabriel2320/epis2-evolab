@@ -167,6 +167,12 @@ export function readF5RunState(cwd = process.cwd()): F5RunState | null {
   }
 }
 
+export function writeF5RunState(state: F5RunState, cwd = process.cwd()): void {
+  const dir = f5ExtendedDir(cwd);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(f5RunStatePath(cwd), JSON.stringify(state, null, 2), 'utf8');
+}
+
 export function readF5Progress(cwd = process.cwd()): F5ProgressSnapshot | null {
   const progressPath = f5ProgressPath(cwd);
   if (existsSync(progressPath)) {

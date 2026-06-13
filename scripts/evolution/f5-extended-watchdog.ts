@@ -17,8 +17,9 @@ import {
   type F5ProgressSnapshot,
   type F5RunState,
 } from '../../apps/evolution-lab/src/evolution/f5-progress.js';
-import { evaluateResourceHealth } from '../../apps/evolution-lab/src/evolution/f5-resources.js';
+import { evaluateResourceHealth, resolveResourceLimitsForProfile } from '../../apps/evolution-lab/src/evolution/f5-resources.js';
 import { sampleF5Resources } from '../../apps/evolution-lab/src/evolution/f5-resource-sampler.js';
+import { applyRunProfile, resolveRunProfile } from '../../apps/evolution-lab/src/gpu/run-profile.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const LOG_DIR = f5ExtendedDir(ROOT);
@@ -30,12 +31,13 @@ const RUN_LOG_PATH = join(LOG_DIR, 'evolve-run.log');
 const SUBAGENT_PROMPT_PATH = join(LOG_DIR, 'subagent-watchdog-prompt.md');
 
 const DEFAULTS = {
-  budgetMinutes: 360,
-  generations: 36,
+  budgetMinutes: 120,
+  generations: 24,
   population: 6,
   maxAttempts: 8,
   resourcePollSec: 45,
   resourceWaitRetries: 6,
+  checkpointMinutes: 45,
 };
 
 const args = process.argv.slice(2);
@@ -46,6 +48,7 @@ const population = intArg('--population', DEFAULTS.population);
 const maxAttempts = intArg('--max-attempts', DEFAULTS.maxAttempts);
 const resourcePollSec = intArg('--resource-poll-sec', DEFAULTS.resourcePollSec);
 const resourceWaitRetries = intArg('--resource-wait-retries', DEFAULTS.resourceWaitRetries);
+const checkpointMinutes = numArg('--checkpoint-minutes', DEFAULTS.checkpointMinutes);
 
 function intArg(flag: string, fallback: number): number {
   const i = args.indexOf(flag);
@@ -140,7 +143,8 @@ async function checkAndRecordResources(
   progressOverrides: Parameters<typeof saveProgress>[1] = {},
 ): Promise<{ ok: boolean; aborted: boolean }> {
   const sample = await sampleF5Resources();
-  const health = evaluateResourceHealth(sample);
+  const limits = resolveResourceLimitsForProfile(resolveRunProfile());
+  const health = evaluateResourceHealth(sample, limits);
   appendJsonl(RESOURCES_PATH, { ts: sample.ts, health, sample });
   const resources = summarizeResources(sample, health);
   saveProgress(state, {
@@ -168,9 +172,10 @@ async function checkAndRecordResources(
 }
 
 async function waitForHealthyResources(state: F5RunState): Promise<boolean> {
+  const limits = resolveResourceLimitsForProfile(resolveRunProfile());
   for (let i = 0; i < resourceWaitRetries; i += 1) {
     const sample = await sampleF5Resources();
-    const health = evaluateResourceHealth(sample);
+    const health = evaluateResourceHealth(sample, limits);
     appendJsonl(RESOURCES_PATH, { ts: sample.ts, health, sample, waitAttempt: i + 1 });
     if (health.level !== 'critical') {
       saveProgress(state, {
@@ -256,6 +261,8 @@ function runEvolveAttempt(
       String(population),
       '--budget-minutes',
       String(attemptBudget),
+      '--checkpoint-minutes',
+      String(checkpointMinutes),
       '--json',
     ];
     if (dryRun) evolveArgs.push('--dry-run');
@@ -308,13 +315,26 @@ function runEvolveAttempt(
       } catch {
         /* ignore */
       }
+
+      if (parsed?.generationsCompleted != null) {
+        state.lastGenerationsCompleted = parsed.generationsCompleted;
+      }
+      const archive = parsed?.archive as { newElitesInPreviouslyEmpty?: number } | undefined;
+      if (archive?.newElitesInPreviouslyEmpty != null) {
+        state.newElitesInEmpty = archive.newElitesInPreviouslyEmpty;
+      }
+      state.elapsedMinutes = (state.elapsedMinutes ?? 0) + durationMin;
+      saveState(state);
+
       resolvePromise({
         exitCode: code ?? 1,
         durationMin,
         stdout: stdout.slice(-8000),
         stderr: stderr.slice(-4000),
         parsed,
-        stoppedForResources,
+        // Evolve puede haber emitido telemetría antes de un SIGTERM tardío del poll de recursos.
+        stoppedForResources:
+          stoppedForResources && !(parsed?.generationsCompleted != null && parsed.generationsCompleted > 0),
       });
     });
   });
@@ -328,6 +348,7 @@ function printProgress(snapshot: F5ProgressSnapshot | null | undefined): void {
 
 async function main(): Promise<void> {
   mkdirSync(LOG_DIR, { recursive: true });
+  const runProfile = applyRunProfile();
   const state = loadState();
   state.status = 'running';
   saveState(state);
@@ -338,6 +359,8 @@ async function main(): Promise<void> {
     `  Presupuesto: ${budgetMinutes} min · Gen: ${generations} · Pop: ${population}` +
       (dryRun ? ' · DRY-RUN' : ''),
   );
+  console.log(`  Perfil GPU: ${runProfile} (EPIS2_EVOLAB_RUN_PROFILE)`);
+  console.log(`  Checkpoint:   cada ${checkpointMinutes} min (S14.3)`);
   console.log(`  Vigilancia recursos: cada ${resourcePollSec}s (evolab + ollama · modelos locales)`);
   console.log(`  Logs: ${LOG_DIR}`);
   console.log('  UI: npm run evolab:console → http://127.0.0.1:5190/#/f5\n');
@@ -499,6 +522,13 @@ async function main(): Promise<void> {
     elapsedMinutes: state.elapsedMinutes,
     newElitesInEmpty: state.newElitesInEmpty ?? 0,
   });
+
+  if (state.status === 'running') {
+    state.status =
+      (state.newElitesInEmpty ?? 0) >= 5 ? 'completed' : 'completed_under_gate';
+    state.completedAt = nowIso();
+    saveState(state);
+  }
 
   saveProgress(state, { phase: state.status === 'failed' ? 'failed' : 'completed', status: state.status ?? 'completed', message: 'Corrida finalizada' });
   printProgress(buildF5Progress({ runState: state, overrides: { budgetMinutes, generationsTotal: generations, maxAttempts, population, dryRun } }));

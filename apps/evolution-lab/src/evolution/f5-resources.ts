@@ -1,3 +1,5 @@
+import type { RunProfile } from '../gpu/run-profile.js';
+
 export type F5ResourceLevel = 'ok' | 'warn' | 'critical';
 
 export type F5ProcessSample = {
@@ -46,6 +48,38 @@ export const DEFAULT_F5_RESOURCE_LIMITS: F5ResourceLimits = {
   maxGpuMemPercent: 92,
   warnSystemUsedPercent: 85,
 };
+
+const RESOURCE_HYSTERESIS_MS = 5 * 60_000;
+let lastCriticalAtMs = 0;
+
+/** Solo tests — resetea histéresis de recursos. */
+export function resetResourceHealthHysteresis(): void {
+  lastCriticalAtMs = 0;
+}
+
+/** Umbrales adaptados al perfil de corrida (S13.3). */
+export function resolveResourceLimitsForProfile(
+  profile: RunProfile,
+): F5ResourceLimits {
+  switch (profile) {
+    case 'api-only':
+      return {
+        ...DEFAULT_F5_RESOURCE_LIMITS,
+        maxGpuMemPercent: 96,
+        warnSystemUsedPercent: 88,
+      };
+    case 'visual-smoke':
+      return {
+        ...DEFAULT_F5_RESOURCE_LIMITS,
+        maxGpuMemPercent: 88,
+        maxCombinedRssMb: 12_000,
+        warnSystemUsedPercent: 82,
+      };
+    case 'hybrid':
+    default:
+      return DEFAULT_F5_RESOURCE_LIMITS;
+  }
+}
 
 export type F5ResourceHealth = {
   level: F5ResourceLevel;
@@ -104,6 +138,18 @@ export function evaluateResourceHealth(
     bump('warn', `VRAM GPU ${snapshot.gpu.usedPercent.toFixed(1)}% (aviso)`);
   }
 
-  const cooldownSec = level === 'critical' ? 120 : level === 'warn' ? 30 : 0;
+  if (level === 'critical') {
+    lastCriticalAtMs = Date.now();
+  }
+
+  let cooldownSec = level === 'critical' ? 120 : level === 'warn' ? 30 : 0;
+  if (level !== 'critical' && lastCriticalAtMs > 0) {
+    const sinceCriticalMs = Date.now() - lastCriticalAtMs;
+    if (sinceCriticalMs < RESOURCE_HYSTERESIS_MS) {
+      const hysteresisSec = Math.ceil((RESOURCE_HYSTERESIS_MS - sinceCriticalMs) / 1000);
+      cooldownSec = Math.max(cooldownSec, hysteresisSec);
+    }
+  }
+
   return { level, reasons, cooldownSec };
 }

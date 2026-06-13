@@ -117,6 +117,23 @@ export async function updateArchiveStatus(
   `;
 }
 
+export async function getArchiveEntryByCandidateId(
+  databaseUrl: string,
+  candidateId: string,
+): Promise<ArchiveEntry | null> {
+  const sql = getEvolabSql(databaseUrl);
+  const rows = await sql.unsafe<ArchiveRow[]>(
+    `SELECT ${COLUMNS}
+     FROM evolution.evolution_archive
+     WHERE candidate_id = $1
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [candidateId],
+  );
+  if (rows.length === 0) return null;
+  return toEntry(rows[0]!);
+}
+
 /** Élites vigentes (elite | promoted) — a lo sumo una por nicho. */
 export async function listArchiveElites(databaseUrl: string): Promise<ArchiveEntry[]> {
   const sql = getEvolabSql(databaseUrl);

@@ -28,9 +28,12 @@ export type JudgeTriageClient = {
   >;
 };
 
-function sanitizeJudgeParsed(parsed: unknown): unknown {
+/** Normaliza JSON crudo del LLM antes de validar — prioridad la calcula applySuggestedPriority. */
+export function sanitizeJudgeParsed(parsed: unknown): unknown {
   if (!parsed || typeof parsed !== 'object') return parsed;
   const obj = { ...(parsed as Record<string, unknown>) };
+  // El modelo a veces devuelve 0; el schema exige 1–100 pero la prioridad es determinista post-parse.
+  delete obj.suggestedPriority;
   if (Array.isArray(obj.relatedFindingIds)) {
     const uuids = obj.relatedFindingIds.filter(
       (id) => typeof id === 'string' && z.string().uuid().safeParse(id).success,
