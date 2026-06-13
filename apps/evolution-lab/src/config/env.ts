@@ -30,8 +30,8 @@ const EvolabEnvSchema = z.object({
   llmSimMode: z.enum(['off', 'plan', 'execute']),
   /** minimal: solo metadata/result/evaluation/findings; sin api/, model/, logs/ por run. */
   evidenceMode: z.enum(['full', 'minimal']),
-  /** S13 — política browser/GPU: api-only | hybrid | visual-smoke */
-  runProfile: z.enum(['api-only', 'hybrid', 'visual-smoke']),
+  /** S13 — política browser/GPU: api-only | hybrid | visual-smoke | dev-plan */
+  runProfile: z.enum(['api-only', 'hybrid', 'visual-smoke', 'dev-plan']),
 });
 
 export type EvolabConfig = z.infer<typeof EvolabEnvSchema>;

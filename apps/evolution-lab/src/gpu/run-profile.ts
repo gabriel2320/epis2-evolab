@@ -1,13 +1,14 @@
 /**
  * Perfiles de corrida Evolab (S13.2) — política browser/GPU por tipo de sesión.
  */
-export const RUN_PROFILES = ['api-only', 'hybrid', 'visual-smoke'] as const;
+export const RUN_PROFILES = ['api-only', 'hybrid', 'visual-smoke', 'dev-plan'] as const;
 export type RunProfile = (typeof RUN_PROFILES)[number];
 
 const PROFILE_ENV = 'EPIS2_EVOLAB_RUN_PROFILE';
 
 export function resolveRunProfile(raw = process.env[PROFILE_ENV]): RunProfile {
   const v = raw?.trim().toLowerCase();
+  if (v === 'dev-plan' || v === 'dev_plan' || v === 'f5-dev-plan') return 'dev-plan';
   if (v === 'hybrid' || v === 'visual-smoke' || v === 'visual_smoke') {
     return v === 'visual_smoke' ? 'visual-smoke' : v;
   }
@@ -18,6 +19,11 @@ export function resolveRunProfile(raw = process.env[PROFILE_ENV]): RunProfile {
 /** Aplica side-effects de entorno antes de loadEvolabConfig / corrida larga. */
 export function applyRunProfile(profile: RunProfile = resolveRunProfile()): RunProfile {
   switch (profile) {
+    case 'dev-plan':
+      process.env.EPIS2_EVOLAB_BROWSER = '0';
+      process.env.EPIS2_EVOLAB_LLM_CONCURRENCY = process.env.EPIS2_EVOLAB_LLM_CONCURRENCY ?? '1';
+      process.env.EPIS2_EVOLAB_EVIDENCE = process.env.EPIS2_EVOLAB_EVIDENCE ?? 'minimal';
+      break;
     case 'api-only':
       process.env.EPIS2_EVOLAB_BROWSER = '0';
       break;
@@ -35,6 +41,8 @@ export function applyRunProfile(profile: RunProfile = resolveRunProfile()): RunP
 
 export function describeRunProfile(profile: RunProfile): string {
   switch (profile) {
+    case 'dev-plan':
+      return 'F5 dev-plan · API-only · VRAM limitada · nichos clínicos EPIS2';
     case 'api-only':
       return 'API-first · sin Playwright · recomendado evolve/F5';
     case 'hybrid':

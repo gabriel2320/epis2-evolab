@@ -5,6 +5,7 @@ import type { EvolveOptions } from '../evolution/evolve.js';
 import { listScenarios } from '../scenarios/loader.js';
 import { emptyNiches, nicheKey, assignNiche, enumerateNiches } from '../evolution/niches.js';
 import { getGpuStatus } from '../gpu/orchestrator.js';
+import { resolveResourceLimitsForProfile } from '../evolution/f5-resources.js';
 import {
   ledgerSummary,
   loadFingerprintLedger,
@@ -12,6 +13,8 @@ import {
 import { createArchiveStoreForEvolve } from '../evolution/evolve.js';
 import { PRE_EVOLVE_BASE_SCENARIO_IDS } from '../evolution/pre-evolve-gate.js';
 import { readHypotheses } from '../hypotheses/registry.js';
+import { buildDevPlanActionItems } from '../hypotheses/dev-plan.js';
+import { DEV_PLAN_FOCUS_NICHE_KEYS } from '../gpu/vram-governor.js';
 
 export async function printEvolveDryRunPreflight(
   config: EvolabConfig,
@@ -33,9 +36,14 @@ export async function printEvolveDryRunPreflight(
   const ledgerStats = ledgerSummary(ledger);
 
   let gpuLine = 'VRAM: n/d (Ollama no consultado)';
+  const limits = resolveResourceLimitsForProfile(config.runProfile);
   try {
     const gpu = await getGpuStatus({ baseUrl: config.ollamaUrl });
-    gpuLine = `VRAM ${gpu.resources.gpu?.usedPercent.toFixed(1) ?? 'n/d'}% · perfil ${gpu.profile}`;
+    gpuLine =
+      `VRAM ${gpu.resources.gpu?.usedPercent.toFixed(1) ?? 'n/d'}%` +
+      ` (max ${limits.maxGpuMemPercent}%` +
+      (limits.maxGpuMemMb ? ` / ${limits.maxGpuMemMb} MB` : '') +
+      `) · perfil ${gpu.profile}`;
   } catch {
     /* optional */
   }
@@ -76,8 +84,13 @@ export async function printEvolveDryRunPreflight(
 
   const openHypotheses = readHypotheses().filter((h) => h.status === 'open');
   const p0 = openHypotheses.filter((h) => h.priority === 'P0');
+  const devPlanItems = buildDevPlanActionItems(readHypotheses());
   console.log('\n  S16 organic loop:');
   console.log(`    Hipótesis open: ${openHypotheses.length} (${p0.length} P0)`);
+  console.log(`    Dev-plan accionables: ${devPlanItems.length}`);
+  if (config.runProfile === 'dev-plan') {
+    console.log(`    Focus niches dev-plan: ${DEV_PLAN_FOCUS_NICHE_KEYS.join(', ')}`);
+  }
   console.log(`    Pre-evolve smoke: ${PRE_EVOLVE_BASE_SCENARIO_IDS.join(', ')}`);
   console.log('    Gate promote: --hypothesis-id | --fingerprint | --signoff');
   console.log('');

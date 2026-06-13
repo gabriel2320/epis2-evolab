@@ -11,6 +11,7 @@ import {
   wrapMutationClientWithGpuOrchestrator,
 } from '../gpu/wrap-clients.js';
 import { applyRunProfile } from '../gpu/run-profile.js';
+import { awaitVramHeadroom } from '../gpu/vram-governor.js';
 import { createOllamaScenarioMutationClient } from '../mutation/ollama-mutator.js';
 import { createOperators } from '../mutation/operators.js';
 import { recordMutationBanditRewards, resolveMutationEnsemble } from '../mutation/ensemble.js';
@@ -299,6 +300,24 @@ export async function runEvolutionLoop(
         genSummary.durationMs = Date.now() - genStarted;
         summaries.push(genSummary);
         generationsCompleted = gen;
+        continue;
+      }
+
+      const vram = await awaitVramHeadroom({
+        ollamaUrl: config.ollamaUrl,
+        model: config.model,
+        profile: config.runProfile,
+      });
+      if (!vram.ok) {
+        log.warn('Generación omitida — VRAM headroom agotado', {
+          generation: gen,
+          reasons: vram.health.reasons,
+          waitedMs: vram.waitedMs,
+        });
+        genSummary.durationMs = Date.now() - genStarted;
+        summaries.push(genSummary);
+        generationsCompleted = gen;
+        publishF5(gen, `VRAM skip gen ${gen}`);
         continue;
       }
 

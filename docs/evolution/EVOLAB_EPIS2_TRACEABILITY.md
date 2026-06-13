@@ -2,6 +2,8 @@
 
 Cuando una hipótesis evolab se confirma y requiere fix en EPIS2 sandbox:
 
+**Registro completo (bugs, cobertura, capacidades lab):** [`EVOLAB_EPIS2_DEV_REGISTRATION.md`](./EVOLAB_EPIS2_DEV_REGISTRATION.md) · `npm run evolab:dev-register:export`
+
 ## Etiqueta PR
 
 ```

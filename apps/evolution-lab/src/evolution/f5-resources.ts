@@ -38,6 +38,9 @@ export type F5ResourceLimits = {
   minFreeMemMb: number;
   maxCombinedRssMb: number;
   maxGpuMemPercent: number;
+  /** VRAM absoluta (MB) — complementa el umbral porcentual en GPUs pequeñas (RTX 5070 12 GB). */
+  maxGpuMemMb?: number;
+  warnGpuMemPercent: number;
   warnSystemUsedPercent: number;
 };
 
@@ -46,8 +49,51 @@ export const DEFAULT_F5_RESOURCE_LIMITS: F5ResourceLimits = {
   minFreeMemMb: 2048,
   maxCombinedRssMb: 14_000,
   maxGpuMemPercent: 92,
+  warnGpuMemPercent: 85,
   warnSystemUsedPercent: 85,
 };
+
+/** Perfil F5 dev-plan — VRAM conservadora para dejar margen a EPIS2 sandbox + SO. */
+export const DEV_PLAN_F5_RESOURCE_LIMITS: F5ResourceLimits = {
+  maxSystemUsedPercent: 88,
+  minFreeMemMb: 3072,
+  maxCombinedRssMb: 12_000,
+  maxGpuMemPercent: 78,
+  maxGpuMemMb: 9600,
+  warnGpuMemPercent: 72,
+  warnSystemUsedPercent: 82,
+};
+
+function envFloat(key: string): number | undefined {
+  const raw = process.env[key]?.trim();
+  if (!raw) return undefined;
+  const n = Number.parseFloat(raw);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function envInt(key: string): number | undefined {
+  const raw = process.env[key]?.trim();
+  if (!raw) return undefined;
+  const n = Number.parseInt(raw, 10);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+/** Fusiona límites base con overrides de entorno (S13.3 + F5 dev-plan). */
+export function resolveResourceLimitsFromEnv(
+  base: F5ResourceLimits = DEFAULT_F5_RESOURCE_LIMITS,
+): F5ResourceLimits {
+  return {
+    maxSystemUsedPercent:
+      envFloat('EPIS2_EVOLAB_MAX_SYSTEM_RAM_PERCENT') ?? base.maxSystemUsedPercent,
+    minFreeMemMb: envInt('EPIS2_EVOLAB_MIN_FREE_MEM_MB') ?? base.minFreeMemMb,
+    maxCombinedRssMb: envInt('EPIS2_EVOLAB_MAX_COMBINED_RSS_MB') ?? base.maxCombinedRssMb,
+    maxGpuMemPercent: envFloat('EPIS2_EVOLAB_MAX_GPU_MEM_PERCENT') ?? base.maxGpuMemPercent,
+    maxGpuMemMb: envInt('EPIS2_EVOLAB_MAX_GPU_MEM_MB') ?? base.maxGpuMemMb,
+    warnGpuMemPercent: envFloat('EPIS2_EVOLAB_GPU_WARN_PERCENT') ?? base.warnGpuMemPercent,
+    warnSystemUsedPercent:
+      envFloat('EPIS2_EVOLAB_RAM_WARN_PERCENT') ?? base.warnSystemUsedPercent,
+  };
+}
 
 const RESOURCE_HYSTERESIS_MS = 5 * 60_000;
 let lastCriticalAtMs = 0;
@@ -61,24 +107,32 @@ export function resetResourceHealthHysteresis(): void {
 export function resolveResourceLimitsForProfile(
   profile: RunProfile,
 ): F5ResourceLimits {
+  let base: F5ResourceLimits;
   switch (profile) {
+    case 'dev-plan':
+      base = DEV_PLAN_F5_RESOURCE_LIMITS;
+      break;
     case 'api-only':
-      return {
+      base = {
         ...DEFAULT_F5_RESOURCE_LIMITS,
         maxGpuMemPercent: 96,
         warnSystemUsedPercent: 88,
       };
+      break;
     case 'visual-smoke':
-      return {
+      base = {
         ...DEFAULT_F5_RESOURCE_LIMITS,
         maxGpuMemPercent: 88,
         maxCombinedRssMb: 12_000,
         warnSystemUsedPercent: 82,
       };
+      break;
     case 'hybrid':
     default:
-      return DEFAULT_F5_RESOURCE_LIMITS;
+      base = DEFAULT_F5_RESOURCE_LIMITS;
+      break;
   }
+  return resolveResourceLimitsFromEnv(base);
 }
 
 export type F5ResourceHealth = {
@@ -129,13 +183,27 @@ export function evaluateResourceHealth(
     bump('warn', `RSS evolab+ollama ${combined.toFixed(0)} MB (cerca del límite)`);
   }
 
-  if (snapshot.gpu && snapshot.gpu.usedPercent >= limits.maxGpuMemPercent) {
-    bump(
-      'critical',
-      `VRAM GPU ${snapshot.gpu.usedPercent.toFixed(1)}% (≥${limits.maxGpuMemPercent}%)`,
-    );
-  } else if (snapshot.gpu && snapshot.gpu.usedPercent >= limits.maxGpuMemPercent * 0.85) {
-    bump('warn', `VRAM GPU ${snapshot.gpu.usedPercent.toFixed(1)}% (aviso)`);
+  if (snapshot.gpu) {
+    const vramPct = snapshot.gpu.usedPercent;
+    const vramMb = snapshot.gpu.usedMemMb;
+    if (vramPct >= limits.maxGpuMemPercent) {
+      bump(
+        'critical',
+        `VRAM GPU ${vramPct.toFixed(1)}% (≥${limits.maxGpuMemPercent}%)`,
+      );
+    } else if (limits.maxGpuMemMb != null && vramMb >= limits.maxGpuMemMb) {
+      bump(
+        'critical',
+        `VRAM GPU ${vramMb.toFixed(0)} MB (≥${limits.maxGpuMemMb} MB)`,
+      );
+    } else if (vramPct >= limits.warnGpuMemPercent) {
+      bump('warn', `VRAM GPU ${vramPct.toFixed(1)}% (aviso ≥${limits.warnGpuMemPercent}%)`);
+    } else if (
+      limits.maxGpuMemMb != null &&
+      vramMb >= limits.maxGpuMemMb * 0.9
+    ) {
+      bump('warn', `VRAM GPU ${vramMb.toFixed(0)} MB (cerca de ${limits.maxGpuMemMb} MB)`);
+    }
   }
 
   if (level === 'critical') {

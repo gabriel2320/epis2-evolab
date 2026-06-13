@@ -1,5 +1,6 @@
 import { loadEvolabConfig } from '../config/env.js';
-import { evaluateResourceHealth } from '../evolution/f5-resources.js';
+import { evaluateResourceHealth, resolveResourceLimitsForProfile } from '../evolution/f5-resources.js';
+import { resolveRunProfile } from '../gpu/run-profile.js';
 import { getGpuStatus } from '../gpu/orchestrator.js';
 import { describeRunProfile } from '../gpu/run-profile.js';
 
@@ -12,7 +13,10 @@ export async function runGpuStatus(opts: { json?: boolean } = {}): Promise<numbe
     return 0;
   }
 
-  const health = evaluateResourceHealth(status.resources);
+  const health = evaluateResourceHealth(
+    status.resources,
+    resolveResourceLimitsForProfile(resolveRunProfile()),
+  );
   console.log('EPIS2 Evolab — GPU / VRAM (S13)\n');
   console.log(`  Perfil:        ${status.profile} — ${describeRunProfile(status.profile)}`);
   console.log(`  Browser:       ${config.browserEnabled ? 'on' : 'off'}`);

@@ -1,4 +1,5 @@
 import type { HypothesisRecord } from './registry.js';
+import { resolveDevPlanLink } from './dev-plan.js';
 
 /** Etiqueta PR EPIS2: `evolab-fp-<hash12>` (S16.4). */
 export function epis2PrLabel(fingerprint: string): string {
@@ -30,6 +31,13 @@ export function buildTraceabilityChecklist(hypothesis: HypothesisRecord): Tracea
     items.push('Gate: npm run quality:golden-journey (EPIS2) si toca discharge/critical');
     items.push('Replay ancla: evolab replay-fingerprint ' + hypothesis.fingerprint.slice(0, 12));
     items.push('Validar escenario base YAML antes del mutante ancla');
+  }
+
+  const devPlan = resolveDevPlanLink(hypothesis);
+  items.push(`Frente EPIS2: ${devPlan.front} · MF ${devPlan.microphase}`);
+  items.push(`Gate frente: ${devPlan.gate}`);
+  if (devPlan.sessionAction) {
+    items.push(`Acción sesión: ${devPlan.sessionAction}`);
   }
 
   return { prLabel, requiresGoldenJourney, items };
