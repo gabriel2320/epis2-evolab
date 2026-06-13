@@ -1,4 +1,4 @@
-import type { EvaluationResult } from '../contracts/schemas.js';
+import type { EvaluationResult, ScenarioDefinition } from '../contracts/schemas.js';
 import type { DeterministicEvaluator, EvaluatorContext } from './types.js';
 import { ClinicalSafetyEvaluator, CriticalPendingEvaluator } from './clinical-safety.js';
 import { AuditEvaluator } from './audit.js';
@@ -7,6 +7,8 @@ import { CommandResolveEvaluator, PlanFidelityEvaluator } from './plan-fidelity.
 import { CensusIntegrityEvaluator } from './census-integrity.js';
 import { CdrConsistencyEvaluator } from './cdr-consistency.js';
 import { AuditCompletenessEvaluator } from './audit-completeness.js';
+import { NavigationReachableEvaluator } from './navigation-reachable.js';
+import { isBrowserStep } from '../step-engine/schema.js';
 
 export class HttpResultEvaluator implements DeterministicEvaluator {
   id = 'http_result';
@@ -199,10 +201,25 @@ export class RolePermissionEvaluator implements DeterministicEvaluator {
   }
 }
 
-export function buildEvaluatorsForScenario(scenario: {
+export type ScenarioEvaluatorInput = {
   evaluators: string[];
   expected: Record<string, unknown>;
-}): DeterministicEvaluator[] {
+  flow?: ScenarioDefinition['flow'];
+  processNodeId?: string;
+  commandIntent?: string;
+};
+
+export function scenarioEvaluatorInput(scenario: ScenarioDefinition): ScenarioEvaluatorInput {
+  return {
+    evaluators: scenario.evaluators,
+    expected: scenario.expected,
+    ...(scenario.flow !== undefined ? { flow: scenario.flow } : {}),
+    ...(scenario.processNodeId !== undefined ? { processNodeId: scenario.processNodeId } : {}),
+    ...(scenario.commandIntent !== undefined ? { commandIntent: scenario.commandIntent } : {}),
+  };
+}
+
+export function buildEvaluatorsForScenario(scenario: ScenarioEvaluatorInput): DeterministicEvaluator[] {
   const ids = [...scenario.evaluators];
   if (scenario.expected.permissionDeniedVisible === true && !ids.includes('dom_state')) {
     ids.push('dom_state');
@@ -241,6 +258,13 @@ export function buildEvaluatorsForScenario(scenario: {
   ) {
     ids.push('visual_shell');
   }
+  const hasBrowser = (scenario.flow ?? []).some((step) => isBrowserStep(step));
+  if (
+    (hasBrowser || scenario.processNodeId || scenario.commandIntent) &&
+    !ids.includes('navigation_reachable')
+  ) {
+    ids.push('navigation_reachable');
+  }
   const functional = new HttpResultEvaluator();
   functional.id = 'functional';
   const map: Record<string, DeterministicEvaluator> = {
@@ -258,6 +282,7 @@ export function buildEvaluatorsForScenario(scenario: {
     cdr_consistency: new CdrConsistencyEvaluator(),
     audit_completeness: new AuditCompletenessEvaluator(),
     visual_shell: new VisualShellEvaluator(),
+    navigation_reachable: new NavigationReachableEvaluator(),
   };
   return ids.map((id) => map[id]).filter((e): e is DeterministicEvaluator => e !== undefined);
 }

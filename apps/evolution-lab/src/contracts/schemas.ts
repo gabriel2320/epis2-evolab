@@ -90,6 +90,11 @@ export const ScenarioDefinitionSchema = z.object({
   maxAttempts: z.number().int().positive().optional(),
   tags: z.array(z.string()).optional(),
   execution: z.enum(['deterministic', 'plan']).optional(),
+  /** S15.4 — trazabilidad árbol reconciliado EPIS2 */
+  processNodeId: z.string().min(1).optional(),
+  workspaceId: z.string().min(1).optional(),
+  /** S15.6 — intent command-registry (snapshot evolab) */
+  commandIntent: z.string().min(1).optional(),
 });
 
 export type ScenarioDefinition = z.infer<typeof ScenarioDefinitionSchema>;

@@ -13,6 +13,10 @@ export type EvaluatorContext = {
   observations: ScenarioObservation[];
   /** Label declarado en el YAML (actionObservation) para la acción evaluada. */
   actionObservation?: string;
+  /** S15.5 — metadatos árbol procesos */
+  processNodeId?: string;
+  commandIntent?: string;
+  browserOpens?: string[];
 };
 
 export interface DeterministicEvaluator {

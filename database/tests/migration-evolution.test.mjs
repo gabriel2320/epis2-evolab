@@ -37,4 +37,10 @@ describe('migration-evolution', () => {
     expect(sql).toContain('model_bandit_stats');
     expect(sql).toContain('model_bandit_events');
   });
+
+  it('Sprint 14: fingerprint ledger view + structural_signature', async () => {
+    const sql = await readFile(join(migrationsDir, '006_fingerprint_ledger.sql'), 'utf8');
+    expect(sql).toContain('evolution.fingerprint_ledger');
+    expect(sql).toContain('structural_signature');
+  });
 });

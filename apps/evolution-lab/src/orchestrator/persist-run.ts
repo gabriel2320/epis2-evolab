@@ -6,6 +6,7 @@ import type {
 } from '../contracts/schemas.js';
 import type { ScenarioObservation } from '../evaluators/types.js';
 import { createLogger } from '../logger.js';
+import { computeScenarioStructuralSignature } from '../findings/fingerprint-structural.js';
 import { persistRunBundle } from '../persistence/repository.js';
 import { persistScenarioFitness } from '../fitness/persist-fitness.js';
 import type { createFindingsFromEvaluations } from '../findings/creator.js';
@@ -49,6 +50,9 @@ export async function persistRun(
       findings: input.findings,
       evidenceDir: input.evidenceDir,
       finalStatus: input.finalStatus,
+      ...(input.fitness
+        ? { structuralSignature: computeScenarioStructuralSignature(input.fitness.scenario) }
+        : {}),
     });
     log.info('Run persistido en epis2_evolab', { runId: input.run.id });
   } catch (err) {

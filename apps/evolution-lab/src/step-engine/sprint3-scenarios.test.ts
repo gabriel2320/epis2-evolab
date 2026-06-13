@@ -8,7 +8,7 @@ import type {
 } from '../target/types.js';
 import { loadScenario } from '../scenarios/loader.js';
 import { executeDeclarativeSteps } from './engine.js';
-import { buildEvaluatorsForScenario } from '../evaluators/deterministic.js';
+import { buildEvaluatorsForScenario, scenarioEvaluatorInput } from '../evaluators/deterministic.js';
 
 const SESSION: TargetSession = {
   cookies: 'session=test',
@@ -67,7 +67,7 @@ function runEvaluators(
   scenario: ReturnType<typeof loadScenario>,
   observations: Awaited<ReturnType<typeof executeDeclarativeSteps>>['observations'],
 ) {
-  const evaluators = buildEvaluatorsForScenario(scenario);
+  const evaluators = buildEvaluatorsForScenario(scenarioEvaluatorInput(scenario));
   return evaluators.map((ev) =>
     ev.evaluate({
       runId: 'run-test',

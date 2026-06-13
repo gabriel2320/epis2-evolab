@@ -66,6 +66,7 @@ function mapCategory(evaluatorId: string): string {
     case 'audit_completeness':
       return 'audit_trail';
     case 'dom_state':
+    case 'navigation_reachable':
       return 'ui_consistency';
     default:
       return 'regression';

@@ -8,7 +8,7 @@ import type {
 } from '../target/types.js';
 import { loadScenario } from '../scenarios/loader.js';
 import { executeDeclarativeSteps } from './engine.js';
-import { buildEvaluatorsForScenario } from '../evaluators/deterministic.js';
+import { buildEvaluatorsForScenario, scenarioEvaluatorInput } from '../evaluators/deterministic.js';
 import type { ScenarioObservation } from '../evaluators/types.js';
 
 const SESSION: TargetSession = {
@@ -197,7 +197,7 @@ describe('journey admission-discharge-001', () => {
     expect(afterDischarge?.payload.demoPatientListed).toBe(false);
 
     // Evaluación completa con trail de auditoría del ciclo.
-    const evaluations = buildEvaluatorsForScenario(scenario).map((ev) =>
+    const evaluations = buildEvaluatorsForScenario(scenarioEvaluatorInput(scenario)).map((ev) =>
       ev.evaluate({
         runId: '00000000-0000-4000-8000-000000000099',
         scenarioId: scenario.id,

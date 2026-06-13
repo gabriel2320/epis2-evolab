@@ -135,5 +135,10 @@ export async function replayFingerprintCluster(
     });
   }
 
-  return { cluster, anchorReplayStatus, anchorScenarioSource, scenarioRuns };
+  return {
+    cluster,
+    anchorReplayStatus,
+    ...(anchorScenarioSource !== undefined ? { anchorScenarioSource } : {}),
+    scenarioRuns,
+  };
 }

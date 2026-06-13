@@ -4,7 +4,8 @@ import {
   runDeterministicEvaluators,
   type ScenarioObservation,
 } from '../evaluators/types.js';
-import { buildEvaluatorsForScenario } from '../evaluators/deterministic.js';
+import { buildEvaluatorsForScenario, scenarioEvaluatorInput } from '../evaluators/deterministic.js';
+import { isBrowserStep } from '../step-engine/schema.js';
 import { createFindingsFromEvaluations } from '../findings/creator.js';
 
 export type RunEvaluation = {
@@ -21,6 +22,11 @@ export function evaluateRun(input: {
 }): RunEvaluation {
   const { run, scenario, observations } = input;
 
+  const browserOpens = (scenario.flow ?? [])
+    .filter((step) => isBrowserStep(step))
+    .map((step) => step.browser.open)
+    .filter((o): o is string => Boolean(o));
+
   const evalCtx = {
     runId: run.id,
     scenarioId: scenario.id,
@@ -29,9 +35,12 @@ export function evaluateRun(input: {
     ...(scenario.actionObservation !== undefined
       ? { actionObservation: scenario.actionObservation }
       : {}),
+    ...(scenario.processNodeId ? { processNodeId: scenario.processNodeId } : {}),
+    ...(scenario.commandIntent ? { commandIntent: scenario.commandIntent } : {}),
+    ...(browserOpens.length > 0 ? { browserOpens } : {}),
   };
 
-  const evaluators = buildEvaluatorsForScenario(scenario);
+  const evaluators = buildEvaluatorsForScenario(scenarioEvaluatorInput(scenario));
   const evaluations = runDeterministicEvaluators(evaluators, evalCtx);
 
   const findings = createFindingsFromEvaluations({

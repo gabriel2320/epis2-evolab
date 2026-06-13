@@ -9,6 +9,8 @@ export type PersistRunInput = {
   findings: Finding[];
   evidenceDir: string;
   finalStatus: RunStatus | string;
+  /** S14.1 — firma estructural del escenario para dedup ledger */
+  structuralSignature?: string;
 };
 
 export type RunListRow = {
@@ -96,7 +98,8 @@ export async function persistRunBundle(input: PersistRunInput): Promise<void> {
           INSERT INTO evolution.findings (
             run_id, scenario_id, target_environment_id, category, severity,
             confidence, title, expected_result, actual_result, reproducible,
-            evidence_ids, affected_components, fingerprint, recommended_action
+            evidence_ids, affected_components, fingerprint, recommended_action,
+            structural_signature
           ) VALUES (
             ${f.runId},
             ${f.scenarioId},
@@ -111,7 +114,8 @@ export async function persistRunBundle(input: PersistRunInput): Promise<void> {
             ${sql.json(f.evidenceIds)},
             ${sql.json(f.affectedComponents)},
             ${f.fingerprint},
-            ${f.recommendedAction}
+            ${f.recommendedAction},
+            ${input.structuralSignature ?? null}
           )
         `;
       }
@@ -189,6 +193,74 @@ export async function listFindingsFromDb(
         SELECT id, run_id, scenario_id, severity, title, fingerprint, review_status, created_at,
                judge_verdict, judge_priority
         FROM evolution.findings
+        ORDER BY created_at DESC
+        LIMIT ${limit}
+      `;
+
+  return rows.map((r) => ({
+    id: r.id,
+    runId: r.run_id,
+    scenarioId: r.scenario_id,
+    severity: r.severity,
+    title: r.title,
+    fingerprint: r.fingerprint,
+    reviewStatus: r.review_status,
+    createdAt: r.created_at.toISOString(),
+    judgeVerdict: r.judge_verdict,
+    judgePriority: r.judge_priority,
+  }));
+}
+
+export async function listFindingsByFingerprint(
+  databaseUrl: string,
+  fingerprint: string,
+  opts: { limit?: number; reviewStatus?: string } = {},
+): Promise<FindingListRow[]> {
+  const sql = getEvolabSql(databaseUrl);
+  const limit = opts.limit ?? 100;
+  const fp = fingerprint.trim().toLowerCase();
+
+  const rows = opts.reviewStatus
+    ? await sql<
+        {
+          id: string;
+          run_id: string;
+          scenario_id: string;
+          severity: string;
+          title: string;
+          fingerprint: string;
+          review_status: string;
+          created_at: Date;
+          judge_verdict: string | null;
+          judge_priority: number | null;
+        }[]
+      >`
+        SELECT id, run_id, scenario_id, severity, title, fingerprint, review_status, created_at,
+               judge_verdict, judge_priority
+        FROM evolution.findings
+        WHERE review_status = ${opts.reviewStatus}
+          AND (fingerprint = ${fp} OR fingerprint LIKE ${`${fp}%`})
+        ORDER BY created_at DESC
+        LIMIT ${limit}
+      `
+    : await sql<
+        {
+          id: string;
+          run_id: string;
+          scenario_id: string;
+          severity: string;
+          title: string;
+          fingerprint: string;
+          review_status: string;
+          created_at: Date;
+          judge_verdict: string | null;
+          judge_priority: number | null;
+        }[]
+      >`
+        SELECT id, run_id, scenario_id, severity, title, fingerprint, review_status, created_at,
+               judge_verdict, judge_priority
+        FROM evolution.findings
+        WHERE fingerprint = ${fp} OR fingerprint LIKE ${`${fp}%`}
         ORDER BY created_at DESC
         LIMIT ${limit}
       `;
