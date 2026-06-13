@@ -1,0 +1,69 @@
+id: sim-hipertensi-n-ac1e-evolution-001
+version: 1
+name: SIM — Hipertensión arterial esencial (sintético)
+description: Escenario generado por clinical-case-intel (MF-CASE-05)
+risk: low
+
+target:
+  capabilities:
+    - evolution_note
+    - lab_request
+
+persona:
+  role: physician
+  experience: routine
+
+fixture:
+  type: synthetic-sim-case
+  demoCaseCode: SIM-HIPERTENSI-N-ac1e
+
+goal:
+  action: create_evolution_note
+
+steps:
+  - login_physician
+  - create_evolution_draft
+  - read_evolution_draft
+
+flow:
+  - login:
+      label: login_physician
+  - api:
+      label: evolution_draft_create
+      evidenceLabel: sim-evolution-draft-create
+      method: POST
+      path: /api/drafts
+      body:
+        patientId: '{patientId}'
+        encounterId: '{encounterId}'
+        draftType: evolution_note
+        title: Evolución — SIM-HIPERTENSI-N-ac1e (sintético)
+        body:
+          subjective: Hipertensión arterial esencial (sintético)
+          objective: "Blood pressure: 142/88 mmHg (sintético)"
+          assessment: Hipertensión arterial esencial (sintético)
+          plan: Seguimiento ambulatorio en 7 días (demo)
+      capture:
+        draftId: draft.id
+      failOnMissingCapture: No se pudo crear borrador de evolución (HTTP {status})
+  - api:
+      label: evolution_draft_read
+      evidenceLabel: sim-evolution-draft-read
+      method: GET
+      path: '/api/drafts/{draftId}'
+      observe:
+        payload: [status, ok, draftId]
+
+expected:
+  draftCreated: true
+
+evaluators:
+  - functional
+
+actionObservation: evolution_draft_create
+timeoutMs: 90000
+maxAttempts: 2
+tags:
+  - sim-case
+  - clinical-case-intel
+  - smoke

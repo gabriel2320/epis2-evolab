@@ -3,8 +3,11 @@
  * IDs alineados con `database/migrations/004_seed_synthetic.sql` y `006_demo_five_cases.sql`.
  */
 
+import { SIM_CLINICAL_CASES } from './simCases.js';
+
 export const SYNTHETIC_LABEL = 'DEMO/SINTÉTICO' as const;
 export const DEMO_IDENTIFIER_SYSTEM = 'EPIS2-DEMO' as const;
+export const SIM_IDENTIFIER_SYSTEM = 'EPIS2-SIM' as const;
 
 export type DemoClinicalCase = {
   patientId: string;
@@ -111,11 +114,17 @@ export const DEMO_CLINICAL_CASES: DemoClinicalCase[] = [
 const FORBIDDEN_REAL_ID = /\b\d{7,8}[-\s]?\d{1,2}\b/;
 
 export function getDemoCaseByPatientId(patientId: string): DemoClinicalCase | undefined {
-  return DEMO_CLINICAL_CASES.find((c) => c.patientId === patientId);
+  return (
+    DEMO_CLINICAL_CASES.find((c) => c.patientId === patientId) ??
+    SIM_CLINICAL_CASES.find((c) => c.patientId === patientId)
+  );
 }
 
 export function getDemoCaseByCode(code: string): DemoClinicalCase | undefined {
-  return DEMO_CLINICAL_CASES.find((c) => c.demoCaseCode === code);
+  return (
+    DEMO_CLINICAL_CASES.find((c) => c.demoCaseCode === code) ??
+    SIM_CLINICAL_CASES.find((c) => c.demoCaseCode === code)
+  );
 }
 
 export function assertDemoCasesInvariants(): string[] {
