@@ -17,3 +17,4 @@ reports/evolution/f5-extended/incidents.jsonl
 reports/evolution/f5-extended/heartbeat.jsonl
 reports/evolution/f5-extended/evolve-run.log
 apps/evolution-lab/scenarios/candidates/
+apps/evolution-lab/data/
