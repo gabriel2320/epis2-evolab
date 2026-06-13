@@ -16,12 +16,16 @@ import {
 } from './cli/commands.js';
 import { runFitnessReport } from './cli/fitness-command.js';
 import { runMutate } from './cli/mutate-command.js';
-import { runEvolve } from './cli/evolve-command.js';
+import { runEvolve, parseFocusNicheKeys } from './cli/evolve-command.js';
 import { runMetamorphic } from './cli/metamorphic-command.js';
 import { runJudgeTriage } from './cli/judge-command.js';
 import { runJudgeEval } from './cli/judge-eval-command.js';
 import { runBanditReport, runBanditSeed } from './cli/bandit-command.js';
 import { runArchivePromote } from './cli/archive-promote-command.js';
+import { runGpuStatus } from './cli/gpu-command.js';
+import { runHypothesisCommand } from './cli/hypothesis-command.js';
+import { runReplayFingerprint } from './cli/replay-fingerprint-command.js';
+import { runPreEvolveBaseSmokeGate } from './evolution/pre-evolve-gate.js';
 import { EvolutionOrchestrator } from './orchestrator/orchestrator.js';
 import { replayRun } from './replay/replay.js';
 import { regenerateRun, type RegenerateStrategy } from './replay/regenerate.js';
@@ -41,6 +45,10 @@ function parseArgs(argv: string[]): {
     const arg = args[i];
     if (arg === '--all') {
       booleans.all = true;
+      continue;
+    }
+    if (arg === '--gaps') {
+      booleans.gaps = true;
       continue;
     }
     if (arg === '--json') {
@@ -81,6 +89,10 @@ function parseArgs(argv: string[]): {
     }
     if (arg === '--skip-preflight') {
       booleans.skipPreflight = true;
+      continue;
+    }
+    if (arg === '--skip-base-smoke') {
+      booleans.skipBaseSmoke = true;
       continue;
     }
     if (arg === '--reset-fixtures') {
@@ -124,6 +136,13 @@ async function main(): Promise<number> {
   switch (command) {
     case 'doctor':
       return runDoctor({ ...(booleans.strict ? { strict: true } : {}) });
+    case 'gpu': {
+      if (positionals[0] === 'status' || positionals.length === 0) {
+        return runGpuStatus({ ...(booleans.json ? { json: true } : {}) });
+      }
+      console.error('Uso: evolab gpu status [--json]');
+      return 1;
+    }
     case 'models':
       if (booleans.bandit) {
         return runBanditReport({
@@ -141,10 +160,13 @@ async function main(): Promise<number> {
     case 'fitness': {
       const subcommand = positionals[0] ?? 'report';
       if (subcommand !== 'report') {
-        console.error('Uso: evolab fitness report [--json]');
+        console.error('Uso: evolab fitness report [--json] [--gaps]');
         return 1;
       }
-      return runFitnessReport({ ...(booleans.json ? { json: true } : {}) });
+      return runFitnessReport({
+        ...(booleans.json ? { json: true } : {}),
+        ...(booleans.gaps ? { gaps: true } : {}),
+      });
     }
     case 'mutate': {
       const count = Number.parseInt(flags.count ?? '10', 10);
@@ -192,9 +214,15 @@ async function main(): Promise<number> {
       const generations = Number.parseInt(flags.generations ?? '3', 10);
       const budgetMinutes = Number.parseFloat(flags['budget-minutes'] ?? '30');
       const population = flags.population ? Number.parseInt(flags.population, 10) : undefined;
+      const checkpointMinutes = flags['checkpoint-minutes']
+        ? Number.parseFloat(flags['checkpoint-minutes'])
+        : undefined;
+      const checkpointMinElites = flags['checkpoint-min-elites']
+        ? Number.parseInt(flags['checkpoint-min-elites'], 10)
+        : undefined;
       if (!Number.isFinite(generations) || generations < 1) {
         console.error(
-          'Uso: evolab evolve --generations N --budget-minutes M [--population K] [--json] [--dry-run]',
+          'Uso: evolab evolve --generations N --budget-minutes M [--population K] [--focus-niches keys] [--checkpoint-minutes M] [--json] [--dry-run]',
         );
         return 1;
       }
@@ -202,14 +230,73 @@ async function main(): Promise<number> {
         console.error('--budget-minutes debe ser > 0');
         return 1;
       }
+      let focusNicheKeys: string[] | undefined;
+      try {
+        focusNicheKeys = parseFocusNicheKeys(flags['focus-niches']);
+      } catch (err) {
+        console.error(err instanceof Error ? err.message : String(err));
+        return 1;
+      }
       return runEvolve({
         generations,
         budgetMinutes,
         ...(population !== undefined && Number.isFinite(population) ? { population } : {}),
+        ...(focusNicheKeys?.length ? { focusNicheKeys } : {}),
+        ...(checkpointMinutes !== undefined && Number.isFinite(checkpointMinutes)
+          ? { checkpointMinutes }
+          : {}),
+        ...(checkpointMinElites !== undefined && Number.isFinite(checkpointMinElites)
+          ? { checkpointMinElites }
+          : {}),
         ...(booleans.json ? { json: true } : {}),
         ...(booleans.dryRun ? { dryRun: true } : {}),
         ...(booleans.skipPreflight ? { skipPreflight: true } : {}),
+        ...(booleans.skipBaseSmoke ? { skipBaseSmoke: true } : {}),
       });
+    }
+    case 'hypothesis': {
+      const sub = (positionals[0] ?? 'list') as 'list' | 'add' | 'update' | 'trace';
+      return runHypothesisCommand({
+        sub,
+        ...(booleans.json ? { json: true } : {}),
+        ...(flags.fingerprint ? { fingerprint: flags.fingerprint } : {}),
+        ...(flags.id ? { id: flags.id } : {}),
+        ...(flags.title ? { title: flags.title } : {}),
+        ...(flags.owner ? { owner: flags.owner } : {}),
+        ...(flags.theme ? { theme: flags.theme } : {}),
+        ...(flags.notes ? { notes: flags.notes } : {}),
+        ...(flags['anchor-finding'] ? { anchorFindingId: flags['anchor-finding'] } : {}),
+        ...(flags['anchor-scenario'] ? { anchorScenarioId: flags['anchor-scenario'] } : {}),
+        ...(flags.status === 'open' || flags.status === 'fixed' || flags.status === 'wontfix'
+          ? { status: flags.status }
+          : {}),
+        ...(flags.priority === 'P0' || flags.priority === 'P1' || flags.priority === 'P2'
+          ? { priority: flags.priority }
+          : {}),
+      });
+    }
+    case 'replay-fingerprint': {
+      const fp = positionals[0] ?? flags.fingerprint;
+      if (!fp) {
+        console.error('Uso: evolab replay-fingerprint <fingerprint> [--max-scenarios N] [--json]');
+        return 1;
+      }
+      const maxScenarios = flags['max-scenarios']
+        ? Number.parseInt(flags['max-scenarios'], 10)
+        : undefined;
+      return runReplayFingerprint({
+        fingerprint: fp,
+        ...(maxScenarios !== undefined && Number.isFinite(maxScenarios) ? { maxScenarios } : {}),
+        ...(booleans.json ? { json: true } : {}),
+        ...(booleans.resetFixtures ? { resetFixtures: true } : {}),
+      });
+    }
+    case 'pre-evolve-smoke': {
+      const smoke = await runPreEvolveBaseSmokeGate({
+        ...(booleans.resetFixtures ? { resetFixtures: true } : {}),
+      });
+      for (const msg of smoke.messages) console.log(msg);
+      return smoke.ok ? 0 : 1;
     }
     case 'run': {
       let config = loadEvolabConfig();
@@ -378,6 +465,9 @@ async function main(): Promise<number> {
         ...(top !== undefined && Number.isFinite(top) ? { top } : {}),
         ...(booleans.dryRun ? { dryRun: true } : {}),
         ...(booleans.force ? { force: true } : {}),
+        ...(flags.signoff ? { signoff: flags.signoff } : {}),
+        ...(flags['hypothesis-id'] ? { hypothesisId: flags['hypothesis-id'] } : {}),
+        ...(flags.fingerprint ? { fingerprint: flags.fingerprint } : {}),
       });
     }
     case 'plan': {
@@ -397,14 +487,18 @@ async function main(): Promise<number> {
 
 Comandos:
   doctor       Verificar entorno, guards, Ollama (opcional), target (--strict: falla si target caído)
+  gpu          VRAM / perfiles de corrida (gpu status [--json])
   models       Inventario de modelos Ollama
   scenarios    Listar escenarios declarativos
   runs         Listar runs recientes (--limit N) [PostgreSQL o filesystem]
   findings     Listar hallazgos (--limit N, --status open) — incluye UUID
-  fitness      Mapa de cobertura y novedad del corpus (fitness report [--json])
+  fitness      Mapa de cobertura y novedad (fitness report [--json] [--gaps])
   mutate       Motor de mutación LLM (--count N [--operator X] [--seed-scenario id] [--novelty-threshold T] [--json])
   metamorphic  Relaciones metamórficas (run --relation <id> | --tag <tag> | --all [--dry-run] [--json])
-  evolve       Loop evolutivo MAP-Elites (--generations N --budget-minutes M [--population K] [--json] [--dry-run])
+  evolve       Loop evolutivo MAP-Elites (--generations N --budget-minutes M [--skip-base-smoke] …)
+  hypothesis   Registry FP→hipótesis (list | add | update | trace)
+  pre-evolve-smoke  Gate S16.3 — smoke escenarios base (sin mutantes)
+  replay-fingerprint  Reproducir cluster por fingerprint (<fp> [--max-scenarios N])
   queue        Cola human_review (--limit N)
   import       Backfill reports/evolution/runs → PostgreSQL (--dry-run, --force)
   review       Decidir hallazgo (--finding <uuid> --decision approved|rejected|duplicate)
@@ -412,7 +506,7 @@ Comandos:
   judge        Gate eval (judge eval [--golden path] [--mock] [--json])
   models       Inventario Ollama (--bandit [--seed] [--json])
   bandit       Warm-start UCB (bandit seed)
-  archive      Promover élites al corpus (archive promote [--top N] [--candidate-id id])
+  archive      Promover élites (archive promote [--hypothesis-id id|--fingerprint fp|--signoff "motivo"])
   run          Ejecutar escenario (--scenario <id> | --all | --tag <tag>) [--skip-preflight] [--reset-fixtures] [--evidence minimal|full]
   plan         Plan LLM simulated user (--scenario <id>) sin ejecutar target
   replay       Reproducir run (--run <id>) con mismo seed [filesystem o DB]
@@ -421,6 +515,7 @@ Comandos:
   validate     Validación interna
 
 Eficiencia (API-first, sin Chromium por defecto):
+  EPIS2_EVOLAB_RUN_PROFILE=api-only|hybrid|visual-smoke
   EPIS2_EVOLAB_BROWSER=false
   EPIS2_EVOLAB_LLM_SIM=off|plan|execute
   EPIS2_EVOLAB_OLLAMA_REQUIRED=false

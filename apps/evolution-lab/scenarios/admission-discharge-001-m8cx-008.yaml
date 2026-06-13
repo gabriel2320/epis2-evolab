@@ -13,7 +13,7 @@ persona:
   role: physician
 fixture:
   type: synthetic-journey
-  demoCaseCode: DEMO-001
+  demoCaseCode: DEMO-004
   unitCode: CIRUGIA-DEMO
   bedId: f0000002-0000-4000-8000-000000000001
   criticalResultId: f0000004-0000-4000-8000-000000000002

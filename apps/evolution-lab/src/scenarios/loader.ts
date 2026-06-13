@@ -9,16 +9,15 @@ export function scenariosDirectory(): string {
 }
 
 export function loadScenario(scenarioId: string): ScenarioDefinition {
-  const dir = scenariosDirectory();
-  const yamlPath = join(dir, `${scenarioId}.yaml`);
-  const ymlPath = join(dir, `${scenarioId}.yml`);
-  const path = existsSync(yamlPath) ? yamlPath : existsSync(ymlPath) ? ymlPath : undefined;
-  if (!path) {
-    throw new Error(`Escenario no encontrado: ${scenarioId}`);
+  for (const dir of [scenariosDirectory(), candidatesDirectory()]) {
+    const yamlPath = join(dir, `${scenarioId}.yaml`);
+    const ymlPath = join(dir, `${scenarioId}.yml`);
+    const path = existsSync(yamlPath) ? yamlPath : existsSync(ymlPath) ? ymlPath : undefined;
+    if (path) {
+      return loadScenarioFromFile(path);
+    }
   }
-  const raw = readFileSync(path, 'utf8');
-  const parsed = parseYaml(raw) as unknown;
-  return ScenarioDefinitionSchema.parse(parsed);
+  throw new Error(`Escenario no encontrado: ${scenarioId}`);
 }
 
 export function listScenarios(): ScenarioDefinition[] {

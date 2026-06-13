@@ -41,7 +41,12 @@ export function resetCriticalPendingAcknowledgement(criticalResultId: string): S
 export function prepareScenarioFixture(
   fixture: Record<string, unknown> | undefined,
 ): SandboxPrepResult {
-  if (fixture?.criticalResultPendingAcknowledgement === true) {
+  if (
+    fixture?.criticalResultPendingAcknowledgement === true ||
+    (typeof fixture?.criticalResultId === 'string' &&
+      fixture.criticalResultId &&
+      fixture.criticalResultPendingAcknowledgement !== false)
+  ) {
     const criticalResultId = fixture.criticalResultId;
     if (typeof criticalResultId !== 'string' || !criticalResultId) {
       return { ok: false, message: 'fixture.criticalResultId requerido para crítico pendiente' };

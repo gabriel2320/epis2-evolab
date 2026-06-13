@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { loadEvolabConfig } from '../config/env.js';
 import { EvolutionOrchestrator } from '../orchestrator/orchestrator.js';
 import { getRunSeedFromDb } from '../persistence/repository.js';
+import { resolveScenarioDefinition } from '../scenarios/resolve-scenario.js';
 import { loadRunMetadata, type ReplayMetadata } from './replay.js';
 
 export type RegenerateStrategy = 'exact' | 'new-seed';
@@ -44,11 +45,12 @@ export async function regenerateRun(
   runId: string,
   strategy: RegenerateStrategy = 'exact',
 ): Promise<ReturnType<EvolutionOrchestrator['executeRun']>> {
+  const config = loadEvolabConfig();
   const ctx = await resolveRunContext(runId);
   const seed = resolveSeedForStrategy(strategy, ctx.randomSeed);
-  const orchestrator = new EvolutionOrchestrator(loadEvolabConfig());
-  const result = await orchestrator.executeRun(ctx.scenarioId, seed);
-  return result;
+  const { scenario } = await resolveScenarioDefinition(ctx.scenarioId, config.databaseUrl);
+  const orchestrator = new EvolutionOrchestrator(config);
+  return orchestrator.executeScenarioDefinition(scenario, seed);
 }
 
 export async function replayRunFromAnySource(

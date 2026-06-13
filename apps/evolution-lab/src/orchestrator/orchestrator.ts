@@ -10,6 +10,7 @@ import type {
   ScenarioDefinition,
 } from '../contracts/schemas.js';
 import { loadScenario } from '../scenarios/loader.js';
+import { resolveResetFixtures } from '../scenarios/fixture-policy.js';
 import { Epis2ApiTargetAdapterImpl } from '../target/epis2-api-target-adapter.js';
 import type { PlaywrightController } from '../browser/playwright-controller.js';
 import { EvidenceCollector } from '../evidence/collector.js';
@@ -75,6 +76,10 @@ export class EvolutionOrchestrator {
     seed?: string,
     opts: ExecuteRunOptions = {},
   ): Promise<OrchestratorResult> {
+    const runOpts: ExecuteRunOptions = {
+      ...opts,
+      resetFixtures: resolveResetFixtures(scenario, opts.resetFixtures),
+    };
     const maxAttempts = Math.min(
       scenario.maxAttempts ?? this.config.maxScenarioAttempts,
       this.config.maxScenarioAttempts,
@@ -83,7 +88,7 @@ export class EvolutionOrchestrator {
     let lastError: Error | undefined;
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
       try {
-        return await this.runOnce(scenario, seed, attempt, opts);
+        return await this.runOnce(scenario, seed, attempt, runOpts);
       } catch (err) {
         lastError = err instanceof Error ? err : new Error(String(err));
         if (attempt >= maxAttempts || !isTransientError(lastError.message)) {

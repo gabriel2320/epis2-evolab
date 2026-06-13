@@ -11,6 +11,7 @@ import {
 import type { EvolutionOrchestrator } from '../orchestrator/orchestrator.js';
 import type { ScenarioObservation } from '../evaluators/types.js';
 import { loadScenarioFromFile } from '../scenarios/loader.js';
+import { resolveResetFixtures } from '../scenarios/fixture-policy.js';
 import { minimalFitness, scoreFitness, type CandidateFitness } from './archive.js';
 
 export type BaselineCoverage = {
@@ -27,6 +28,8 @@ export type EvaluateCandidateInput = {
   corpusForNovelty: ScenarioDefinition[];
   embeddings?: EmbeddingsClient | null;
   embeddingCache?: EmbeddingCache;
+  /** S14.5 — penalización accionabilidad en scoreFitness */
+  openSignalFingerprintHits?: number;
 };
 
 export type EvaluateCandidateResult = {
@@ -37,16 +40,7 @@ export type EvaluateCandidateResult = {
   failureReason?: string;
 };
 
-/** Escenarios cuyo fixture requiere reset obligatorio antes de ejecutar. */
-export function scenarioNeedsFixtureReset(scenario: ScenarioDefinition): boolean {
-  const fixture = scenario.fixture as Record<string, unknown> | undefined;
-  if (!fixture) return false;
-  return (
-    fixture.criticalResultPendingAcknowledgement === true ||
-    fixture.medicationStatus === 'suspended' ||
-    fixture.marDoseHeld === true
-  );
-}
+export { scenarioNeedsFixtureReset } from '../scenarios/fixture-policy.js';
 
 function runDurationMs(startedAt: string, completedAt: string | undefined): number {
   if (!completedAt) return 0;
@@ -64,6 +58,7 @@ function computeFitnessFromRun(input: {
   novelty: number | null;
   executionOk: boolean;
   failureReason?: string;
+  openSignalFingerprintHits?: number;
 }): CandidateFitness {
   if (!input.executionOk) {
     return minimalFitness(input.failureReason ?? 'ejecucion_fallida');
@@ -87,7 +82,12 @@ function computeFitnessFromRun(input: {
     score: 0,
     executionOk: true,
   };
-  fitness.score = scoreFitness(fitness);
+  fitness.score = scoreFitness({
+    ...fitness,
+    ...(input.openSignalFingerprintHits !== undefined
+      ? { openSignalFingerprintHits: input.openSignalFingerprintHits }
+      : {}),
+  });
   return fitness;
 }
 
@@ -103,7 +103,7 @@ export async function evaluateCandidate(
   const started = Date.now();
 
   try {
-    const resetFixtures = input.resetFixtures === true || scenarioNeedsFixtureReset(input.scenario);
+    const resetFixtures = resolveResetFixtures(input.scenario, input.resetFixtures);
 
     const result = await orchestrator.executeScenarioDefinition(input.scenario, undefined, {
       ...(resetFixtures ? { resetFixtures: true } : {}),
@@ -136,6 +136,9 @@ export async function evaluateCandidate(
       baseline: input.baseline,
       novelty,
       executionOk,
+      ...(input.openSignalFingerprintHits !== undefined
+        ? { openSignalFingerprintHits: input.openSignalFingerprintHits }
+        : {}),
       ...(failureReason ? { failureReason } : {}),
     });
 

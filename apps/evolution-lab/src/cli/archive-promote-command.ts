@@ -5,12 +5,55 @@ import { pingEvolabDatabase } from '../persistence/client.js';
 import { createPostgresArchiveStore } from '../evolution/archive-repository.js';
 import { listScenarios, scenariosDirectory } from '../scenarios/loader.js';
 import type { ArchiveEntry } from '../evolution/archive.js';
+import {
+  findHypothesisByFingerprint,
+  findHypothesisById,
+  hypothesisAllowsPromote,
+  type HypothesisRecord,
+} from '../hypotheses/registry.js';
+
+export type ArchivePromoteGateResult =
+  | { ok: true; reason: string; hypothesis?: HypothesisRecord }
+  | { ok: false; reason: string };
+
+/** S16.5 — validación promote (testeable sin DB). */
+export function validateArchivePromoteGate(opts: {
+  dryRun?: boolean;
+  signoff?: string;
+  hypothesisId?: string;
+  fingerprint?: string;
+}): ArchivePromoteGateResult {
+  if (opts.dryRun) {
+    return { ok: true, reason: 'dry-run (gate omitido)' };
+  }
+  if (opts.signoff?.trim()) {
+    return { ok: true, reason: `signoff humano — "${opts.signoff.trim()}"` };
+  }
+  const hypothesis = opts.hypothesisId
+    ? findHypothesisById(opts.hypothesisId)
+    : opts.fingerprint
+      ? findHypothesisByFingerprint(opts.fingerprint)
+      : undefined;
+  if (!hypothesis) {
+    return {
+      ok: false,
+      reason: 'requiere --hypothesis-id, --fingerprint o --signoff',
+    };
+  }
+  const gate = hypothesisAllowsPromote(hypothesis);
+  if (!gate.ok) return { ok: false, reason: gate.reason };
+  return { ok: true, reason: gate.reason, hypothesis };
+}
 
 export type ArchivePromoteOptions = {
   candidateIds?: string[];
   top?: number;
   dryRun?: boolean;
   force?: boolean;
+  /** S16.5 — bypass explícito sin hipótesis vinculada */
+  signoff?: string;
+  hypothesisId?: string;
+  fingerprint?: string;
 };
 
 function corpusIds(): Set<string> {
@@ -61,6 +104,20 @@ export async function runArchivePromote(opts: ArchivePromoteOptions): Promise<nu
   if (entries.length === 0) {
     console.error('Sin élites para promover');
     return 1;
+  }
+
+  if (!opts.dryRun && !opts.signoff?.trim()) {
+    const gate = validateArchivePromoteGate(opts);
+    if (!gate.ok) {
+      console.error(`Promoción bloqueada: ${gate.reason}`);
+      console.error(
+        '  evolab hypothesis list · evolab hypothesis trace --fingerprint <fp> · --signoff "motivo"',
+      );
+      return 1;
+    }
+    console.log(`Gate S16.5: ${gate.reason}\n`);
+  } else if (opts.signoff?.trim()) {
+    console.log(`Gate S16.5: signoff humano — "${opts.signoff.trim()}"\n`);
   }
 
   const existing = corpusIds();
