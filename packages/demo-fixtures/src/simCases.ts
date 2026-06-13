@@ -1,5 +1,5 @@
 /**
- * Casos SIM promovidos desde clinical-case-intel (MF-CASE-04).
+ * Casos SIM promovidos desde clinical-case-intel (MF-CASE-04/06).
  * IDs estables vía `stableSimCaseUuids` — alineados con `042_sim_clinical_cases_seed.sql`.
  * Regenerar: `npm run case-intel:export-fixtures -- --apply`
  */
@@ -174,6 +174,40 @@ export const SIM_CLINICAL_CASES: DemoClinicalCase[] = [
       recentEvents: "Paciente masculino de 27 años con sibilancias intermitentes y disnea leve al esfuerzo. Sin fiebre ni expectoración purulenta. Refiere mejoría parcial con broncodilatador de rescate (sintético). (sintético)",
       relevantLabs: "Peak expiratory flow 320 L/min (sintético) · SpO2 97% en aire ambiente (sintético)",
       activeMedications: "Salbutamol (demo) 2 inhalaciones PRN · Budesonida (demo) 200 mcg BID",
+      pendingItems: "Seguimiento ambulatorio en 7 días (demo)",
+      clinicalAlerts: "SIM / SINTÉTICO — sin alertas reales",
+    },
+  },
+  {
+    patientId: 'a0000002-0000-4000-8000-f4fce778c742',
+    demoCaseCode: 'SIM-TRASTORNO-DE-9437',
+    displayName: "Paciente Sim — Valentina M.",
+    birthDate: '1985-03-22',
+    sex: 'F',
+    scenario: "Trastorno depresivo mayor (sintético)",
+    encounterId: 'b0000002-0000-4000-8000-e07343ee457b',
+    summaryFields: {
+      activeProblems: "Trastorno depresivo mayor (sintético)",
+      recentEvents: "Últimas 24 h: evolución estable (sintético)",
+      relevantLabs: "PHQ-9 score 14 score (sintético)",
+      activeMedications: "Sin medicación activa registrada (sintético)",
+      pendingItems: "Seguimiento ambulatorio en 7 días (demo)",
+      clinicalAlerts: "SIM / SINTÉTICO — sin alertas reales",
+    },
+  },
+  {
+    patientId: 'a0000002-0000-4000-8000-bbc56d13c875',
+    demoCaseCode: 'SIM-ENFERMEDAD-R-40f8',
+    displayName: "Paciente Sim — Andrés P.",
+    birthDate: '1968-10-05',
+    sex: 'M',
+    scenario: "Enfermedad renal crónica estadio 3 (sintético)",
+    encounterId: 'b0000002-0000-4000-8000-0e1165b65328',
+    summaryFields: {
+      activeProblems: "Enfermedad renal crónica estadio 3 (sintético)",
+      recentEvents: "Últimas 24 h: evolución estable (sintético)",
+      relevantLabs: "Creatinine 1.8 mg/dL (sintético)",
+      activeMedications: "Lisinopril (demo) 10 mg daily",
       pendingItems: "Seguimiento ambulatorio en 7 días (demo)",
       clinicalAlerts: "SIM / SINTÉTICO — sin alertas reales",
     },
