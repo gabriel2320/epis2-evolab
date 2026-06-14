@@ -49,7 +49,7 @@ export async function loadFingerprintLedger(
 
   const sql = getEvolabSql(databaseUrl);
 
-  let viewRows: FingerprintLedgerRow[] = [];
+  let viewRows: FingerprintLedgerRow[];
   try {
     const raw = await sql<
       {

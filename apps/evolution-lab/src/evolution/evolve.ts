@@ -311,7 +311,7 @@ export async function runEvolutionLoop(
       if (!vram.ok) {
         log.warn('Generación omitida — VRAM headroom agotado', {
           generation: gen,
-          reasons: vram.health.reasons,
+          reasons: vram.health.reasons.join(' · '),
           waitedMs: vram.waitedMs,
         });
         genSummary.durationMs = Date.now() - genStarted;

@@ -1,5 +1,3 @@
-import { writeFileSync, mkdirSync } from 'node:fs';
-import { join, resolve } from 'node:path';
 import type { EvolabConfig } from '../config/env.js';
 import type { EvolveOptions } from '../evolution/evolve.js';
 import { listScenarios } from '../scenarios/loader.js';

@@ -9,7 +9,6 @@ import { fileURLToPath } from 'node:url';
 import {
   buildF5Progress,
   f5ExtendedDir,
-  f5ProgressPath,
   f5RunStatePath,
   formatTerminalF5Progress,
   summarizeResources,

@@ -81,7 +81,7 @@ async function aggregateByCategory(databaseUrl: string): Promise<CategoryAgg[]> 
   return [...map.values()].sort((a, b) => b.signal - a.signal);
 }
 
-async function countF5SessionFindings(databaseUrl: string, runIdPrefix: string): Promise<number> {
+async function countF5SessionFindings(databaseUrl: string, _runIdPrefix: string): Promise<number> {
   const sql = getEvolabSql(databaseUrl);
   const rows = await sql<{ cnt: number }[]>`
     SELECT COUNT(*)::int AS cnt

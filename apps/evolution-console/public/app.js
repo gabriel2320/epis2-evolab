@@ -4,7 +4,7 @@ let f5PollTimer;
 
 function stopF5Poll() {
   if (f5PollTimer) {
-    clearInterval(f5PollTimer);
+    globalThis.clearInterval(f5PollTimer);
     f5PollTimer = undefined;
   }
 }
@@ -98,7 +98,7 @@ async function pageF5Progress() {
         <p class="hint">Consola: <code>npm run evolab:console</code> · logs en <code>reports/evolution/f5-extended/</code></p>`;
       if (isF5Active(p)) {
         stopF5Poll();
-        f5PollTimer = setInterval(paint, 5000);
+        f5PollTimer = globalThis.setInterval(paint, 5000);
       }
     } catch (err) {
       main.innerHTML = `<p class="empty">Error: ${esc(err.message)}</p>`;

@@ -100,7 +100,7 @@ export async function replayFingerprintCluster(
     .slice(0, maxScenarios);
 
   const config = loadEvolabConfig();
-  let anchorReplayStatus = 'skipped';
+  let anchorReplayStatus: string;
   let anchorScenarioSource: ReplayFingerprintResult['anchorScenarioSource'];
 
   try {

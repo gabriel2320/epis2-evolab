@@ -1,7 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { loadEvolabConfig } from '../config/env.js';
-import { pingEvolabDatabase } from '../persistence/client.js';
 import { createFileEmbeddingCache, createOllamaEmbeddingsClient } from '../fitness/novelty.js';
 import {
   runMutationPipeline,
@@ -158,7 +157,7 @@ export async function runMutate(opts: MutateCommandOptions): Promise<number> {
     return 1;
   }
 
-  let ensemble = await resolveMutationEnsemble(config.databaseUrl);
+  const ensemble = await resolveMutationEnsemble(config.databaseUrl);
 
   const operators = createOperators(ensemble).filter(
     (op) => !opts.operator || op.name === (opts.operator as MutationOperatorName),

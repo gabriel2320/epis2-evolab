@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import type { F5ResourceHealth, F5ResourceSnapshot } from './f5-resources.js';
-import { dirname, join, resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 
 export type F5ProgressPhase =
   | 'idle'

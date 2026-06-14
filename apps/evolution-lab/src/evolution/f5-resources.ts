@@ -82,17 +82,21 @@ function envInt(key: string): number | undefined {
 export function resolveResourceLimitsFromEnv(
   base: F5ResourceLimits = DEFAULT_F5_RESOURCE_LIMITS,
 ): F5ResourceLimits {
-  return {
+  const maxGpuMemMb = envInt('EPIS2_EVOLAB_MAX_GPU_MEM_MB') ?? base.maxGpuMemMb;
+  const limits: F5ResourceLimits = {
     maxSystemUsedPercent:
       envFloat('EPIS2_EVOLAB_MAX_SYSTEM_RAM_PERCENT') ?? base.maxSystemUsedPercent,
     minFreeMemMb: envInt('EPIS2_EVOLAB_MIN_FREE_MEM_MB') ?? base.minFreeMemMb,
     maxCombinedRssMb: envInt('EPIS2_EVOLAB_MAX_COMBINED_RSS_MB') ?? base.maxCombinedRssMb,
     maxGpuMemPercent: envFloat('EPIS2_EVOLAB_MAX_GPU_MEM_PERCENT') ?? base.maxGpuMemPercent,
-    maxGpuMemMb: envInt('EPIS2_EVOLAB_MAX_GPU_MEM_MB') ?? base.maxGpuMemMb,
     warnGpuMemPercent: envFloat('EPIS2_EVOLAB_GPU_WARN_PERCENT') ?? base.warnGpuMemPercent,
     warnSystemUsedPercent:
       envFloat('EPIS2_EVOLAB_RAM_WARN_PERCENT') ?? base.warnSystemUsedPercent,
   };
+  if (maxGpuMemMb !== undefined) {
+    limits.maxGpuMemMb = maxGpuMemMb;
+  }
+  return limits;
 }
 
 const RESOURCE_HYSTERESIS_MS = 5 * 60_000;
