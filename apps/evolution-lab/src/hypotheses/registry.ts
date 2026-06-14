@@ -19,11 +19,24 @@ export type HypothesisRecord = {
   updatedAt: string;
 };
 
-export function hypothesesPath(reportsDir?: string): string {
-  if (reportsDir) {
-    return join(resolve(process.cwd(), reportsDir), 'hypotheses.jsonl');
+/** Resuelve raíz del monorepo Evolab (CLI desde raíz; vitest desde apps/evolution-lab). */
+function findEvolabRoot(start = process.cwd()): string {
+  let dir = resolve(start);
+  for (let depth = 0; depth < 8; depth += 1) {
+    if (existsSync(join(dir, 'reports/evolution/hypotheses.jsonl'))) return dir;
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
   }
-  return join(resolve(process.cwd(), 'reports/evolution'), 'hypotheses.jsonl');
+  return resolve(start);
+}
+
+export function hypothesesPath(reportsDir?: string): string {
+  const root = findEvolabRoot();
+  if (reportsDir) {
+    return join(resolve(root, reportsDir), 'hypotheses.jsonl');
+  }
+  return join(root, 'reports/evolution/hypotheses.jsonl');
 }
 
 function parseLine(line: string): HypothesisRecord | null {
